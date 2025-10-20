@@ -5,7 +5,7 @@ local S = default.get_translator
 
 -- The hand
 -- Override the hand item registered in the engine in builtin/game/register.lua
-minetest.override_item("", {
+core.override_item("", {
 	wield_scale = {x=1,y=1,z=2.5},
 	tool_capabilities = {
 		full_punch_interval = 0.9,
