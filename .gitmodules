@@ -1,0 +1,9 @@
+[submodule "mods/barrier"]
+	path = mods/barrier
+	url = git@github.com:CryptechTest/barrier.git
+[submodule "mods/naturalslopeslib"]
+	path = mods/naturalslopeslib
+	url = git@github.com:CryptechTest/naturalslopeslib.git
+[submodule "mods/schemlib"]
+	path = mods/schemlib
+	url = git@github.com:CryptechTest/schemlib.git
