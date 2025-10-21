@@ -270,38 +270,39 @@ function va_units.drive(unit, movement_def, dtime)
         local yaw = unit.object:get_yaw()
         local stepheight = unit.object:get_properties().stepheight or 0.6
 
-        -- Calculate the position in front of the entity
+        -- Precompute positions for step detection
         local front_pos = {
             x = pos.x + cos(yaw + pi / 2),
             y = pos.y,
             z = pos.z + sin(yaw + pi / 2),
         }
-
-        -- Check the node directly in front at the current height
-        local node_in_front = core.get_node_or_nil(front_pos)
-        local node_in_front_def = node_in_front and core.registered_nodes[node_in_front.name]
-
-        -- Check the node above the current height (potential step)
         local step_pos = { x = front_pos.x, y = front_pos.y + 1, z = front_pos.z }
-        local node_above = core.get_node_or_nil(step_pos)
-        local node_above_def = node_above and core.registered_nodes[node_above.name]
 
-        -- Determine if stepping up is needed and valid
+        -- Detect nodes in front and above
+        local node_in_front = core.get_node_or_nil(front_pos)
+        local node_above = core.get_node_or_nil(step_pos)
+
+        -- Validate step-up conditions
         local step_up_needed = false
-        if node_in_front_def and node_in_front_def.walkable then
-            if node_above_def and not node_above_def.walkable then
-                local height_diff = step_pos.y - pos.y
-                if height_diff <= stepheight then
-                    step_up_needed = true
+        if node_in_front and node_in_front.name ~= "air" then
+            local node_in_front_def = core.registered_nodes[node_in_front.name]
+            if node_in_front_def and node_in_front_def.walkable then
+                if node_above and node_above.name == "air" then
+                    local height_diff = step_pos.y - pos.y
+                    if height_diff <= stepheight then
+                        step_up_needed = true
+                    end
                 end
             end
         end
 
-        -- Smooth stepping by adjusting the y velocity
+        -- Apply velocity for smooth stepping
         if step_up_needed then
+            -- Gradually adjust the y velocity for smoother stepping
+            local new_y_velocity = math.min(vel.y + 0.2, 1.5) -- Lower max value for less aggressive stepping
             unit.object:set_velocity({
                 x = movement_def.movement_speed * cos(yaw + pi / 2),
-                y = 2, -- Adjust this value for smoother stepping
+                y = new_y_velocity,
                 z = movement_def.movement_speed * sin(yaw + pi / 2),
             })
         else
