@@ -1,2 +1,5 @@
 dofile(core.get_modpath("va_units") .. "/api.lua")
---dofile(core.get_modpath("va_units") .. "/vox/t1/bot/vox_scout.lua")
+dofile(core.get_modpath("va_units") .. "/t1/bot/vox_scout.lua")
+dofile(core.get_modpath("va_units") .. "/t1/bot/vox_fast_infantry.lua")
+dofile(core.get_modpath("va_units") .. "/t1/bot/vox_repair.lua")
+dofile(core.get_modpath("va_units") .. "/t1/bot/vox_light_plasma.lua")
