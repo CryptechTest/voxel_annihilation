@@ -1,13 +1,43 @@
 va_units = {}
 va_units.registered_models = {}
 
-
 local units = {}
+
+local abs, cos, floor, sin, sqrt, pi =
+    math.abs, math.cos, math.floor, math.sin, math.sqrt, math.pi
+
+local function find_free_pos(pos)
+    local check = {
+        { x = 1,  y = 0, z = 0 },
+        { x = 1,  y = 1, z = 0 },
+        { x = -1, y = 0, z = 0 },
+        { x = -1, y = 1, z = 0 },
+        { x = 0,  y = 0, z = 1 },
+        { x = 0,  y = 1, z = 1 },
+        { x = 0,  y = 0, z = -1 },
+        { x = 0,  y = 1, z = -1 }
+    }
+
+    for _, c in pairs(check) do
+        local npos = { x = pos.x + c.x, y = pos.y + c.y, z = pos.z + c.z }
+        local node = core.get_node_or_nil(npos)
+
+        if node and node.name then
+            local def = core.registered_nodes[node.name]
+            if def and not def.walkable and
+                def.liquidtype == "none" then
+                return npos
+            end
+        end
+    end
+
+    return pos
+end
 
 local function update_physics(unit)
     local object = unit.object
     if not object then
-        return 
+        return
     end
     physics_api.update_physics(object)
 end
@@ -22,7 +52,7 @@ function va_units.register_unit(name, def)
             },
             visual = "mesh",
             visual_size = def.visual_size or { x = 1, y = 1 },
-            collisionbox = def.collisionbox ~= nil and def.collisionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
+            collisionbox = def.collisionbox ~= nil and def.collisionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
             selectionbox = def.selectionbox ~= nil and def.selectionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
             stepheight = def.stepheight or 0.6,
             physical = def.physical ~= nil and def.physical or true,
@@ -32,10 +62,17 @@ function va_units.register_unit(name, def)
             hp_max = def.hp_max or 1,
             nametag = def.nametag or "",
         },
+        _player_rotation = def.player_rotation or { x = 0, y = 0, z = 0 },
+        _driver_attach_at = def.driver_attach_at or { x = 0, y = 0, z = 0 },
+        _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
+        _driver = nil,
         _target_pos = nil,
         _timer = 0,
         _jumping = 0,
+        _v = 0,
         _animation = def.animations.stand,
+        _animations = def.animations or {},
+        _animation_speed = def.animation_speed or 30,
         _owner_name = nil,
         on_activate = def.on_activate or function(self, staticdata, dtime_s)
             local animations = def.animations
@@ -44,6 +81,16 @@ function va_units.register_unit(name, def)
                 self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
             end
             self.object:set_animation(self._animation or animations.stand, 1, 0)
+        end,
+        on_rightclick = def.on_rightclick or function(self, clicker)
+            local player_name = clicker:get_player_name()
+            if self._owner_name == player_name then
+                if self._driver == nil then
+                    va_units.attach(clicker, self)
+                else
+                    va_units.detach(clicker)
+                end
+            end
         end,
         get_staticdata = def.get_staticdata or function(self)
             return self._owner_name or ""
@@ -54,6 +101,19 @@ function va_units.register_unit(name, def)
                 return
             end
             update_physics(self)
+            if self._driver then
+                va_units.drive(self, { movement_speed = def.movement_speed * 2.5 }, dtime)
+            else
+                -- check for commands from AI or other sources
+
+                -- no driver, so stop movement
+                local vel = self.object:get_velocity()
+                self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                if self._animation ~= self._animations.stand then
+                    self._animation = self._animations.stand
+                    self.object:set_animation(self._animation, 1.0)
+                end
+            end
             self._timer = self._timer + dtime
         end
     })
@@ -85,49 +145,6 @@ function va_units.register_unit(name, def)
         end
     })
 
-    player_api.register_model(def.mesh or name .. ".gltf", {
-        mesh = def.mesh or name .. ".gltf",
-        textures = { def.texture or name .. ".png" },
-        visual_size = def.visual_size or { x = 1, y = 1 },
-        stepheight = def.stepheight or 0.6,
-        animations = def.animations or {},
-        animation_speed = def.animation_speed or 30,
-    })
-
-    core.register_craftitem("va_units:" .. name .. "_test", {
-        description = def.spawn_item_description,
-        inventory_image = def.item_inventory_image or ("va_units_" .. name .. "_item.png"),
-        groups = { spawn_egg = 2, not_in_creative_inventory = 1 },
-        on_place = function(itemstack, placer, pointed_thing)
-
-            local under = core.get_node(pointed_thing.under)
-            local nodedef = core.registered_nodes[under.name]
-
-            if nodedef and nodedef.on_rightclick then
-                return nodedef.on_rightclick(
-                    pointed_thing.under, under, placer, itemstack, pointed_thing)
-            end
-            local model = "va_units_" .. name .. ".gltf"
-            if not player_api then
-                core.log("error", "player_api is not loaded!")
-                return itemstack
-            end
-            core.log("action", "Setting player model to: " .. model)
-            player_api.set_model(placer, model)
-            core.after(0, function()
-                player_api.set_animation(placer, "stand")
-                placer:set_physics_override({
-                    jump = def.jump or 0.6,
-                    speed = def.movement_speed or 1.0 ,
-                })
-            end)            
-            itemstack:take_item()
-
-            return itemstack
-        end
-    })
-
-    
 end
 
 function va_units.spawn_unit(unit_name, owner_name, pos)
@@ -137,6 +154,130 @@ function va_units.spawn_unit(unit_name, owner_name, pos)
     end
     local obj = core.add_entity(pos, unit_name, owner_name)
     return obj
+end
+
+function va_units.attach(player, unit)
+    unit._player_rotation = unit._player_rotation or { x = 0, y = 0, z = 0 }
+    unit._driver_attach_at = unit._driver_attach_at or { x = 0, y = 0, z = 0 }
+    unit._driver_eye_offset = unit._driver_eye_offset or { x = 0, y = 0, z = 0 }
+
+    local rot_view = 0
+
+    if unit._player_rotation.y == 90 then
+        rot_view = pi / 2
+    end
+
+    local attach_at = unit._driver_attach_at
+    local eye_offset = unit._driver_eye_offset
+    unit._driver = player
+
+    va_units.force_detach(player)
+
+    player_api.player_attached[player:get_player_name()] = true
+    player_api.set_textures(player, {"va_units_invisible.png"})
+    player:set_attach(unit.object, "", attach_at, unit._player_rotation)
+    player:set_eye_offset(eye_offset, unit._driver_eye_offset)
+    player:set_look_horizontal(unit.object:get_yaw() - rot_view)
+end
+
+function va_units.force_detach(player)
+    if not player then return end
+
+    local attached_to = player:get_attach()
+
+    if not attached_to then
+        return
+    end
+
+    local entity = attached_to:get_luaentity()
+
+    if entity and entity._driver
+        and entity._driver == player then
+        entity._driver = nil
+    end
+
+    player:set_detach()
+
+    local name = player:get_player_name()
+
+
+    player_api.player_attached[name] = false
+    player_api.set_animation(player, "stand", 30)
+    player_api.set_textures(player, {"player.png", "player_back.png"})
+    player:set_eye_offset({ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 })
+end
+
+function va_units.detach(player)
+    va_units.force_detach(player)
+
+    core.after(0.1, function()
+        if player and player:is_player() then
+            local pos = find_free_pos(player:get_pos())
+
+            pos.y = pos.y + 0.5
+
+            player:set_pos(pos)
+        end
+    end)
+end
+
+function va_units.drive(unit, movement_def, dtime)
+    local yaw = unit.object:get_yaw() or 0
+
+    local driver = unit._driver
+    if not driver then
+        return
+    end
+    local controls = driver:get_player_control()
+    local animation = unit._animation
+    local vel = unit.object:get_velocity()
+    -- process controls based on movement_def
+    if controls.up then
+        -- move forward
+        unit.object:set_velocity({
+            x = movement_def.movement_speed * cos(unit.object:get_yaw() + pi / 2),
+            y = vel.y,
+            z = movement_def.movement_speed * sin(unit.object:get_yaw() + pi / 2),
+        })
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
+        end        
+    elseif controls.down and (movement_def.backward or 0) > 0 then
+        -- move backward
+        unit.object:set_velocity({
+            x = -movement_def.movement_speed * cos(unit.object:get_yaw() + pi / 2),
+            y = vel.y,
+            z = -movement_def.movement_speed * sin(unit.object:get_yaw() + pi / 2),
+        })
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
+        end
+       
+    else
+        -- stop horizontal movement
+        unit.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+        if animation ~= unit._animations.stand then
+            unit._animation = unit._animations.stand
+            unit.object:set_animation(unit._animation, 1.0)
+        end
+        
+    end
+    local horizontal
+
+
+    horizontal = yaw
+
+    if controls.left then
+        horizontal = horizontal + 0.05
+    elseif controls.right then
+        horizontal = horizontal - 0.05
+    end
+
+
+    unit.object:set_yaw(horizontal)
+    
 end
 
 function va_units.globalstep(dtime)

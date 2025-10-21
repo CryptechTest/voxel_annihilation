@@ -10,6 +10,7 @@ va_units.register_unit("vox_rocket", {
     visual_size = { x = 1, y = 1},
     collisionbox = {-0.5, 0, -0.65, 0.5, 1.95, 0.75},
     selectionbox = { -0.5, 0.0, -0.65, 0.5, 1.8, 0.75 },
+    driver_eye_offset = { x = 0, y = 10, z = -16 },
     stepheight = 0.6,
     hp_max = 10,
     nametag = "VRB-1",

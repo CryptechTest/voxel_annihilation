@@ -10,6 +10,7 @@ va_units.register_unit("vox_constructor", {
     visual_size = { x = 1, y = 1},
     collisionbox = {-0.85, 0, -0.85, 0.85, 2.0, 0.85},
     selectionbox = { -0.85, 0.0, -0.85, 0.85, 1.95, 0.85 },
+    driver_eye_offset = { x = 0, y = 10, z = -16 },
     stepheight = 0.6,
     hp_max = 10,
     nametag = "VCB-1",
