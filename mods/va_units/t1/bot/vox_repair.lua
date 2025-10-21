@@ -1,7 +1,7 @@
 local animations = {
     -- Standard animations.
-    stand     = {x = 0,   y = 0},
-    walk      = {x = 0,  y = 0.5}
+    stand     = {x = 1.08,   y = 1.08},
+    walk      = {x = 0,  y = 1}
 }
 
 va_units.register_unit("vox_repair", {
@@ -14,6 +14,8 @@ va_units.register_unit("vox_repair", {
     hp_max = 10,
     nametag = "VRRRB-1",
     animations = animations,
+    animation_speed = 1.5,
+    movement_speed = 1.0,
     spawn_item_description = "VRRRB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
 })

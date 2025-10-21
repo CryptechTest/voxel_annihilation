@@ -1,6 +1,6 @@
 local animations = {
     -- Standard animations.
-    stand     = {x = 0,   y = 0},
+    stand     = {x = 1.08,   y = 1.08},
     walk      = {x = 0,  y = 1}
 }
 
@@ -14,7 +14,8 @@ va_units.register_unit("vox_light_plasma", {
     hp_max = 10,
     nametag = "VLPB-1",
     animations = animations,
-    animation_speed = 1,
+    animation_speed = 1.0,
+    movement_speed = 0.8,
     spawn_item_description = "VLPB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
 })

@@ -101,10 +101,10 @@ function va_units.register_unit(name, def)
         on_place = function(itemstack, placer, pointed_thing)
 
             local under = core.get_node(pointed_thing.under)
-            local def = core.registered_nodes[under.name]
+            local nodedef = core.registered_nodes[under.name]
 
-            if def and def.on_rightclick then
-                return def.on_rightclick(
+            if nodedef and nodedef.on_rightclick then
+                return nodedef.on_rightclick(
                     pointed_thing.under, under, placer, itemstack, pointed_thing)
             end
             local model = "va_units_" .. name .. ".gltf"
@@ -114,6 +114,13 @@ function va_units.register_unit(name, def)
             end
             core.log("action", "Setting player model to: " .. model)
             player_api.set_model(placer, model)
+            core.after(0, function()
+                player_api.set_animation(placer, "stand")
+                placer:set_physics_override({
+                    jump = 0.6,
+                    speed = def.movement_speed or 1.0 ,
+                })
+            end)            
             itemstack:take_item()
 
             return itemstack

@@ -1,7 +1,7 @@
 local animations = {
     -- Standard animations.
-    stand     = {x = 0,   y = 0},
-    walk      = {x = 0,  y = 0.5}
+    stand     = {x = 1.08,   y = 1.08},
+    walk      = {x = 0,  y = 1}
 }
 
 va_units.register_unit("vox_scout", {
@@ -14,6 +14,8 @@ va_units.register_unit("vox_scout", {
     hp_max = 10,
     nametag = "VFSB-1",
     animations = animations,
+    animation_speed = 3.5,
+    movement_speed = 3.0,
     spawn_item_description = "VFSB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
 })

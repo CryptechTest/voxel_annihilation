@@ -9,3 +9,9 @@ function physics_api.update_physics(object)
     local new_acceleration = { x = current_acceleration.x, y = gravity, z = current_acceleration.z }
     object:set_acceleration(new_acceleration)
 end
+
+function physics_api.set_walk_speed(player, speed)
+    player:set_physics_override({
+        speed = speed,
+    })
+end
