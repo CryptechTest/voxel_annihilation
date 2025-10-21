@@ -10,7 +10,7 @@ function physics_api.update_physics(object)
     object:set_acceleration(new_acceleration)
 end
 
-function physics_api.set_speed(player, speed)
+function physics_api.set_walk_speed(player, speed)
     player:set_physics_override({
         speed = speed,
     })

@@ -92,6 +92,14 @@ function va_units.register_unit(name, def)
                 end
             end
         end,
+        on_punch = def.on_punch or function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
+            if puncher and puncher:is_player() and self._driver == nil then
+                local player_name = puncher:get_player_name()
+                if self._owner_name == player_name then
+                    core.chat_send_player(player_name, "Unit selected: " .. (def.nametag or name))
+                end
+            end
+        end,
         get_staticdata = def.get_staticdata or function(self)
             return self._owner_name or ""
         end,
@@ -102,7 +110,13 @@ function va_units.register_unit(name, def)
             end
             update_physics(self)
             if self._driver then
-                va_units.drive(self, { movement_speed = def.movement_speed * 2.5 }, dtime)
+                va_units.drive(self,
+                    {
+                        movement_speed = def.movement_speed * 2.5,
+                        turn_speed = def.turn_speed or 1,
+                        backward_speed = def
+                            .backward_speed or 0
+                    }, dtime)
             else
                 -- check for commands from AI or other sources
 
@@ -111,7 +125,7 @@ function va_units.register_unit(name, def)
                 self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
                 if self._animation ~= self._animations.stand then
                     self._animation = self._animations.stand
-                    self.object:set_animation(self._animation, 1.0)
+                    self.object:set_animation(self._animation, def.animation_speed or 30)
                 end
             end
             self._timer = self._timer + dtime
@@ -144,7 +158,6 @@ function va_units.register_unit(name, def)
             return itemstack
         end
     })
-
 end
 
 function va_units.spawn_unit(unit_name, owner_name, pos)
@@ -174,7 +187,7 @@ function va_units.attach(player, unit)
     va_units.force_detach(player)
 
     player_api.player_attached[player:get_player_name()] = true
-    player_api.set_textures(player, {"va_units_invisible.png"})
+    player_api.set_textures(player, { "va_units_invisible.png" })
     player:set_attach(unit.object, "", attach_at, unit._player_rotation)
     player:set_eye_offset(eye_offset, unit._driver_eye_offset)
     player:set_look_horizontal(unit.object:get_yaw() - rot_view)
@@ -203,7 +216,7 @@ function va_units.force_detach(player)
 
     player_api.player_attached[name] = false
     player_api.set_animation(player, "stand", 30)
-    player_api.set_textures(player, {"player.png", "player_back.png"})
+    player_api.set_textures(player, { "player.png", "player_back.png" })
     player:set_eye_offset({ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 })
 end
 
@@ -224,6 +237,7 @@ end
 function va_units.drive(unit, movement_def, dtime)
     local yaw = unit.object:get_yaw() or 0
 
+
     local driver = unit._driver
     if not driver then
         return
@@ -231,53 +245,100 @@ function va_units.drive(unit, movement_def, dtime)
     local controls = driver:get_player_control()
     local animation = unit._animation
     local vel = unit.object:get_velocity()
-    -- process controls based on movement_def
-    if controls.up then
-        -- move forward
-        unit.object:set_velocity({
-            x = movement_def.movement_speed * cos(unit.object:get_yaw() + pi / 2),
-            y = vel.y,
-            z = movement_def.movement_speed * sin(unit.object:get_yaw() + pi / 2),
-        })
-        if animation ~= unit._animations.walk then
-            unit._animation = unit._animations.walk
-            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
-        end        
-    elseif controls.down and (movement_def.backward or 0) > 0 then
-        -- move backward
-        unit.object:set_velocity({
-            x = -movement_def.movement_speed * cos(unit.object:get_yaw() + pi / 2),
-            y = vel.y,
-            z = -movement_def.movement_speed * sin(unit.object:get_yaw() + pi / 2),
-        })
-        if animation ~= unit._animations.walk then
-            unit._animation = unit._animations.walk
-            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
-        end
-       
-    else
-        -- stop horizontal movement
-        unit.object:set_velocity({ x = 0, y = vel.y, z = 0 })
-        if animation ~= unit._animations.stand then
-            unit._animation = unit._animations.stand
-            unit.object:set_animation(unit._animation, 1.0)
-        end
-        
-    end
-    local horizontal
 
-
-    horizontal = yaw
+    local horizontal = yaw
 
     if controls.left then
-        horizontal = horizontal + 0.05
+        horizontal = horizontal + (0.05 * (movement_def.turn_speed or 1))
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, unit._animation_speed * 0.66 or 15)
+        end
     elseif controls.right then
-        horizontal = horizontal - 0.05
+        horizontal = horizontal - (0.05 * (movement_def.turn_speed or 1))
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, unit._animation_speed * 0.66 or 15)
+        end
     end
 
 
     unit.object:set_yaw(horizontal)
-    
+
+    if controls.up then
+        local pos = unit.object:get_pos()
+        local yaw = unit.object:get_yaw()
+        local stepheight = unit.object:get_properties().stepheight or 0.6
+
+        -- Calculate the position in front of the entity
+        local front_pos = {
+            x = pos.x + cos(yaw + pi / 2),
+            y = pos.y,
+            z = pos.z + sin(yaw + pi / 2),
+        }
+
+        -- Check the node directly in front at the current height
+        local node_in_front = core.get_node_or_nil(front_pos)
+        local node_in_front_def = node_in_front and core.registered_nodes[node_in_front.name]
+
+        -- Check the node above the current height (potential step)
+        local step_pos = { x = front_pos.x, y = front_pos.y + 1, z = front_pos.z }
+        local node_above = core.get_node_or_nil(step_pos)
+        local node_above_def = node_above and core.registered_nodes[node_above.name]
+
+        -- Determine if stepping up is needed and valid
+        local step_up_needed = false
+        if node_in_front_def and node_in_front_def.walkable then
+            if node_above_def and not node_above_def.walkable then
+                local height_diff = step_pos.y - pos.y
+                if height_diff <= stepheight then
+                    step_up_needed = true
+                end
+            end
+        end
+
+        -- Smooth stepping by adjusting the y velocity
+        if step_up_needed then
+            unit.object:set_velocity({
+                x = movement_def.movement_speed * cos(yaw + pi / 2),
+                y = 2, -- Adjust this value for smoother stepping
+                z = movement_def.movement_speed * sin(yaw + pi / 2),
+            })
+        else
+            -- Normal forward movement
+            unit.object:set_velocity({
+                x = movement_def.movement_speed * cos(yaw + pi / 2),
+                y = vel.y,
+                z = movement_def.movement_speed * sin(yaw + pi / 2),
+            })
+        end
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
+        end
+    elseif controls.down and (movement_def.backward_speed or 0) > 0 then
+        unit.object:set_velocity({
+            x = -movement_def.backward_speed * cos(unit.object:get_yaw() + pi / 2),
+            y = vel.y,
+            z = -movement_def.backward_speed * sin(unit.object:get_yaw() + pi / 2),
+        })
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, (unit._animation_speed * 0.66) or 30)
+        end
+    else
+        -- stop horizontal movement
+        unit.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+        if animation ~= unit._animations.stand and not (controls.left or controls.right or controls.up or controls.down) then
+            unit._animation = unit._animations.stand
+            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
+        end
+    end
+
+
+    if controls.LMB then
+        -- perform action based on selected hotbar item or default action
+    end
 end
 
 function va_units.globalstep(dtime)
