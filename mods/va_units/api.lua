@@ -117,7 +117,7 @@ function va_units.register_unit(name, def)
             core.after(0, function()
                 player_api.set_animation(placer, "stand")
                 placer:set_physics_override({
-                    jump = 0.6,
+                    jump = def.jump or 0.6,
                     speed = def.movement_speed or 1.0 ,
                 })
             end)            
