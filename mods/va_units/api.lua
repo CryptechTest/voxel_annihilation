@@ -1,15 +1,15 @@
 va_units = {}
 va_units.registered_models = {}
 
-local base_gravity = -9.81
 
 local units = {}
 
 local function update_physics(unit)
-    local gravity = base_gravity
-    local current_acceleration = unit.object:get_acceleration()
-    local new_acceleration = { x = current_acceleration.x, y = gravity, z = current_acceleration.z }
-    unit.object:set_acceleration(new_acceleration)
+    local object = unit.object
+    if not object then
+        return 
+    end
+    physics_api.update_physics(object)
 end
 
 function va_units.register_unit(name, def)
@@ -60,7 +60,7 @@ function va_units.register_unit(name, def)
 
     core.register_craftitem("va_units:" .. name .. "_spawn", {
         description = def.spawn_item_description,
-        inventory_image = def.item_inventory_image or "va_units_" .. name .. "_item.png",
+        inventory_image = def.item_inventory_image or ("va_units_" .. name .. "_item.png"),
         groups = { spawn_egg = 2, not_in_creative_inventory = 1 },
         on_place = function(itemstack, placer, pointed_thing)
             local pos = pointed_thing.above
@@ -84,6 +84,43 @@ function va_units.register_unit(name, def)
             return itemstack
         end
     })
+
+    player_api.register_model(def.mesh or name .. ".gltf", {
+        mesh = def.mesh or name .. ".gltf",
+        textures = { def.texture or name .. ".png" },
+        visual_size = def.visual_size or { x = 1, y = 1 },
+        stepheight = def.stepheight or 0.6,
+        animations = def.animations or {},
+        animation_speed = def.animation_speed or 30,
+    })
+
+    core.register_craftitem("va_units:" .. name .. "_test", {
+        description = def.spawn_item_description,
+        inventory_image = def.item_inventory_image or ("va_units_" .. name .. "_item.png"),
+        groups = { spawn_egg = 2, not_in_creative_inventory = 1 },
+        on_place = function(itemstack, placer, pointed_thing)
+
+            local under = core.get_node(pointed_thing.under)
+            local def = core.registered_nodes[under.name]
+
+            if def and def.on_rightclick then
+                return def.on_rightclick(
+                    pointed_thing.under, under, placer, itemstack, pointed_thing)
+            end
+            local model = "va_units_" .. name .. ".gltf"
+            if not player_api then
+                core.log("error", "player_api is not loaded!")
+                return itemstack
+            end
+            core.log("action", "Setting player model to: " .. model)
+            player_api.set_model(placer, model)
+            itemstack:take_item()
+
+            return itemstack
+        end
+    })
+
+    
 end
 
 function va_units.spawn_unit(unit_name, owner_name, pos)
