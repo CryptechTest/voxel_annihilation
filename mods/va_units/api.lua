@@ -2,6 +2,9 @@ va_units = {}
 va_units.registered_models = {}
 
 local units = {}
+local player_units = {}
+local active_units = {}
+local loaded_mapblocks = {}
 
 local abs, cos, floor, sin, sqrt, pi =
     math.abs, math.cos, math.floor, math.sin, math.sqrt, math.pi
@@ -34,12 +37,55 @@ local function find_free_pos(pos)
     return pos
 end
 
+local function check_for_removal(unit)
+    if not unit.object then
+        return true
+    end
+    if unit._marked_for_removal then
+        unit.object:remove()
+        return true
+    end
+    return false
+end
+
+local function keep_loaded(unit)
+    if not unit.object then
+        return
+    end
+    local pos = unit.object:get_pos()
+    local current_mapblock = unit._current_mapblock
+    local mapblock_pos = {
+        x = math.floor(pos.x / 16),
+        y = math.floor(pos.y / 16),
+        z = math.floor(pos.z / 16),
+    }
+    local loaded_mapblock = loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z]
+    if loaded_mapblock == nil and (current_mapblock == nil or
+            current_mapblock.x ~= mapblock_pos.x or
+            current_mapblock.y ~= mapblock_pos.y or
+            current_mapblock.z ~= mapblock_pos.z) then
+        if unit._forceloaded_block then
+            core.forceload_free_block(unit._forceloaded_block, true)
+            unit._forceloaded_block = nil
+            if current_mapblock then
+                loaded_mapblocks[current_mapblock.x .. "," .. current_mapblock.y .. "," .. current_mapblock.z] = nil
+            end
+        end
+        core.forceload_block(pos, true)
+        unit._current_mapblock = mapblock_pos
+        unit._forceloaded_block = pos
+        loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
+    end
+end
+
 local function update_physics(unit)
     local object = unit.object
     if not object then
         return
     end
-    physics_api.update_physics(object)
+    if unit._movement_type == "ground" then
+        physics_api.update_physics(object)
+    end  
 end
 
 function va_units.register_unit(name, def)
@@ -62,25 +108,54 @@ function va_units.register_unit(name, def)
             hp_max = def.hp_max or 1,
             nametag = def.nametag or "",
         },
+        _id = nil,
+        _team = nil,
         _player_rotation = def.player_rotation or { x = 0, y = 0, z = 0 },
         _driver_attach_at = def.driver_attach_at or { x = 0, y = 0, z = 0 },
         _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
         _driver = nil,
         _target_pos = nil,
         _timer = 0,
+        _marked_for_removal = false,
         _jumping = 0,
-        _v = 0,
         _animation = def.animations.stand,
         _animations = def.animations or {},
         _animation_speed = def.animation_speed or 30,
         _owner_name = nil,
+        _last_action_time = 0,
+        _current_mapblock = nil,
+        _forceloaded_block = nil,
+        _movement_type = def.movement_type or "ground",
         on_activate = def.on_activate or function(self, staticdata, dtime_s)
             local animations = def.animations
             if staticdata ~= nil and staticdata ~= "" then
                 local data = staticdata:split(';')
                 self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
             end
+            self._animation = animations.stand
             self.object:set_animation(self._animation or animations.stand, 1, 0)
+            self._id = tostring(self.object:get_guid())
+            local punits = player_units[self._owner_name] or {}
+            punits[self._id] = self
+            player_units[self._owner_name] = punits
+            active_units[self._id] = self
+            core.log("action", "Unit activated: " .. (def.nametag or name) .. " " .. self._id)
+            keep_loaded(self)
+        end,
+        on_deactivate = def.on_deactivate or function(self, removal)
+            core.log("action", "Unit deactivated: " .. (def.nametag or name) .. " " .. self._id)
+            if self._forceloaded_block then
+                core.forceload_free_block(self._forceloaded_block, true)
+                self._forceloaded_block = nil
+                if self._current_mapblock then
+                    loaded_mapblocks[self._current_mapblock.x .. "," .. self._current_mapblock.y .. "," .. self._current_mapblock.z] = nil
+                end
+                self._current_mapblock = nil
+            end
+            local punits = player_units[self._owner_name] or {}
+            punits[self._id] = nil
+            player_units[self._owner_name] = punits
+            active_units[self._id] = nil
         end,
         on_rightclick = def.on_rightclick or function(self, clicker)
             local player_name = clicker:get_player_name()
@@ -96,7 +171,8 @@ function va_units.register_unit(name, def)
             if puncher and puncher:is_player() and self._driver == nil then
                 local player_name = puncher:get_player_name()
                 if self._owner_name == player_name then
-                    core.chat_send_player(player_name, "Unit selected: " .. (def.nametag or name))
+                    core.chat_send_player(player_name, "Removing Unit: " .. (def.nametag or name) .. " " .. self._id)
+                    self._marked_for_removal = true
                 end
             end
         end,
@@ -105,30 +181,19 @@ function va_units.register_unit(name, def)
         end,
         on_step = def.on_step or function(self, dtime, moveresult)
             if not self.object then
-                core.log("error", "on_step: self.object is nil for entity " .. tostring(self))
+                return
+            end
+            self._timer = self._timer + dtime
+            if check_for_removal(self) then
                 return
             end
             update_physics(self)
-            if self._driver then
-                va_units.drive(self,
-                    {
-                        movement_speed = def.movement_speed * 2.5,
-                        turn_speed = def.turn_speed or 1,
-                        backward_speed = def
-                            .backward_speed or 0
-                    }, dtime)
-            else
-                -- check for commands from AI or other sources
-
-                -- no driver, so stop movement
-                local vel = self.object:get_velocity()
-                self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
-                if self._animation ~= self._animations.stand then
-                    self._animation = self._animations.stand
-                    self.object:set_animation(self._animation, def.animation_speed or 30)
-                end
-            end
-            self._timer = self._timer + dtime
+            keep_loaded(self)
+            va_units.drive(self,{
+                    movement_speed = def.movement_speed * 2.5,
+                    turn_speed = def.turn_speed or 1,
+                    backward_speed = def.backward_speed or 0,
+                }, dtime)
         end
     })
 
@@ -235,6 +300,21 @@ function va_units.detach(player)
 end
 
 function va_units.drive(unit, movement_def, dtime)
+    if not unit.object then
+        return
+    end
+    if not movement_def.movement_speed then
+        return
+    end
+    if not unit._driver then
+        local vel = unit.object:get_velocity()
+        unit.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+        if unit._animation ~= unit._animations.stand then
+            unit._animation = unit._animations.stand
+            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
+        end
+        return
+    end
     local yaw = unit.object:get_yaw() or 0
 
 
@@ -337,8 +417,10 @@ function va_units.drive(unit, movement_def, dtime)
     end
 
 
+    unit._last_action_time = unit._last_action_time or 0
+
     if controls.LMB then
-        -- perform action based on selected hotbar item or default action
+        -- handle left mouse button action
     end
 end
 
