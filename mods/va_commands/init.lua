@@ -1,0 +1,8 @@
+dofile(core.get_modpath("va_commands") .. "/api.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/select_all.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/select_commander.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/select_constructor.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/select_matching.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/select_nearby.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/select_none.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/select_toggle.lua")
