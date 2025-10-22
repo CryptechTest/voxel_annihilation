@@ -3,7 +3,7 @@ Add natural slopes to Voxel Annihilation
 --]]
 naturalslopeslib.propagate_overrides()
 
-local path = minetest.get_modpath(minetest.get_current_modname())
+local path = core.get_modpath(core.get_current_modname())
 dofile(path .."/functions.lua")
 
 naturalslopeslib.default_definition.drop_source = true

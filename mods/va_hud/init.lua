@@ -1,4 +1,7 @@
 va_hud = {}
+
+dofile(core.get_modpath("va_hud") .. "/item_names.lua")
+
 local saved_huds = {}
 
 local function setup_hud(player)

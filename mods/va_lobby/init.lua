@@ -138,9 +138,9 @@ core.register_on_joinplayer(function(player)
     player:hud_set_flags({
         healthbar = false,
         breathbar = false,
-        crosshair = false,
+        crosshair = true,
         wielditem = true,
-        hotbar = false,
+        hotbar = true,
         minimap = false,
         minimap_radar = false,
     })
