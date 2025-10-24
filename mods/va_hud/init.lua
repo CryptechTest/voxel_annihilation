@@ -6,6 +6,11 @@ local saved_huds = {}
 
 local function round(number, steps)
     steps = steps or 1
+    if steps == 2 then
+        return math.floor(number * 10) * 0.1
+    elseif steps == 3 then
+        return math.floor(number * 100) * 0.01
+    end
     return math.floor(number * steps + 0.5) / steps
 end
 
@@ -201,19 +206,19 @@ end
 function va_hud.update_hud(player)
     local player_name = player:get_player_name()
     local player_actor = va_structures.get_player_actor(player_name)
-    local mass = round(player_actor.mass, 1)
-    local mass_supply = round(player_actor.mass_supply, 1)
-    local mass_demand = round(player_actor.mass_demand, 1)
-    local mass_storage = round(player_actor.mass_storage, 0)
+    local mass = round(player_actor.mass, 2)
+    local mass_supply = round(player_actor.mass_supply, 3)
+    local mass_demand = round(player_actor.mass_demand, 3)
+    local mass_storage = round(player_actor.mass_storage, 2)
     local storing_mass = mass_supply > mass_demand and mass < mass_storage
     local overflow_mass = mass_supply > 0 and mass >= mass_storage and
         not
         storing_mass -- this needs to be set based on if there are teammate and can overflow mass
     local wasting_mass = mass_supply > mass_demand and mass <= mass_storage and not overflow_mass and not storing_mass
-    local energy = round(player_actor.energy, 1)
-    local energy_supply = round(player_actor.energy_supply, 1)
-    local energy_demand = round(player_actor.energy_demand, 1)
-    local energy_storage = round(player_actor.energy_storage, 0)
+    local energy = round(player_actor.energy, 2)
+    local energy_supply = round(player_actor.energy_supply, 3)
+    local energy_demand = round(player_actor.energy_demand, 3)
+    local energy_storage = round(player_actor.energy_storage, 2)
     local storing_energy = energy_supply > energy_demand and energy < energy_storage
     local overflow_energy = energy_supply > 0 and energy >= energy_storage and
         not
