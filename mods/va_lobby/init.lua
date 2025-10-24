@@ -26,7 +26,11 @@ local tmp = {
 
 pages.main_menu = table.concat(tmp, "")
 
-tmp = {
+
+
+local function get_lobby_setup(owner)
+    local pos = core.get_player_by_name(owner):get_pos()
+    local setup = {
     "size[8,8]",
     [[
     no_prepend[]
@@ -43,12 +47,14 @@ tmp = {
     dropdown[0.5,3.3;3.5;mode;Wave Defense;1;true]
     label[4,2.9;Difficulty]
     dropdown[4,3.3;3.5;wd_difficulty;Easy,Medium,Hard,Extreme;1;true]
+    field[0.75,4.6;3.5,1;game_position;Lobby Position;]] .. math.floor(pos.x) .. [[ ]] .. math.floor(pos.y) .. [[ ]] .. math.floor(pos.z) .. [[]
     button_exit[5.5,7.5;2,0.5;cancel;Cancel]
     button[0.5,7.5;2,0.5;save;Save]
     ]]
 }
 
-pages.game_setup = table.concat(tmp, "")
+    return table.concat(setup, "")
+end
 
 
 local function get_lobby(owner)
@@ -205,7 +211,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
             -- Already hosting a lobby
             return
         end
-        formspecs[pname] = pages.game_setup
+        formspecs[pname] = get_lobby_setup(pname)
         update_formspec(player)
     elseif fields.cancel then
         formspecs[pname] = pages.main_menu
