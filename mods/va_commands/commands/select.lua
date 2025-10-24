@@ -253,7 +253,7 @@ va_commands.register_command("select", {
                 core.chat_send_player(player_name, "Selection is not a valid unit.")
                 return
             end
-            if entity._is_va_unit ~= true then
+            if entity._is_va_unit ~= true and entity._is_va_structure ~= true then
                 core.chat_send_player(player_name, "Selection is not a valid unit.")
                 return
             end
