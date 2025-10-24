@@ -203,9 +203,13 @@ function va_structures.add_player_actor(owner, team)
     local actor_default = {
         team_id = team or "vox",
         energy = 100,
-        energy_storage = 1000,
+        energy_storage = 100,
+        energy_demand = 0,
+        energy_supply = 0,
         mass = 100,
-        mass_storage = 1000
+        mass_storage = 100,
+        mass_demand = 0,
+        mass_supply = 0
     }
     player_actors[owner] = actor_default
 end
@@ -248,8 +252,12 @@ local function calculate_player_actor_structures()
     end
     for n, structures in pairs(owner_structures) do
         local actor = player_actors[n]
-        actor.energy_storage = 1000
-        actor.mass_storage = 1000
+        actor.energy_storage = 100
+        actor.energy_supply = 0
+        actor.energy_demand = 0
+        actor.mass_storage = 100
+        actor.mass_supply = 0
+        actor.mass_demand = 0
         for _, s in pairs(structures) do
             if s:can_store_energy() then
                 actor.energy_storage = actor.energy_storage + s:get_data():get_energy_storage()
@@ -310,12 +318,11 @@ va_structures.structures_run = function()
     -- core.log("run " .. #s_pos .. " structures")
 end
 
-
 -----------------------------------------------------------------
 -- cleanup_assets
 
 va_structures.cleanup_assets = function()
-    for _,s in pairs(_active_instances) do
+    for _, s in pairs(_active_instances) do
         s:dispose()
     end
 end

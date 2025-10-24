@@ -25,6 +25,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             if energy + gen <= net.energy_storage then
                 net.energy = energy + gen
             end
+            net.energy_supply = net.energy_supply + gen
         end
     end
 end
@@ -35,9 +36,9 @@ local def = {
     textures = {"va_vox_solar_collector_2.png"},
     collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.75, 0.75},
     max_health = 25,
-    energy_generate = 5,
+    energy_generate = 2,
     energy_storage = 10,
-    mass_cost = 20,
+    mass_cost = 15.5,
     energy_cost = 0,
     vas_run = vas_run
 }

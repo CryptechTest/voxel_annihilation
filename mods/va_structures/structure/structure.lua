@@ -306,6 +306,8 @@ function Structure:construct(team_obj)
             if energy_cost_rate > 0 then
                 team_obj.energy = energy - energy_cost_rate
             end
+            team_obj.mass_demand = team_obj.mass_demand + mass_cost_rate
+            team_obj.energy_demand = team_obj.energy_demand + energy_cost_rate
             has_resources = true
         end
     end

@@ -27,9 +27,9 @@ local def = {
     mesh = "va_energy_storage_1.gltf",
     textures = {"va_vox_energy_storage.png"},
     max_health = 20,
-    energy_storage = 1000,
-    mass_cost = 2,
-    energy_cost = 300,
+    energy_storage = 600,
+    mass_cost = 17,
+    energy_cost = 170,
     vas_run = vas_run
 }
 
