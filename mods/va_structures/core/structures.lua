@@ -181,9 +181,9 @@ local function run_nodes(list, run_stage)
             s:run_post(run_stage, net)
         end
     end
-    for t, team in pairs(va_teams) do
+    --[[for t, team in pairs(va_teams) do
         core.log("Team " .. t .. ":  ENERGY= " .. team.energy .. "/" .. team.energy_storage .. "  MASS= " .. team.mass .. "/" .. team.mass_storage)
-    end
+    end]]
 end
 
 -- structure runner
