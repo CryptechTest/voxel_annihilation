@@ -86,6 +86,7 @@ function Structure.new(pos, name, desc, size, category, tier, faction, meta_def,
     self.construction_tick = 0
     self.is_contructed = false
 
+    self._active = false
     self._defined = false
     if do_def_check then
         self._defined = va_structures.is_registered_structure(self.fqnn)
@@ -98,7 +99,7 @@ function Structure.register(name, desc, size, category, tier, faction, def)
         return
     end
     local structure = Structure.new(nil, name, desc, size, category, tier, faction, def, false)
-    local result = register_structure_node(structure) and register_structure_entity(structure)
+    local result = register_structure_node(structure) and register_structure_entity(def)
     if result then
         va_structures.register_structure(structure)
         --core.log('registered strucutre: ' .. structure.fqnn)
@@ -113,18 +114,10 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
     -- local s = va_structures.get_new(pos, node_name)
     local def = va_structures.get_registered_structure(node_name)
     local s = Structure.new(pos, def.name, def.desc, def.size, def.category, def.tier, def.faction, def, true)
-    local obj = core.add_entity(pos, def.entity_name)
-    local ent = obj:get_luaentity()
-    local hash = core.hash_node_position(pos)
-    ent._owner_hash = tostring(hash)
     if placer:is_player() then
         s.owner = placer:get_player_name()
-        ent._owner_name = placer:get_player_name()
     end
-    obj:set_properties({
-        is_visible = false
-    })
-    s.entity_obj = obj
+    s:activate()
     va_structures.add_active_structure(pos, s)
 end
 
@@ -176,6 +169,10 @@ function Structure:is_valid()
     return self._defined
 end
 
+function Structure:is_active()
+    return self._active
+end
+
 function Structure:get_data()
     return self.meta
 end
@@ -210,6 +207,47 @@ function Structure:place(pos, param2)
         name = self.fqnn,
         param2 = param2
     })
+end
+
+function Structure:deactivate()
+    local pos = self.pos
+    local meta = core.get_meta(pos)
+    meta:set_int("active", 0)
+    self._active = false
+end
+
+function Structure:activate(visible)
+    if self._active then
+        return
+    end
+    self._active = true
+    if self.entity_obj then
+        self.entity_obj:remove()
+        self.entity_obj = nil
+    end
+    core.log("activated structure")
+    local visible = visible or false
+    local pos = self.pos
+    local hash = core.hash_node_position(pos)
+    local meta = core.get_meta(pos)
+    meta:set_int("active", 1)
+    local obj = core.add_entity(pos, self.entity_name, nil)
+    if obj then
+        local ent = obj:get_luaentity()
+        ent._owner_hash = tostring(hash)
+        ent._owner_name = self.owner
+        ent._exists = true
+        if not self.is_contructed then
+            visible = false
+        end
+        obj:set_properties({
+            is_visible = visible
+        })
+        self.entity_obj = obj
+    else
+        meta:set_int("active", 0)
+        self._active = false
+    end
 end
 
 function Structure:construct(team_obj)
@@ -298,6 +336,9 @@ function Structure:get_yaw()
 end
 
 function Structure:entity_tick()
+    if not self._active then
+        return
+    end
     local e_pos = self.pos
     local found_display = false
     local yawRad, rotation = self:get_yaw()
@@ -315,10 +356,9 @@ function Structure:entity_tick()
     end
     if not found_display then
         if not self.entity_obj then
-            self.entity_obj:remove()
             self.entity_obj = nil
         end
-        local obj = minetest.add_entity(e_pos, self.entity_name)
+        local obj = minetest.add_entity(e_pos, self.entity_name, nil)
         local rot = {
             x = 0,
             y = yawRad,

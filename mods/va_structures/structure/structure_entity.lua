@@ -4,16 +4,16 @@ local function register_structure_entity(def)
     core.register_entity(def.entity_name, {
         initial_properties = {
             physical = true,
-            collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.75, 0.75},
-            hp = def.meta.max_health,
-            hp_max = def.meta.max_health,
+            collisionbox = def.collisionbox,
+            hp = def.max_health,
+            hp_max = def.max_health,
              -- TODO: setup texture and mesh
             visual = "mesh",
-            mesh = def.meta.mesh,
-            textures = def.meta.textures,
+            mesh = def.mesh,
+            textures = def.textures,
             visual_size = {x=1.0, y=1.0},
             glow = 2,
-            infotext = "HP: " .. tostring(def.meta.max_health) .. "/" .. tostring(def.meta.max_health) .. ""
+            infotext = "HP: " .. tostring(def.max_health) .. "/" .. tostring(def.max_health) .. ""
         },
 
         -- va general vars
@@ -27,13 +27,30 @@ local function register_structure_entity(def)
         _driver_eye_offset = { x = 0, y = 0, z = 0 },
         _driver = nil,
         _target_pos = nil,
-
         -- va structure vars
         _owner_hash = nil,
         _owner_name = nil,
         _team_id = def.team_id,
         -- internal
         _timer = 1,
+        _valid = false,
+
+        -- dispose of instance, enitity, and node
+        _dispose = function(self, removal)
+            local pos = self.object:get_pos()
+            va_structures.remove_active_structure(pos)
+            if removal then
+                self.object:remove()
+            end
+            core.remove_node(pos)
+            return true
+        end,
+
+        _is_valid = function(self, pos)
+            local h = core.hash_node_position(pos)
+            self._valid = h == self._owner_hash and true or false
+            return self._valid
+        end,
 
         on_step = function(self, dtime)
             self._timer = self._timer + 1
@@ -44,54 +61,77 @@ local function register_structure_entity(def)
             local pos = self.object:get_pos()
             local node = core.get_node(pos)
             if node and node.name ~= def.fqnn then
-                self.object:remove()
-                return
+                return self:_dispose(true)
             end
             if self._marked_for_removal then
-                self.object:remove()
-                return
+                return self:_dispose(true)
             end
             --process_queue(self)
             --update_visibility(self)
         end,
 
-        on_activate = def.on_activate or function(self, staticdata, dtime_s)
+        get_staticdata = function(self)
+            return core.write_json({
+                owner = self._owner_name,
+                hash = self._owner_hash,
+            })
+        end,
+
+        on_activate = function(self, staticdata, dtime_s)
+            core.log("activating...")
+            local owner = nil
+            local hash = nil
+            if staticdata ~= nil and staticdata ~= "" then
+                local data = core.parse_json(staticdata)
+                if data then
+                    owner = data.owner
+                    hash = data.hash
+                end
+            end
             local pos = self.object:get_pos()
-            local node = core.get_node(pos)
-            if node and node.name ~= def.fqnn then
-                self.object:remove()
-                return
+            local s = va_structures.get_active_structure(pos)
+            if not s then
+                local node = core.get_node(pos)
+                if node and node.name ~= def.fqnn then
+                    return self:_dispose(true)
+                end
+            else
+                local meta = core.get_meta(pos)
+                if meta:get_int("active") == 0 then
+                    s:activate(true)
+                end
             end
         end,
 
-        on_deactivate = def.on_deactivate or function(self, removal)
+        on_deactivate = function(self, removal)
+            core.log("deactivating...")
             local pos = self.object:get_pos()
-            core.remove_node(pos)
-            if not removal then
-                self.object:remove()
+            local s = va_structures.get_active_structure(pos)
+            if not s then
+                self:_dispose(false)
+            elseif not removal then
+                s:deactivate()
             end
         end,
 
-        on_death = function(self, killer)
+        on_death = def.on_death or function(self, killer)
             local pos = self.object:get_pos()
-            core.get_node_timer(self.pos):start(30)
             local meta = core.get_meta(self.pos)
-            meta:set_int("broken", 1)
             meta:set_int("health", 0)
+            self:_dispose(true)
         end,
 
-        on_rightclick = function(self, clicker)
+        on_rightclick = def.on_rightclick or function(self, clicker)
             local pos = self.object:get_pos();
             if pos then
-                -- self.object:remove()
-                self.object:set_properties({
+                --[[self.object:set_properties({
                     is_visible = false
                 })
-                core.get_node_timer(pos):start(3)
+                core.get_node_timer(pos):start(3)]]
             end
         end,
 
-        on_punch = function(puncher, time_from_last_punch, tool_capabilities, direction, damage)
+        on_punch = def.on_punch or function(puncher, time_from_last_punch, tool_capabilities, direction, damage)
 
             local function on_hit(self, target)
 

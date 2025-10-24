@@ -33,6 +33,7 @@ end
 local def = {
     mesh = "va_solar_collector_1.gltf",
     textures = {"va_vox_solar_collector_2.png"},
+    collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.75, 0.75},
     max_health = 25,
     energy_generate = 5,
     energy_storage = 10,

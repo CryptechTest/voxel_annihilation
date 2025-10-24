@@ -36,9 +36,6 @@ function StructureMetaData.new(def)
         end
     end
 
-    self.mesh = def.mesh
-    self.textures = def.textures
-
     self.name = def.name or ""
     self.fqnn = def.fqnn or ""
     self.desc = def.desc or ""
