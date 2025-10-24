@@ -20,6 +20,30 @@ core.register_entity("va_commands:selected_unit", {
     end,
 })
 
+core.register_entity("va_commands:selected_structure", {
+    initial_properties = {
+        physical = false,
+        collide_with_objects = false,
+        visual = "cube",
+        pointable = false,
+        textures = { "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png",
+            "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png",
+            "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png" },
+        glow = 14,
+        size = { x = 0, y = 0, z = 0 },
+    },
+    _marked_for_removal = false,
+    on_step = function(self, dtime)
+        local parent = self.object:get_attach()
+        if not parent then
+            self.object:remove()
+        end
+        if self._marked_for_removal then
+            self.object:remove()
+        end
+    end,
+})
+
 core.register_entity("va_commands:pos1", {
     initial_properties = {
         visual = "cube",
@@ -68,7 +92,7 @@ local function remove_selection(entity)
             local luaentity = child:get_luaentity()
             if luaentity then
                 local entity_name = luaentity and luaentity.name
-                if entity_name == "va_commands:selected_unit" then
+                if entity_name == "va_commands:selected_unit"  or entity_name == "va_commands:selected_structure" then
                     core.chat_send_player(entity._owner_name, "Unit deselected.")
                     child:remove()
                     local currently_selected = va_commands.get_player_selected_units(entity._owner_name)
@@ -114,10 +138,23 @@ local function add_selection(entity)
         local zsize = math.abs(cbox[6] - cbox[3])
         size = math.max(xsize, ysize, zsize)
     end
-    local selection_entity = core.add_entity(pos, "va_commands:selected_unit")
-    selection_entity:set_observers({ [player_name] = true })
-    selection_entity:set_properties({ visual_size = { x = size + 0.3, y = size + 0.3 } })
-    selection_entity:set_attach(entity.object, "", { x = 0, y = size * 5.6, z = 0 }, { x = 0, y = 0, z = 0 })
+    local selection_entity = nil
+    if entity._is_va_structure == true then
+        selection_entity = core.add_entity(pos, "va_commands:selected_structure")
+        selection_entity:set_observers({ [player_name] = true })
+        selection_entity:set_properties({ visual_size = { x = (size / 1.5) + 0.3, y = (size / 1.5) + 0.3 } })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = ((size / 2) / 1.5) + 0.6, z = 0 }, { x = 0, y = 0, z = 0 })
+    elseif entity._is_va_unit == true then
+        selection_entity = core.add_entity(pos, "va_commands:selected_unit")
+        selection_entity:set_observers({ [player_name] = true })
+        selection_entity:set_properties({ visual_size = { x = size + 0.3, y = size + 0.3 } })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = size * 5.6, z = 0 }, { x = 0, y = 0, z = 0 })        
+    else
+        return
+    end
+    if not selection_entity then
+        return
+    end
     table.insert(selected_units, entity)
     table.insert(current_selections, selection_entity)
     va_commands.set_player_selected_units(player_name, selected_units)
@@ -146,6 +183,16 @@ local function select_area(user, pos1, pos2)
             upos.y >= minp.y and upos.y <= maxp.y and
             upos.z >= minp.z and upos.z <= maxp.z then
             add_selection(unit)
+            count = count + 1
+        end
+    end
+    for _, structure in pairs(va_structures.get_all_structures()) do
+        local spos = structure.object:get_pos()
+        if structure._owner_name == player_name and
+            spos.x >= minp.x and spos.x <= maxp.x and
+            spos.y >= minp.y and spos.y <= maxp.y and
+            spos.z >= minp.z and spos.z <= maxp.z then
+            add_selection(structure)
             count = count + 1
         end
     end
