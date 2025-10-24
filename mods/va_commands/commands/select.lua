@@ -7,14 +7,39 @@ core.register_entity("va_commands:selected_unit", {
         textures = { "va_commands_selected_unit_idle.png" },
         glow = 14,
         size = { x = 0, y = 0, z = 0 },
+        static_save = true,
     },
     _marked_for_removal = false,
+    _owner_name = nil,
+    on_activate = function(self, staticdata, dtime_s)            
+        if staticdata ~= nil and staticdata ~= "" then
+            local data = staticdata:split(';')
+            self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
+        end
+    end,
+    get_staticdata = function(self)
+        return self._owner_name or ""
+    end,
     on_step = function(self, dtime)
         local parent = self.object:get_attach()
         if not parent then
             self.object:remove()
         end
         if self._marked_for_removal then
+            self.object:remove()
+        end
+        if not self._owner_name then
+            return
+        end
+        local current_selections = va_commands.get_selection_entities(self._owner_name)
+        local found = false
+        for _, selection in ipairs(current_selections) do
+            if selection == self.object then
+                found = true
+                break
+            end
+        end
+        if not found then
             self.object:remove()
         end
     end,
@@ -32,14 +57,39 @@ core.register_entity("va_commands:selected_structure", {
         backface_culling = false,
         glow = 14,
         size = { x = 0, y = 0, z = 0 },
+        static_save = true,
     },
     _marked_for_removal = false,
+    _owner_name = nil,
+    on_activate = function(self, staticdata, dtime_s)            
+        if staticdata ~= nil and staticdata ~= "" then
+            local data = staticdata:split(';')
+            self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
+        end
+    end,
+    get_staticdata = function(self)
+        return self._owner_name or ""
+    end,
     on_step = function(self, dtime)
         local parent = self.object:get_attach()
         if not parent then
             self.object:remove()
         end
         if self._marked_for_removal then
+            self.object:remove()
+        end
+        if not self._owner_name then
+            return
+        end
+        local current_selections = va_commands.get_selection_entities(self._owner_name)
+        local found = false
+        for _, selection in ipairs(current_selections) do
+            if selection == self.object then
+                found = true
+                break
+            end
+        end
+        if not found then
             self.object:remove()
         end
     end,
@@ -58,8 +108,33 @@ core.register_entity("va_commands:pos1", {
         glow = 14,
     },
     _marked_for_removal = false,
+    _owner_name = nil,
+    _id = nil,
+    on_activate = function(self, staticdata, dtime_s)            
+        if staticdata ~= nil and staticdata ~= "" then
+            local data = staticdata:split(';')
+            self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
+            self.object:set_observers({ [self._owner_name] = true })
+        end
+    end,
+    get_staticdata = function(self)
+        return self._owner_name or ""
+    end,
     on_step = function(self, dtime)
         if self._marked_for_removal then
+            self.object:remove()
+        end
+        if not self._owner_name then
+            return
+        end
+        local current_extent = va_commands.get_player_selection_extent(self._owner_name)
+        if current_extent then
+            if current_extent.pos1_entity._id == self._id then
+                return
+            else
+                self.object:remove()
+            end
+        else 
             self.object:remove()
         end
     end,
@@ -78,8 +153,34 @@ core.register_entity("va_commands:pos2", {
         glow = 14,
     },
     _marked_for_removal = false,
+    _owner_name = nil,
+    _id = nil,
+    on_activate = function(self, staticdata, dtime_s)            
+        if staticdata ~= nil and staticdata ~= "" then
+            local data = staticdata:split(';')
+            self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
+            self.object:set_observers({ [self._owner_name] = true })
+            self._id = tostring(self.object:get_guid())
+        end
+    end,
+    get_staticdata = function(self)
+        return self._owner_name or ""
+    end,
     on_step = function(self, dtime)
         if self._marked_for_removal then
+            self.object:remove()
+        end
+        if not self._owner_name then
+            return
+        end
+        local current_extent = va_commands.get_player_selection_extent(self._owner_name)
+        if current_extent then
+            if current_extent.pos2_entity._id == self._id then
+                return
+            else
+                self.object:remove()
+            end
+        else 
             self.object:remove()
         end
     end,
@@ -141,12 +242,12 @@ local function add_selection(entity)
     end
     local selection_entity = nil
     if entity._is_va_structure == true then
-        selection_entity = core.add_entity(pos, "va_commands:selected_structure")
+        selection_entity = core.add_entity(pos, "va_commands:selected_structure", player_name)
         selection_entity:set_observers({ [player_name] = true })
         selection_entity:set_properties({ visual_size = { x = size + 0.1, y = size + 0.1 } })
         selection_entity:set_attach(entity.object, "", { x = 0, y = size * 2.1, z = 0 }, { x = 0, y = 0, z = 0 })
     elseif entity._is_va_unit == true then
-        selection_entity = core.add_entity(pos, "va_commands:selected_unit")
+        selection_entity = core.add_entity(pos, "va_commands:selected_unit", player_name)
         selection_entity:set_observers({ [player_name] = true })
         selection_entity:set_properties({ visual_size = { x = size + 0.3, y = size + 0.3 } })
         selection_entity:set_attach(entity.object, "", { x = 0, y = size * 5.6, z = 0 }, { x = 0, y = 0, z = 0 })        
@@ -254,16 +355,14 @@ va_commands.register_command("select", {
                     va_commands.set_player_selection_extent(player_name, extent)
                     core.chat_send_player(player_name, "Second position set.")
                     local pos2_entity = core.add_entity(
-                        extent.pos2, "va_commands:pos2")
-                    pos2_entity:set_observers({ [player_name] = true })
+                        extent.pos2, "va_commands:pos2", player_name)
                     extent.pos2_entity = pos2_entity
                     clear_selection(user)
                     select_area(user, extent.pos1, extent.pos2)
                 else
                     extent.pos1 = user:get_pos()
                     local pos1_entity = core.add_entity(
-                        extent.pos1, "va_commands:pos1")
-                    pos1_entity:set_observers({ [player_name] = true })
+                        extent.pos1, "va_commands:pos1", player_name)                 
                     extent.pos1_entity = pos1_entity
                     va_commands.set_player_selection_extent(player_name, extent)
                     core.chat_send_player(player_name, "First position set.")
@@ -280,8 +379,7 @@ va_commands.register_command("select", {
                     va_commands.set_player_selection_extent(player_name, extent)
                     core.chat_send_player(player_name, "Second position set.")
                     local pos2_entity = core.add_entity(
-                        extent.pos2, "va_commands:pos2")
-                    pos2_entity:set_observers({ [player_name] = true })
+                        extent.pos2, "va_commands:pos2", player_name)
                     extent.pos2_entity = pos2_entity
                     clear_selection(user)
                     select_area(user, extent.pos1, extent.pos2)
@@ -289,8 +387,7 @@ va_commands.register_command("select", {
                     extent.pos1 = pointed_thing.under
                     va_commands.set_player_selection_extent(player_name, extent)
                     local pos1_entity = core.add_entity(
-                        extent.pos1, "va_commands:pos1")
-                    pos1_entity:set_observers({ [player_name] = true })
+                        extent.pos1, "va_commands:pos1", player_name)
                     extent.pos1_entity = pos1_entity
                     core.chat_send_player(player_name, "First position set.")
                 end
