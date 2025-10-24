@@ -1,19 +1,27 @@
+-- update visibility of strucuture
+local function update_visibility(self)
+
+end
 
 local function register_structure_entity(def)
-    -- display entity shown for structure
+    -- register structure entity
     core.register_entity(def.entity_name, {
         initial_properties = {
             physical = true,
             collisionbox = def.collisionbox,
             hp = def.max_health,
             hp_max = def.max_health,
-             -- TODO: setup texture and mesh
+            -- TODO: setup texture and mesh
             visual = "mesh",
             mesh = def.mesh,
             textures = def.textures,
-            visual_size = {x=1.0, y=1.0},
+            visual_size = {
+                x = 1.0,
+                y = 1.0
+            },
             glow = 2,
-            infotext = "HP: " .. tostring(def.max_health) .. "/" .. tostring(def.max_health) .. ""
+            --infotext = "HP: " .. tostring(def.max_health) .. "/" .. tostring(def.max_health) .. ""
+            infotext = def.desc
         },
 
         -- va general vars
@@ -24,9 +32,21 @@ local function register_structure_entity(def)
         _current_mapblock = nil,
         _forceloaded_block = nil,
         -- va driver vars
-        _player_rotation = { x = 0, y = 0, z = 0 },
-        _driver_attach_at = { x = 0, y = 0, z = 0 },
-        _driver_eye_offset = { x = 0, y = 0, z = 0 },
+        _player_rotation = {
+            x = 0,
+            y = 0,
+            z = 0
+        },
+        _driver_attach_at = {
+            x = 0,
+            y = 0,
+            z = 0
+        },
+        _driver_eye_offset = {
+            x = 0,
+            y = 0,
+            z = 0
+        },
         _driver = nil,
         _target_pos = nil,
         -- va structure vars
@@ -44,7 +64,10 @@ local function register_structure_entity(def)
             if removal then
                 self.object:remove()
             end
-            core.remove_node(pos)
+            local node = core.get_node(pos)
+            if node and node.name ~= def.fqnn then
+                core.remove_node(pos)
+            end
             return true
         end,
 
@@ -53,6 +76,15 @@ local function register_structure_entity(def)
             self._valid = h == self._owner_hash and true or false
             return self._valid
         end,
+        _check_valid = function()
+            local pos = self.object:get_pos()
+            local node = core.get_node(pos)
+            if (node and node.name ~= def.fqnn) or not self._valid then
+                self._marked_for_removal = true
+            else
+                self:_is_valid(pos)
+            end
+        end,
 
         on_step = function(self, dtime)
             self._timer = self._timer + 1
@@ -60,28 +92,25 @@ local function register_structure_entity(def)
                 return
             end
             self._timer = 0
-            local pos = self.object:get_pos()
-            local node = core.get_node(pos)
-            if node and node.name ~= def.fqnn then
-                return self:_dispose(true)
-            end
+            self:_check_valid()
             if self._marked_for_removal then
                 return self:_dispose(true)
             end
             va_structures.keep_loaded(self)
-            --process_queue(self)
-            --update_visibility(self)
+            -- process_queue(self)
+            update_visibility(self)
         end,
 
         get_staticdata = function(self)
             return core.write_json({
                 owner = self._owner_name,
-                hash = self._owner_hash,
+                hash = self._owner_hash
             })
         end,
 
         on_activate = function(self, staticdata, dtime_s)
-            --core.log("activating...")
+            -- core.log("activating...")
+            self._id = tostring(self.object:get_guid())
             local owner = nil
             local hash = nil
             if staticdata ~= nil and staticdata ~= "" then
@@ -94,10 +123,7 @@ local function register_structure_entity(def)
             local pos = self.object:get_pos()
             local s = va_structures.get_active_structure(pos)
             if not s then
-                local node = core.get_node(pos)
-                if node and node.name ~= def.fqnn then
-                    return self:_dispose(true)
-                end
+                return self:_dispose(true)
             else
                 va_structures.keep_loaded(self)
                 local meta = core.get_meta(pos)
@@ -108,7 +134,7 @@ local function register_structure_entity(def)
         end,
 
         on_deactivate = function(self, removal)
-            --core.log("deactivating...")
+            -- core.log("deactivating...")
             local pos = self.object:get_pos()
             local s = va_structures.get_active_structure(pos)
             if not s then

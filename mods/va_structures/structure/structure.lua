@@ -73,12 +73,7 @@ function Structure.new(pos, name, desc, size, category, tier, faction, meta_def,
     -- use or build default metadata
     self.meta = StructureMetaData.new(meta_def)
 
-    local vas_run = function(pos, node, s_obj, run_stage, net)
-        -- TODO: default run???
-        core.log("structure ticked... " .. self.name)
-    end
     self.vas_run_pre = meta_def.vas_run_pre or nil
-    self.vas_run = meta_def.vas_run or vas_run
     self.vas_run_post = meta_def.vas_run_post or nil
 
     self.construction_tick_max = self.volume
@@ -98,10 +93,13 @@ function Structure.register(name, desc, size, category, tier, faction, def)
         return
     end
     local structure = Structure.new(nil, name, desc, size, category, tier, faction, def, false)
+    structure.after_place_node = def.after_place_node
+    structure.after_dig_node = def.after_dig_node
+    structure.vas_run = def.vas_run
     local result = register_structure_node(structure) and register_structure_entity(def)
     if result then
         va_structures.register_structure(structure)
-        --core.log('registered strucutre: ' .. structure.fqnn)
+        -- core.log('registered strucutre: ' .. structure.fqnn)
     end
 end
 
@@ -232,7 +230,7 @@ function Structure:activate(visible)
         self.entity_obj:remove()
         self.entity_obj = nil
     end
-    --core.log("activated structure")
+    -- core.log("activated structure")
     local visible = visible or false
     local pos = self.pos
     local hash = core.hash_node_position(pos)
@@ -240,6 +238,13 @@ function Structure:activate(visible)
     meta:set_int("active", 1)
     local obj = core.add_entity(pos, self.entity_name, nil)
     if obj then
+        local yawRad, rotation = self:get_yaw()
+        local rot = {
+            x = 0,
+            y = yawRad,
+            z = 0
+        }
+        obj:set_rotation(rot)
         local ent = obj:get_luaentity()
         ent._owner_hash = tostring(hash)
         ent._owner_name = self.owner

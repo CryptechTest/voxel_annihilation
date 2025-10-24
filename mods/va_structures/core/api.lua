@@ -117,10 +117,7 @@ function va_structures.register_structure(def)
             energy_generate = def.meta.energy_generate,
             mass_extract = def.meta.mass_extract,
             energy_storage = def.meta.energy_storage,
-            mass_storage = def.meta.mass_storage,
-            after_place_node = def.after_place_node,
-            after_dig_node = def.after_dig_node,
-            vas_run = def.vas_run
+            mass_storage = def.meta.mass_storage
         }
         return sdef
     end
@@ -234,7 +231,7 @@ end
 
 function va_structures.get_actors()
     local actors = {}
-    for p,actor in pairs(player_actors) do
+    for p, actor in pairs(player_actors) do
         actors[p] = {
             actor = player_actors[p],
             structures = player_structures[p]
