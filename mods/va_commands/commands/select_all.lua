@@ -59,6 +59,7 @@ end
 
 va_commands.register_command("select_all", {
     description = "Select All",
+    range = 8,
     execute_primary = function(itemstack, user, pointed_thing)
         local player_name = user:get_player_name()
         va_commands.set_player_selection_extent(player_name, nil)
