@@ -1,7 +1,6 @@
 -- Based on 4itemnames mod by 4aiman
 
 local item_names = {} -- [player_name] = { hud, dtime, itemname }
-local dlimit = 3  -- HUD element will be hidden after this many seconds
 
 local function set_hud(player)
 	local player_name = player:get_player_name()
@@ -11,14 +10,13 @@ local function set_hud(player)
 
 	item_names[player_name] = {
 		hud = player:hud_add({
-			hud_elem_type = "text",
+			type = "text",
 			position = {x=0.5, y=1},
 			offset = off,
 			alignment = {x=0, y=-1},
 			number = 0xFFFFFF,
 			text = "",
 		}),
-		dtime = dlimit,
 		index = 1,
 		itemname = ""
 	}
@@ -43,13 +41,6 @@ core.register_globalstep(function(dtime)
 		local index = player:get_wield_index()
 		local stack = player:get_wielded_item()
 		local itemname = stack:get_name()
-
-		if data.hud and data.dtime < dlimit then
-			data.dtime = data.dtime + dtime
-			if data.dtime > dlimit then
-				player:hud_change(data.hud, 'text', "")
-			end
-		end
 
 		if data.hud and (itemname ~= data.itemname or index ~= data.index) then
 			data.itemname = itemname

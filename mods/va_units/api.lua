@@ -75,6 +75,54 @@ local function keep_loaded(unit)
         unit._current_mapblock = mapblock_pos
         unit._forceloaded_block = pos
         loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
+    else
+        unit._current_mapblock = mapblock_pos
+    end
+    
+end
+
+local function update_visibility (unit)
+    local unit_owner = unit._owner_name
+   for _, other_unit in pairs(active_units) do
+        if other_unit._owner_name ~= unit_owner then
+            if  other_unit._current_mapblock and unit._current_mapblock
+            then
+                local distance = vector.distance(
+                    {
+                        x = unit._current_mapblock.x,
+                        y = unit._current_mapblock.y,
+                        z = unit._current_mapblock.z
+                    },
+                    {
+                        x = other_unit._current_mapblock.x,
+                        y = other_unit._current_mapblock.y,
+                        z = other_unit._current_mapblock.z
+                    }
+                )
+                if distance <= 4 then
+                    local observers = unit.object:get_observers() or {[unit_owner] = true}
+                    local other_observers = other_unit.object:get_observers() or {[other_unit._owner_name] = true}
+                    observers[other_unit._owner_name] = true
+                    other_observers[unit_owner] = true
+                    unit.object:set_observers(observers)
+                    other_unit.object:set_observers(other_observers)
+                else
+                    local observers = unit.object:get_observers() or {[unit_owner] = true}
+                    local other_observers = other_unit.object:get_observers() or {[other_unit._owner_name] = true}
+                    observers[other_unit._owner_name] = nil
+                    other_observers[unit_owner] = nil
+                    unit.object:set_observers(observers)
+                    other_unit.object:set_observers(other_observers)
+                end
+            end
+        else
+            local observers = unit.object:get_observers() or {[unit_owner] = true}
+            local other_observers = other_unit.object:get_observers() or {[other_unit._owner_name] = true}
+            local merged = {}
+            for k, v in pairs(observers) do merged[k] = v end
+            for k, v in pairs(other_observers) do merged[k] = v end
+            unit.object:set_observers(merged)
+        end
     end
 end
 
@@ -88,177 +136,7 @@ local function update_physics(unit)
     end  
 end
 
-function va_units.register_unit(name, def)
-    units["va_units:" .. name] = def
-    core.register_entity("va_units:" .. name, {
-        initial_properties = {
-            mesh = def.mesh or name .. ".gltf",
-            textures = {
-                def.texture or name .. ".png",
-            },
-            visual = "mesh",
-            visual_size = def.visual_size or { x = 1, y = 1 },
-            collisionbox = def.collisionbox ~= nil and def.collisionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
-            selectionbox = def.selectionbox ~= nil and def.selectionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
-            stepheight = def.stepheight or 0.6,
-            physical = def.physical ~= nil and def.physical or true,
-            collide_with_objects = def.collide_with_objects ~= nil and def.collide_with_objects or true,
-            makes_footstep_sound = def.makes_footstep_sound ~= nil and def.makes_footstep_sound or true,
-            static_save = true,
-            hp_max = def.hp_max or 1,
-            nametag = def.nametag or "",
-        },
-        _id = nil,
-        _team = nil,
-        _player_rotation = def.player_rotation or { x = 0, y = 0, z = 0 },
-        _driver_attach_at = def.driver_attach_at or { x = 0, y = 0, z = 0 },
-        _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
-        _driver = nil,
-        _target_pos = nil,
-        _timer = 0,
-        _marked_for_removal = false,
-        _jumping = 0,
-        _animation = def.animations.stand,
-        _animations = def.animations or {},
-        _animation_speed = def.animation_speed or 30,
-        _owner_name = nil,
-        _last_action_time = 0,
-        _current_mapblock = nil,
-        _forceloaded_block = nil,
-        _movement_type = def.movement_type or "ground",
-        on_activate = def.on_activate or function(self, staticdata, dtime_s)
-            local animations = def.animations
-            if staticdata ~= nil and staticdata ~= "" then
-                local data = staticdata:split(';')
-                self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
-            end
-            self._animation = animations.stand
-            self.object:set_animation(self._animation or animations.stand, 1, 0)
-            self._id = tostring(self.object:get_guid())
-            local punits = player_units[self._owner_name] or {}
-            punits[self._id] = self
-            player_units[self._owner_name] = punits
-            active_units[self._id] = self
-            core.log("action", "Unit activated: " .. (def.nametag or name) .. " " .. self._id)
-            keep_loaded(self)
-        end,
-        on_deactivate = def.on_deactivate or function(self, removal)
-            core.log("action", "Unit deactivated: " .. (def.nametag or name) .. " " .. self._id)
-            if self._forceloaded_block then
-                core.forceload_free_block(self._forceloaded_block, true)
-                self._forceloaded_block = nil
-                if self._current_mapblock then
-                    loaded_mapblocks[self._current_mapblock.x .. "," .. self._current_mapblock.y .. "," .. self._current_mapblock.z] = nil
-                end
-                self._current_mapblock = nil
-            end
-            local punits = player_units[self._owner_name] or {}
-            punits[self._id] = nil
-            player_units[self._owner_name] = punits
-            active_units[self._id] = nil
-        end,
-        on_rightclick = def.on_rightclick or function(self, clicker)
-            local player_name = clicker:get_player_name()
-            if self._owner_name == player_name then
-                if self._driver == nil then
-                    va_units.attach(clicker, self)
-                else
-                    va_units.detach(clicker)
-                end
-            end
-        end,
-        on_punch = def.on_punch or function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
-            if puncher and puncher:is_player() and self._driver == nil then
-                local player_name = puncher:get_player_name()
-                if self._owner_name == player_name then
-                    core.chat_send_player(player_name, "Removing Unit: " .. (def.nametag or name) .. " " .. self._id)
-                    self._marked_for_removal = true
-                end
-            end
-        end,
-        get_staticdata = def.get_staticdata or function(self)
-            return self._owner_name or ""
-        end,
-        on_step = def.on_step or function(self, dtime, moveresult)
-            if not self.object then
-                return
-            end
-            self._timer = self._timer + dtime
-            if check_for_removal(self) then
-                return
-            end
-            update_physics(self)
-            keep_loaded(self)
-            va_units.drive(self,{
-                    movement_speed = def.movement_speed * 2.5,
-                    turn_speed = def.turn_speed or 1,
-                    backward_speed = def.backward_speed or 0,
-                }, dtime)
-        end
-    })
-
-    core.register_craftitem("va_units:" .. name .. "_spawn", {
-        description = def.spawn_item_description,
-        inventory_image = def.item_inventory_image or ("va_units_" .. name .. "_item.png"),
-        groups = { spawn_egg = 2, not_in_creative_inventory = 1 },
-        on_place = function(itemstack, placer, pointed_thing)
-            local pos = pointed_thing.above
-
-            local under = core.get_node(pointed_thing.under)
-            local def = core.registered_nodes[under.name]
-
-            if def and def.on_rightclick then
-                return def.on_rightclick(
-                    pointed_thing.under, under, placer, itemstack, pointed_thing)
-            end
-
-            if pos
-                and not core.is_protected(pos, placer:get_player_name()) then
-                pos.y = pos.y + 1
-
-                va_units.spawn_unit("va_units:" .. name, placer:get_player_name(), pos, placer:get_look_yaw())
-                itemstack:take_item()
-            end
-
-            return itemstack
-        end
-    })
-end
-
-function va_units.spawn_unit(unit_name, owner_name, pos)
-    local registered_def = units[unit_name]
-    if not registered_def then
-        return nil
-    end
-    local obj = core.add_entity(pos, unit_name, owner_name)
-    return obj
-end
-
-function va_units.attach(player, unit)
-    unit._player_rotation = unit._player_rotation or { x = 0, y = 0, z = 0 }
-    unit._driver_attach_at = unit._driver_attach_at or { x = 0, y = 0, z = 0 }
-    unit._driver_eye_offset = unit._driver_eye_offset or { x = 0, y = 0, z = 0 }
-
-    local rot_view = 0
-
-    if unit._player_rotation.y == 90 then
-        rot_view = pi / 2
-    end
-
-    local attach_at = unit._driver_attach_at
-    local eye_offset = unit._driver_eye_offset
-    unit._driver = player
-
-    va_units.force_detach(player)
-
-    player_api.player_attached[player:get_player_name()] = true
-    player_api.set_textures(player, { "va_units_invisible.png" })
-    player:set_attach(unit.object, "", attach_at, unit._player_rotation)
-    player:set_eye_offset(eye_offset, unit._driver_eye_offset)
-    player:set_look_horizontal(unit.object:get_yaw() - rot_view)
-end
-
-function va_units.force_detach(player)
+local function force_detach(player)
     if not player then return end
 
     local attached_to = player:get_attach()
@@ -285,21 +163,14 @@ function va_units.force_detach(player)
     player:set_eye_offset({ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 })
 end
 
-function va_units.detach(player)
-    va_units.force_detach(player)
-
-    core.after(0.1, function()
-        if player and player:is_player() then
-            local pos = find_free_pos(player:get_pos())
-
-            pos.y = pos.y + 0.5
-
-            player:set_pos(pos)
-        end
-    end)
+local function process_queue(unit)
+    if not unit._command_queue or #unit._command_queue == 0 then
+        return
+    end
+    -- Process next command in the queue
 end
 
-function va_units.drive(unit, movement_def, dtime)
+local function drive(unit, movement_def, dtime)
     if not unit.object then
         return
     end
@@ -424,10 +295,197 @@ function va_units.drive(unit, movement_def, dtime)
     end
 end
 
+function va_units.register_unit(name, def)
+    units["va_units:" .. name] = def
+    core.register_entity("va_units:" .. name, {
+        initial_properties = {
+            mesh = def.mesh or name .. ".gltf",
+            textures = {
+                def.texture or name .. ".png",
+            },
+            visual = "mesh",
+            visual_size = def.visual_size or { x = 1, y = 1 },
+            collisionbox = def.collisionbox ~= nil and def.collisionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
+            selectionbox = def.selectionbox ~= nil and def.selectionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
+            stepheight = def.stepheight or 0.6,
+            physical = def.physical ~= nil and def.physical or true,
+            collide_with_objects = def.collide_with_objects ~= nil and def.collide_with_objects or true,
+            makes_footstep_sound = def.makes_footstep_sound ~= nil and def.makes_footstep_sound or true,
+            static_save = true,
+            hp_max = def.hp_max or 1,
+            nametag = "",
+        },
+        _is_va_unit = true,
+        _command_queue = {},
+        _id = nil,
+        _team = nil,
+        _player_rotation = def.player_rotation or { x = 0, y = 0, z = 0 },
+        _driver_attach_at = def.driver_attach_at or { x = 0, y = 0, z = 0 },
+        _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
+        _driver = nil,
+        _target_pos = nil,
+        _timer = 0,
+        _marked_for_removal = false,
+        _jumping = 0,
+        _animation = def.animations.stand,
+        _animations = def.animations or {},
+        _animation_speed = def.animation_speed or 30,
+        _owner_name = nil,
+        _last_action_time = 0,
+        _current_mapblock = nil,
+        _forceloaded_block = nil,
+        _movement_type = def.movement_type or "ground",
+        on_activate = def.on_activate or function(self, staticdata, dtime_s)
+            local animations = def.animations
+            if staticdata ~= nil and staticdata ~= "" then
+                local data = staticdata:split(';')
+                self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
+            end
+            self._animation = animations.stand
+            self.object:set_animation(self._animation or animations.stand, 1, 0)
+            self._id = tostring(self.object:get_guid())
+            local punits = player_units[self._owner_name] or {}
+            punits[self._id] = self
+            player_units[self._owner_name] = punits
+            active_units[self._id] = self
+            core.log("action", "Unit activated: " .. (def.nametag or name) .. " " .. self._id)
+            keep_loaded(self)
+            self.object:set_observers({[self._owner_name] = true})
+        end,
+        on_deactivate = def.on_deactivate or function(self, removal)
+            core.log("action", "Unit deactivated: " .. (def.nametag or name) .. " " .. self._id)
+            if self._forceloaded_block then
+                core.forceload_free_block(self._forceloaded_block, true)
+                self._forceloaded_block = nil
+                if self._current_mapblock then
+                    loaded_mapblocks[self._current_mapblock.x .. "," .. self._current_mapblock.y .. "," .. self._current_mapblock.z] = nil
+                end
+                self._current_mapblock = nil
+            end
+            local punits = player_units[self._owner_name] or {}
+            punits[self._id] = nil
+            player_units[self._owner_name] = punits
+            active_units[self._id] = nil
+            self.object:set_observers({})
+        end,
+        get_staticdata = def.get_staticdata or function(self)
+            return self._owner_name or ""
+        end,
+        on_step = function(self, dtime, moveresult)
+            if not self.object then
+                return
+            end
+            self._timer = self._timer + dtime
+            if check_for_removal(self) then
+                return
+            end
+            update_physics(self)
+            keep_loaded(self)
+            drive(self,{
+                    movement_speed = def.movement_speed * 2.5,
+                    turn_speed = def.turn_speed or 1,
+                    backward_speed = def.backward_speed or 0,
+                }, dtime)
+            process_queue(self)
+            update_visibility(self)
+        end
+    })
+
+    core.register_craftitem("va_units:" .. name .. "_spawn", {
+        description = def.spawn_item_description,
+        inventory_image = def.item_inventory_image or ("va_units_" .. name .. "_item.png"),
+        groups = { spawn_egg = 2, not_in_creative_inventory = 1 },
+        on_place = function(itemstack, placer, pointed_thing)
+            local pos = pointed_thing.above
+
+            local under = core.get_node(pointed_thing.under)
+            local node_def = core.registered_nodes[under.name]
+
+            if node_def and node_def.on_rightclick then
+                return node_def.on_rightclick(
+                    pointed_thing.under, under, placer, itemstack, pointed_thing)
+            end
+
+            if pos
+                and not core.is_protected(pos, placer:get_player_name()) then
+                pos.y = pos.y + 1
+
+                va_units.spawn_unit("va_units:" .. name, placer:get_player_name(), pos, placer:get_look_horizontal())
+                itemstack:take_item()
+            end
+
+            return itemstack
+        end
+    })
+end
+
+
+
+function va_units.spawn_unit(unit_name, owner_name, pos)
+    local registered_def = units[unit_name]
+    if not registered_def then
+        return nil
+    end
+    local obj = core.add_entity(pos, unit_name, owner_name)
+    return obj
+end
+
+function va_units.attach(player, unit)
+    unit._player_rotation = unit._player_rotation or { x = 0, y = 0, z = 0 }
+    unit._driver_attach_at = unit._driver_attach_at or { x = 0, y = 0, z = 0 }
+    unit._driver_eye_offset = unit._driver_eye_offset or { x = 0, y = 0, z = 0 }
+
+    local rot_view = 0
+
+    if unit._player_rotation.y == 90 then
+        rot_view = pi / 2
+    end
+
+    local attach_at = unit._driver_attach_at
+    local eye_offset = unit._driver_eye_offset
+    unit._driver = player
+
+    force_detach(player)
+
+    player_api.player_attached[player:get_player_name()] = true
+    player_api.set_textures(player, { "va_units_invisible.png" })
+    player:set_attach(unit.object, "", attach_at, unit._player_rotation)
+    player:set_eye_offset(eye_offset, unit._driver_eye_offset)
+    player:set_look_horizontal(unit.object:get_yaw() - rot_view)
+end
+
+
+
+
+
+function va_units.detach(player)
+    force_detach(player)
+
+    core.after(0.1, function()
+        if player and player:is_player() then
+            local pos = find_free_pos(player:get_pos())
+
+            pos.y = pos.y + 0.5
+
+            player:set_pos(pos)
+        end
+    end)
+end
+
+function va_units.get_all_units()
+    return active_units
+end
+
+
 function va_units.globalstep(dtime)
     -- Update all units
 end
 
 core.register_globalstep(function(...)
     va_units.globalstep(...)
+end)
+
+
+core.register_on_leaveplayer(function(player)
+    force_detach(player)
 end)

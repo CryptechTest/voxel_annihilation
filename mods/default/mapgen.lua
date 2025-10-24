@@ -573,8 +573,7 @@ function default.register_ores()
 		},
 		-- Only where default:dirt is present as surface material
 		biomes = {"taiga", "snowy_grassland", "grassland", "coniferous_forest",
-				"deciduous_forest", "deciduous_forest_shore", "rainforest",
-				"rainforest_swamp"}
+				"deciduous_forest", "deciduous_forest_shore"}
 	})
 
 	-- Gravel
@@ -1544,7 +1543,7 @@ function default.register_biomes()
 	})
 
 	-- Rainforest
-
+	--[[
 	core.register_biome({
 		name = "rainforest",
 		node_top = "default:dirt_with_rainforest_litter",
@@ -1609,6 +1608,7 @@ function default.register_biomes()
 		heat_point = 86,
 		humidity_point = 65,
 	})
+	--]]
 end
 
 
@@ -1811,11 +1811,11 @@ function default.register_decorations()
 		place_on = {"default:dirt_with_grass"},
 		sidelen = 16,
 		noise_params = {
-			offset = 0.024,
-			scale = 0.015,
-			spread = {x = 250, y = 250, z = 250},
+			offset = 0.006,
+			scale = 0.00375,
+			spread = {x = 500, y = 500, z = 500},
 			seed = 2,
-			octaves = 3,
+			octaves = 2,
 			persist = 0.66
 		},
 		biomes = {"deciduous_forest"},
@@ -1853,6 +1853,7 @@ function default.register_decorations()
 	-- Emergent jungle tree
 	-- Due to 32 node height, altitude is limited and prescence depends on chunksize
 
+	--[[
 	local chunksize = tonumber(core.get_mapgen_setting("chunksize"))
 	if chunksize >= 5 then
 		core.register_decoration({
@@ -1861,9 +1862,9 @@ function default.register_decorations()
 			place_on = {"default:dirt_with_rainforest_litter"},
 			sidelen = 80,
 			noise_params = {
-				offset = 0.0,
-				scale = 0.0025,
-				spread = {x = 250, y = 250, z = 250},
+				offset = 0.006,
+				scale = 0.000625,
+				spread = {x = 500, y = 500, z = 500},
 				seed = 2685,
 				octaves = 3,
 				persist = 0.7
@@ -1886,7 +1887,7 @@ function default.register_decorations()
 		deco_type = "schematic",
 		place_on = {"default:dirt_with_rainforest_litter"},
 		sidelen = 80,
-		fill_ratio = 0.1,
+		fill_ratio = 0.01,
 		biomes = {"rainforest"},
 		y_max = 31000,
 		y_min = 1,
@@ -1935,7 +1936,7 @@ function default.register_decorations()
 		spawn_by = "default:dirt_with_rainforest_litter",
 		num_spawn_by = 8,
 	})
-
+	--]]
 	-- Taiga and temperate coniferous forest pine tree, small pine tree and log
 
 	core.register_decoration({
@@ -1944,9 +1945,9 @@ function default.register_decorations()
 		place_on = {"default:dirt_with_snow", "default:dirt_with_coniferous_litter"},
 		sidelen = 16,
 		noise_params = {
-			offset = 0.010,
-			scale = 0.048,
-			spread = {x = 250, y = 250, z = 250},
+			offset = 0.005,
+			scale = 0.012,
+			spread = {x = 500, y = 500, z = 500},
 			seed = 2,
 			octaves = 3,
 			persist = 0.66
@@ -1964,9 +1965,9 @@ function default.register_decorations()
 		place_on = {"default:dirt_with_snow", "default:dirt_with_coniferous_litter"},
 		sidelen = 16,
 		noise_params = {
-			offset = 0.010,
-			scale = -0.048,
-			spread = {x = 250, y = 250, z = 250},
+			offset = 0.005,
+			scale = -0.012,
+			spread = {x = 500, y = 500, z = 500},
 			seed = 2,
 			octaves = 3,
 			persist = 0.66
@@ -1984,7 +1985,7 @@ function default.register_decorations()
 		place_on = {"default:dirt_with_snow", "default:dirt_with_coniferous_litter"},
 		place_offset_y = 1,
 		sidelen = 80,
-		fill_ratio = 0.0018,
+		fill_ratio = 0.00018,
 		biomes = {"taiga", "coniferous_forest"},
 		y_max = 31000,
 		y_min = 4,
@@ -2052,7 +2053,7 @@ function default.register_decorations()
 		noise_params = {
 			offset = 0.0,
 			scale = -0.015,
-			spread = {x = 250, y = 250, z = 250},
+			spread = {x = 500, y = 500, z = 500},
 			seed = 2,
 			octaves = 3,
 			persist = 0.66
@@ -2138,6 +2139,7 @@ function default.register_decorations()
 
 	-- Dirt version for rainforest swamp
 
+	--[[
 	core.register_decoration({
 		name = "default:papyrus_on_dirt",
 		deco_type = "schematic",
@@ -2156,6 +2158,7 @@ function default.register_decorations()
 		y_min = 0,
 		schematic = core.get_modpath("default") .. "/schematics/papyrus_on_dirt.mts",
 	})
+	--]]
 
 	-- Dry dirt version for savanna shore
 
@@ -2270,6 +2273,7 @@ function default.register_decorations()
 
 	-- Junglegrass
 
+	--[[
 	core.register_decoration({
 		name = "default:junglegrass",
 		deco_type = "simple",
@@ -2281,6 +2285,7 @@ function default.register_decorations()
 		y_min = 1,
 		decoration = "default:junglegrass",
 	})
+	--]]
 
 	-- Dry shrub
 
@@ -2374,7 +2379,7 @@ function default.register_decorations()
 		biomes = {
 			"desert_ocean",
 			"savanna_ocean",
-			"rainforest_ocean",
+			--"rainforest_ocean",
 		},
 		y_max = -2,
 		y_min = -8,

@@ -273,3 +273,7 @@ core.register_on_leaveplayer(function(player, timed_out)
     saved_huds[player_name] = nil
 end)
 --]]
+
+core.register_allow_player_inventory_action(function(player, action, inventory, inventory_info)
+    return 0
+end)

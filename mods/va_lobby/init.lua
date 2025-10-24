@@ -139,11 +139,12 @@ core.register_on_joinplayer(function(player)
         healthbar = false,
         breathbar = false,
         crosshair = true,
-        wielditem = true,
+        wielditem = false,
         hotbar = true,
         minimap = false,
         minimap_radar = false,
     })
+    player:set_observers({[player:get_player_name()] = true})
     --va_hud.update_hud(player)
 end)
 
