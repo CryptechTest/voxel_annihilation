@@ -11,7 +11,6 @@ local function register_structure_entity(def)
             collisionbox = def.collisionbox,
             hp = def.max_health,
             hp_max = def.max_health,
-            -- TODO: setup texture and mesh
             visual = "mesh",
             mesh = def.mesh,
             textures = def.textures,
