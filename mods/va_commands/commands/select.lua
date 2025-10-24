@@ -305,7 +305,7 @@ va_commands.register_command("select", {
                 local node = core.get_node(above_pos)
                 if node.name == "air" then
                     user:set_pos(above_pos)
-                    return
+                    break
                 end
             end
         else
@@ -315,8 +315,6 @@ va_commands.register_command("select", {
                 return
             end
         end
-        clear_selection(user)
-        core.chat_send_player(user:get_player_name(), "Selection cleared.")
     end,
 })
 
