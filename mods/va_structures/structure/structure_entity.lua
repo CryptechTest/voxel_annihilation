@@ -43,15 +43,33 @@ local function register_structure_entity(def)
             self._timer = 0
             local pos = self.object:get_pos()
             local node = core.get_node(pos)
-            if node and not node.name == def.fqnn then
+            if node and node.name ~= def.fqnn then
                 self.object:remove()
                 return
             end
             if self._marked_for_removal then
                 self.object:remove()
+                return
             end
             --process_queue(self)
             --update_visibility(self)
+        end,
+
+        on_activate = def.on_activate or function(self, staticdata, dtime_s)
+            local pos = self.object:get_pos()
+            local node = core.get_node(pos)
+            if node and node.name ~= def.fqnn then
+                self.object:remove()
+                return
+            end
+        end,
+
+        on_deactivate = def.on_deactivate or function(self, removal)
+            local pos = self.object:get_pos()
+            core.remove_node(pos)
+            if not removal then
+                self.object:remove()
+            end
         end,
 
         on_death = function(self, killer)
