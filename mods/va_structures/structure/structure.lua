@@ -181,7 +181,7 @@ function Structure:get_data()
 end
 
 function Structure:get_entity()
-    return self.entity_obj
+    return self.entity_obj:get_luaentity()
 end
 
 function Structure:get_hp()
