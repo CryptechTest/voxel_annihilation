@@ -37,6 +37,8 @@ local function find_free_pos(pos)
     return pos
 end
 
+
+
 local function check_for_removal(unit)
     if not unit.object then
         return true
@@ -69,7 +71,7 @@ local function keep_loaded(unit)
             unit._forceloaded_block = nil
         end
     end
-    
+
     if not loaded_mapblocks[mapblock_key] then
         core.forceload_block(pos, true)
         loaded_mapblocks[mapblock_key] = true
@@ -379,11 +381,44 @@ function va_units.register_unit(name, def)
             end
             update_physics(self)
             keep_loaded(self)
-            drive(self,{
-                    movement_speed = def.movement_speed * 2.5,
-                    turn_speed = def.turn_speed or 1,
-                    backward_speed = def.backward_speed or 0,
-                }, dtime)
+            if not self._target_pos then
+                drive(self,{
+                        movement_speed = def.movement_speed * 2.5,
+                        turn_speed = def.turn_speed or 1,
+                        backward_speed = def.backward_speed or 0,
+                    }, dtime)
+            else
+                -- Handle movement towards target
+                local path = core.find_path(self.object:get_pos(),
+                    self._target_pos,
+                    256, 1, 1)
+                core.chat_send_player(name, "Path length: " .. (path and #path or 0))
+                if path and #path > 1 then
+                    local next_pos = path[2]
+                    local dir_vector = vector.subtract(next_pos, self.object:get_pos())
+                    local yaw = math.atan2(dir_vector.z, dir_vector.x) - (math.pi / 2)
+                    self.object:set_yaw(yaw)
+                    local vel = self.object:get_velocity()
+                    self.object:set_velocity({
+                        x = def.movement_speed * 2.5 * cos(yaw + pi / 2),
+                        y = vel.y,
+                        z = def.movement_speed * 2.5 * sin(yaw + pi / 2),
+                    })
+                    if self._animation ~= self._animations.walk then
+                        self._animation = self._animations.walk
+                        self.object:set_animation(self._animation, self._animation_speed or 30)
+                    end
+                else
+                    -- Reached target or no path found
+                    self._target_pos = nil
+                    local vel = self.object:get_velocity()
+                    self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                    if self._animation ~= self._animations.stand then
+                        self._animation = self._animations.stand
+                        self.object:set_animation(self._animation, self._animation_speed or 30)
+                    end
+                end
+            end
             process_queue(self)
             update_visibility(self)
         end
@@ -452,10 +487,6 @@ function va_units.attach(player, unit)
     player:set_look_horizontal(unit.object:get_yaw() - rot_view)
 end
 
-
-
-
-
 function va_units.detach(player)
     force_detach(player)
 
@@ -485,6 +516,14 @@ end
 function va_units.get_player_unit(player_name, unit_id)
     local punits = player_units[player_name] or {}
     return punits[unit_id]
+end
+
+function va_units.set_target(unit, target)
+    unit._target_pos = target
+end
+
+function va_units.get_target(unit)
+    return unit._target_pos
 end
 
 function va_units.globalstep(dtime)
