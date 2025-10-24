@@ -66,17 +66,19 @@ local function remove_selection(entity)
     if children then
         for _, child in ipairs(children) do
             local luaentity = child:get_luaentity()
-            local entity_name = child:get_entity_name()
-            if luaentity and entity_name == "va_commands:selected_unit" then
-                core.chat_send_player(entity._owner_name, "Unit deselected.")
-                child:remove()
-                local currently_selected = va_commands.get_player_selected_units(entity._owner_name)
-                if currently_selected then
-                    for i, selected_entity in ipairs(currently_selected) do
-                        if selected_entity == entity then
-                            table.remove(currently_selected, i)
-                            va_commands.set_player_selected_units(entity._owner_name, currently_selected)
-                            break
+            if luaentity then
+                local entity_name = luaentity and luaentity.name
+                if entity_name == "va_commands:selected_unit" then
+                    core.chat_send_player(entity._owner_name, "Unit deselected.")
+                    child:remove()
+                    local currently_selected = va_commands.get_player_selected_units(entity._owner_name)
+                    if currently_selected then
+                        for i, selected_entity in ipairs(currently_selected) do
+                            if selected_entity == entity then
+                                table.remove(currently_selected, i)
+                                va_commands.set_player_selected_units(entity._owner_name, currently_selected)
+                                break
+                            end
                         end
                     end
                 end
@@ -140,9 +142,9 @@ local function select_area(user, pos1, pos2)
     for _, unit in pairs(va_units.get_all_units()) do
         local upos = unit.object:get_pos()
         if unit._owner_name == player_name and
-           upos.x >= minp.x and upos.x <= maxp.x and
-           upos.y >= minp.y and upos.y <= maxp.y and
-           upos.z >= minp.z and upos.z <= maxp.z then
+            upos.x >= minp.x and upos.x <= maxp.x and
+            upos.y >= minp.y and upos.y <= maxp.y and
+            upos.z >= minp.z and upos.z <= maxp.z then
             add_selection(unit)
             count = count + 1
         end
@@ -194,7 +196,7 @@ va_commands.register_command("select", {
         end
         local player_name = user:get_player_name()
         if pointed_thing.type == "nothing" then
-           local extent = va_commands.get_player_selection_extent(player_name)
+            local extent = va_commands.get_player_selection_extent(player_name)
             if extent then
                 if extent.pos1 and extent.pos2 then
                     clear_selection(user)
@@ -218,8 +220,8 @@ va_commands.register_command("select", {
                     va_commands.set_player_selection_extent(player_name, extent)
                     core.chat_send_player(player_name, "First position set.")
                 end
-            end 
-        elseif pointed_thing.type == "node" then            
+            end
+        elseif pointed_thing.type == "node" then
             local extent = va_commands.get_player_selection_extent(player_name) or {}
             if extent then
                 if extent.pos1 and extent.pos2 then
@@ -244,8 +246,7 @@ va_commands.register_command("select", {
                     extent.pos1_entity = pos1_entity
                     core.chat_send_player(player_name, "First position set.")
                 end
-            end    
-           
+            end
         elseif pointed_thing.type == "object" then
             local entity = pointed_thing.ref:get_luaentity()
             if entity == nil then
@@ -299,12 +300,12 @@ va_commands.register_command("select", {
                 return
             end
             local pos = pointed_thing.under
-            for i = 1, 48 do
-                local above_pos = {x = pos.x, y = pos.y + (49 - i), z = pos.z}
+            for i = 1, 16 do
+                local above_pos = { x = pos.x, y = pos.y + (17 - i), z = pos.z }
                 local node = core.get_node(above_pos)
-               if node.name == "air" then
+                if node.name == "air" then
                     user:set_pos(above_pos)
-                   break
+                    return
                 end
             end
         else
