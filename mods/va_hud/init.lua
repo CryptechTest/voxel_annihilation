@@ -4,6 +4,11 @@ dofile(core.get_modpath("va_hud") .. "/item_names.lua")
 
 local saved_huds = {}
 
+local function round(number, steps)
+    steps = steps or 1
+    return math.floor(number * steps + 0.5) / steps
+end
+
 local function setup_hud(player)
     local mass = 0
     local mass_supply = 0
@@ -196,19 +201,19 @@ end
 function va_hud.update_hud(player)
     local player_name = player:get_player_name()
     local player_actor = va_structures.get_player_actor(player_name)
-    local mass = player_actor.mass
-    local mass_supply = player_actor.mass_supply
-    local mass_demand = player_actor.mass_demand
-    local mass_storage = player_actor.mass_storage
+    local mass = round(player_actor.mass, 1)
+    local mass_supply = round(player_actor.mass_supply, 1)
+    local mass_demand = round(player_actor.mass_demand, 1)
+    local mass_storage = round(player_actor.mass_storage, 0)
     local storing_mass = mass_supply > mass_demand and mass < mass_storage
     local overflow_mass = mass_supply > 0 and mass >= mass_storage and
         not
         storing_mass -- this needs to be set based on if there are teammate and can overflow mass
     local wasting_mass = mass_supply > mass_demand and mass <= mass_storage and not overflow_mass and not storing_mass
-    local energy = player_actor.energy
-    local energy_supply = player_actor.energy_supply
-    local energy_demand = player_actor.energy_demand
-    local energy_storage = player_actor.energy_storage
+    local energy = round(player_actor.energy, 1)
+    local energy_supply = round(player_actor.energy_supply, 1)
+    local energy_demand = round(player_actor.energy_demand, 1)
+    local energy_storage = round(player_actor.energy_storage, 0)
     local storing_energy = energy_supply > energy_demand and energy < energy_storage
     local overflow_energy = energy_supply > 0 and energy >= energy_storage and
         not

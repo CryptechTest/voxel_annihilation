@@ -24,6 +24,8 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             local energy = net.energy
             if energy + gen <= net.energy_storage then
                 net.energy = energy + gen
+            else
+                net.energy = net.energy_storage
             end
             net.energy_supply = net.energy_supply + gen
         end

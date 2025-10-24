@@ -23,7 +23,11 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local mass = net.mass
         if energy - cost > 0 then
             net.energy = energy - cost
-            net.mass = mass + gen
+            if net.mass + gen <= net.mass_storage then
+                net.mass = mass + gen
+            else
+                net.mass = net.mass_storage
+            end
             net.mass_supply = net.mass_supply + gen
         end
         net.energy_demand = net.energy_demand + cost
