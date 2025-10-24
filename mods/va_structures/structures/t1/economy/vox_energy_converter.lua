@@ -24,9 +24,9 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         if energy - cost > 0 then
             net.energy = energy - cost
             net.mass = mass + gen
-            net.energy_demand = net.energy_demand + cost
             net.mass_supply = net.mass_supply + gen
         end
+        net.energy_demand = net.energy_demand + cost
     end
 end
 
