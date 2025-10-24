@@ -18,6 +18,7 @@ local function register_structure_entity(def)
 
         -- va general vars
         _is_va_structure = true,
+        _marked_for_removal = false,
         _command_queue = {},
         _id = nil,
         -- va driver vars
@@ -45,6 +46,9 @@ local function register_structure_entity(def)
             if node and not node.name == def.fqnn then
                 self.object:remove()
                 return
+            end
+            if self._marked_for_removal then
+                self.object:remove()
             end
             --process_queue(self)
             --update_visibility(self)
