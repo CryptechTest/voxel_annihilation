@@ -75,6 +75,11 @@ local function keep_loaded(unit)
         unit._current_mapblock = mapblock_pos
         unit._forceloaded_block = pos
         loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
+    elseif loaded_mapblock == nil and current_mapblock then
+        unit._current_mapblock = mapblock_pos
+        core.forceload_block(pos, true)
+        unit._forceloaded_block = pos
+        loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
     else
         unit._current_mapblock = mapblock_pos
     end
