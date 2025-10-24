@@ -114,9 +114,9 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
     if placer:is_player() then
         s.owner = placer:get_player_name()
     end
-    s:activate()
     va_structures.add_player_structure(s)
     va_structures.add_active_structure(pos, s)
+    s:activate()
 end
 
 function Structure.after_dig_node(pos, oldnode, oldmetadata, digger)
@@ -214,6 +214,18 @@ function Structure:place(pos, param2)
     })
 end
 
+function Structure:dispose()
+    va_structures.remove_active_structure(self.pos)
+    if self.entity_obj then
+        local ent = self.entity_obj:get_luaentity()
+        if ent then
+            ent:_dispose(true)
+        end
+    else
+        core.remove_node(self.pos)
+    end
+end
+
 function Structure:deactivate()
     local pos = self.pos
     local meta = core.get_meta(pos)
@@ -248,7 +260,6 @@ function Structure:activate(visible)
         local ent = obj:get_luaentity()
         ent._owner_hash = tostring(hash)
         ent._owner_name = self.owner
-        ent._exists = true
         if not self.is_contructed then
             visible = false
         end

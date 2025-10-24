@@ -65,37 +65,40 @@ local function register_structure_entity(def)
                 self.object:remove()
             end
             local node = core.get_node(pos)
-            if node and node.name ~= def.fqnn then
+            if node and node.name == def.fqnn then
                 core.remove_node(pos)
             end
             return true
         end,
-
-        _is_valid = function(self, pos)
-            local h = core.hash_node_position(pos)
-            self._valid = h == self._owner_hash and true or false
+        -- check if valid
+        _is_valid = function(self)
+            local pos = self.object:get_pos()
+            local s = va_structures.get_active_structure(pos)
+            self._valid = s ~= nil or false
             return self._valid
         end,
-        _check_valid = function()
+        _check_valid = function(self)
             local pos = self.object:get_pos()
             local node = core.get_node(pos)
-            if (node and node.name ~= def.fqnn) or not self._valid then
+            if node and node.name ~= def.fqnn then
                 self._marked_for_removal = true
-            else
-                self:_is_valid(pos)
+            elseif not self:_is_valid() then
+                self._marked_for_removal = true
             end
         end,
 
+        -- main step
         on_step = function(self, dtime)
             self._timer = self._timer + 1
             if self._timer < 10 then
                 return
             end
             self._timer = 0
-            self:_check_valid()
             if self._marked_for_removal then
                 return self:_dispose(true)
             end
+            self:_is_valid()
+            self:_check_valid()
             va_structures.keep_loaded(self)
             -- process_queue(self)
             update_visibility(self)
@@ -107,10 +110,12 @@ local function register_structure_entity(def)
                 hash = self._owner_hash
             })
         end,
-
+        
+        -- activation
         on_activate = function(self, staticdata, dtime_s)
             -- core.log("activating...")
             self._id = tostring(self.object:get_guid())
+            self:_is_valid();
             local owner = nil
             local hash = nil
             if staticdata ~= nil and staticdata ~= "" then
@@ -122,9 +127,7 @@ local function register_structure_entity(def)
             end
             local pos = self.object:get_pos()
             local s = va_structures.get_active_structure(pos)
-            if not s then
-                return self:_dispose(true)
-            else
+            if s then
                 va_structures.keep_loaded(self)
                 local meta = core.get_meta(pos)
                 if meta:get_int("active") == 0 then
@@ -133,6 +136,7 @@ local function register_structure_entity(def)
             end
         end,
 
+        -- deactivation
         on_deactivate = function(self, removal)
             -- core.log("deactivating...")
             local pos = self.object:get_pos()

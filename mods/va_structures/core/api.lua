@@ -19,36 +19,31 @@ function va_structures.keep_loaded(unit)
         return
     end
     local pos = unit.object:get_pos()
-    local current_mapblock = unit._current_mapblock
     local mapblock_pos = {
         x = math.floor(pos.x / 16),
         y = math.floor(pos.y / 16),
         z = math.floor(pos.z / 16)
     }
-    local loaded_mapblock = loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z]
-    if loaded_mapblock == nil and
-        (current_mapblock == nil or current_mapblock.x ~= mapblock_pos.x or current_mapblock.y ~= mapblock_pos.y or
-            current_mapblock.z ~= mapblock_pos.z) then
+    local mapblock_key = mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z
+    local current_mapblock = unit._current_mapblock
+    local current_key = current_mapblock and
+                            (current_mapblock.x .. "," .. current_mapblock.y .. "," .. current_mapblock.z) or nil
+
+    if current_key and (current_key ~= mapblock_key) then
         if unit._forceloaded_block then
             core.forceload_free_block(unit._forceloaded_block, true)
+            loaded_mapblocks[current_key] = nil
             unit._forceloaded_block = nil
-            if current_mapblock then
-                loaded_mapblocks[current_mapblock.x .. "," .. current_mapblock.y .. "," .. current_mapblock.z] = nil
-            end
         end
-        core.forceload_block(pos, true)
-        unit._current_mapblock = mapblock_pos
-        unit._forceloaded_block = pos
-        loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
-    elseif loaded_mapblock == nil and current_mapblock then
-        unit._current_mapblock = mapblock_pos
-        core.forceload_block(pos, true)
-        unit._forceloaded_block = pos
-        loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
-    else
-        unit._current_mapblock = mapblock_pos
     end
 
+    if not loaded_mapblocks[mapblock_key] then
+        core.forceload_block(pos, true)
+        loaded_mapblocks[mapblock_key] = true
+        unit._forceloaded_block = pos
+    end
+
+    unit._current_mapblock = mapblock_pos
 end
 
 -----------------------------------------------------------------
@@ -315,3 +310,12 @@ va_structures.structures_run = function()
     -- core.log("run " .. #s_pos .. " structures")
 end
 
+
+-----------------------------------------------------------------
+-- cleanup_assets
+
+va_structures.cleanup_assets = function()
+    for _,s in pairs(_active_instances) do
+        s:dispose()
+    end
+end
