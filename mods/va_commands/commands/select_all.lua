@@ -57,6 +57,12 @@ va_commands.register_command("select_all", {
                 count = count + 1
             end
         end
+        for _, structure in pairs(va_structures.get_all_structures()) do
+            if structure._owner_name == player_name then
+                add_selection(structure)
+                count = count + 1
+            end
+        end
         core.chat_send_player(player_name, "Selected " .. count .. " units.")
     end,
     execute_secondary = function(itemstack, user, pointed_thing)
