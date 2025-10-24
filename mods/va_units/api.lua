@@ -391,17 +391,24 @@ function va_units.register_unit(name, def)
                 -- Handle movement towards target
                 local path = core.find_path(self.object:get_pos(),
                     self._target_pos,
-                    256, 1, 1)
+                    256, 1, 2)
                 core.chat_send_player(name, "Path length: " .. (path and #path or 0))
                 if path and #path > 1 then
                     local next_pos = path[2]
-                    local dir_vector = vector.subtract(next_pos, self.object:get_pos())
+                    local pos = self.object:get_pos()
+                    local dir_vector = vector.subtract(next_pos, pos)
                     local yaw = math.atan2(dir_vector.z, dir_vector.x) - (math.pi / 2)
                     self.object:set_yaw(yaw)
                     local vel = self.object:get_velocity()
+
+                    local y_velocity = vel.y
+                    if next_pos.y + 0.5 > pos.y then
+                        y_velocity = 0.5 -- or 1.0 for higher stairs
+                    end
+
                     self.object:set_velocity({
                         x = def.movement_speed * 2.5 * cos(yaw + pi / 2),
-                        y = vel.y,
+                        y = y_velocity,
                         z = def.movement_speed * 2.5 * sin(yaw + pi / 2),
                     })
                     if self._animation ~= self._animations.walk then
