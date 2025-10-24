@@ -3,15 +3,15 @@ local function register_structure_entity(def)
     -- display entity shown for structure
     core.register_entity(def.entity_name, {
         initial_properties = {
-            physical = false,
+            physical = true,
             collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.75, 0.75},
             hp = def.meta.max_health,
             hp_max = def.meta.max_health,
              -- TODO: setup texture and mesh
             visual = "mesh",
-            mesh = "va_solar_collector_1.gltf",
-            textures = {"va_vox_solar_collector_2.png"},
-            visual_size = {x=1.5, y=1.5},
+            mesh = def.meta.mesh,
+            textures = def.meta.textures,
+            visual_size = {x=1.0, y=1.0},
             glow = 2,
             infotext = "HP: " .. tostring(def.meta.max_health) .. "/" .. tostring(def.meta.max_health) .. ""
         },

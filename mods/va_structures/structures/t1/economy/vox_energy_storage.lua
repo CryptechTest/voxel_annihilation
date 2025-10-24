@@ -23,6 +23,8 @@ end
 
 -- Structure metadata definition setup
 local def = {
+    mesh = "va_energy_storage_1.gltf",
+    textures = {"va_vox_energy_storage.png"},
     max_health = 20,
     energy_storage = 1000,
     mass_cost = 2,

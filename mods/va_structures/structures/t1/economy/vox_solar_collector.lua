@@ -31,6 +31,8 @@ end
 
 -- Structure metadata definition setup
 local def = {
+    mesh = "va_solar_collector_1.gltf",
+    textures = {"va_vox_solar_collector_2.png"},
     max_health = 25,
     energy_generate = 5,
     energy_storage = 10,
