@@ -40,7 +40,7 @@ local structure_files = {
 }
 
 -- load all structures define in structure_files
-local function load_structures(tier)
+local function load_structures()
     local file_list = {}
     for tier,structures in pairs(structure_files) do
         for cat,categories in pairs(structures) do
@@ -65,6 +65,4 @@ local function load_structures(tier)
     end
 end
 
-load_structures(tier1)
---load_structures(tier2)
---load_structures(tier3)
+load_structures()
