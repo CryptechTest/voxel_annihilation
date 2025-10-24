@@ -61,11 +61,10 @@ function Structure.new(pos, name, desc, size, category, tier, faction, meta_def,
     self.category = category or "none" -- build, combat, economy, utility
     self.tier = tier -- tech tier of this structure
     self.faction = faction -- factions: 'vox' and 'cube'
-    -- TODO: setup team
+    -- TODO: setup faction/team object...
     self.team_obj = nil
-    self.team_id = "vox"
     -- TODO: setup owner controllers
-    self.owner = ""
+    self.owner = nil
     local w = (self.size.x * 2) + 1
     local l = (self.size.z * 2) + 1
     local h = (self.size.y * 2) + 1
@@ -173,6 +172,13 @@ function Structure:is_active()
     return self._active
 end
 
+function Structure:hash()
+    if not self.pos then
+        return "0"
+    end
+    return tostring(core.hash_node_position(self.pos))
+end
+
 function Structure:get_data()
     return self.meta
 end
@@ -225,7 +231,7 @@ function Structure:activate(visible)
         self.entity_obj:remove()
         self.entity_obj = nil
     end
-    core.log("activated structure")
+    --core.log("activated structure")
     local visible = visible or false
     local pos = self.pos
     local hash = core.hash_node_position(pos)

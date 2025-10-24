@@ -21,6 +21,8 @@ local function register_structure_entity(def)
         _marked_for_removal = false,
         _command_queue = {},
         _id = nil,
+        _current_mapblock = nil,
+        _forceloaded_block = nil,
         -- va driver vars
         _player_rotation = { x = 0, y = 0, z = 0 },
         _driver_attach_at = { x = 0, y = 0, z = 0 },
@@ -66,6 +68,7 @@ local function register_structure_entity(def)
             if self._marked_for_removal then
                 return self:_dispose(true)
             end
+            va_structures.keep_loaded(self)
             --process_queue(self)
             --update_visibility(self)
         end,
@@ -78,7 +81,7 @@ local function register_structure_entity(def)
         end,
 
         on_activate = function(self, staticdata, dtime_s)
-            core.log("activating...")
+            --core.log("activating...")
             local owner = nil
             local hash = nil
             if staticdata ~= nil and staticdata ~= "" then
@@ -96,6 +99,7 @@ local function register_structure_entity(def)
                     return self:_dispose(true)
                 end
             else
+                va_structures.keep_loaded(self)
                 local meta = core.get_meta(pos)
                 if meta:get_int("active") == 0 then
                     s:activate(true)
@@ -104,7 +108,7 @@ local function register_structure_entity(def)
         end,
 
         on_deactivate = function(self, removal)
-            core.log("deactivating...")
+            --core.log("deactivating...")
             local pos = self.object:get_pos()
             local s = va_structures.get_active_structure(pos)
             if not s then
