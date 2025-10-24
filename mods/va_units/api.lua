@@ -335,7 +335,7 @@ function va_units.register_unit(name, def)
         _current_mapblock = nil,
         _forceloaded_block = nil,
         _movement_type = def.movement_type or "ground",
-        on_activate = def.on_activate or function(self, staticdata, dtime_s)
+        on_activate = function(self, staticdata, dtime_s)
             local animations = def.animations
             if staticdata ~= nil and staticdata ~= "" then
                 local data = staticdata:split(';')
@@ -352,7 +352,7 @@ function va_units.register_unit(name, def)
             keep_loaded(self)
             self.object:set_observers({[self._owner_name] = true})
         end,
-        on_deactivate = def.on_deactivate or function(self, removal)
+        on_deactivate = function(self, removal)
             core.log("action", "Unit deactivated: " .. (def.nametag or name) .. " " .. self._id)
             if self._forceloaded_block then
                 core.forceload_free_block(self._forceloaded_block, true)
@@ -368,7 +368,7 @@ function va_units.register_unit(name, def)
             active_units[self._id] = nil
             self.object:set_observers({})
         end,
-        get_staticdata = def.get_staticdata or function(self)
+        get_staticdata = function(self)
             return self._owner_name or ""
         end,
         on_step = function(self, dtime, moveresult)
@@ -476,6 +476,18 @@ function va_units.get_all_units()
     return active_units
 end
 
+function va_units.get_player_units(player_name)
+    return player_units[player_name] or {}
+end
+
+function va_units.get_unit_by_id(unit_id)
+    return active_units[unit_id]
+end
+
+function va_units.get_player_unit(player_name, unit_id)
+    local punits = player_units[player_name] or {}
+    return punits[unit_id]
+end
 
 function va_units.globalstep(dtime)
     -- Update all units
