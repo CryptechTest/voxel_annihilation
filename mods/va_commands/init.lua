@@ -6,4 +6,5 @@ dofile(core.get_modpath("va_commands") .. "/commands/move.lua")
 dofile(core.get_modpath("va_commands") .. "/commands/attack_move.lua")
 dofile(core.get_modpath("va_commands") .. "/commands/attack.lua")
 dofile(core.get_modpath("va_commands") .. "/commands/guard.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/stop.lua")
 
