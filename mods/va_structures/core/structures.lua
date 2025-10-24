@@ -125,6 +125,10 @@ function va_structures.remove_active_structure(pos)
     _active_instances[hash] = nil
 end
 
+function va_structures.get_active_structures()
+    return _active_instances
+end
+
 -----------------------------------------------------------------
 -- vas_run
 

@@ -65,6 +65,8 @@ function StructureMetaData.new(def)
     -- has self-destruct countdown
     def.self_countdown = def.self_countdown or 3
     self:set_self_countdown(def.self_countdown)
+    self:set_self_countdown_max(def.self_countdown)
+    self:set_self_countdown_active(false)
     -- can build structures based on a list
     def.build_output_list = def.build_output_list or {}
     self:set_build_output_list(def.build_output_list)
@@ -149,12 +151,43 @@ function StructureMetaData:set_self_countdown(value)
     self.self_countdown = value
 end
 
+function StructureMetaData:get_self_countdown()
+    return self.self_countdown
+end
+
+function StructureMetaData:set_self_countdown_max(value)
+    self.set_self_countdown_max = value
+end
+
+function StructureMetaData:get_self_countdown_max()
+    return self.set_self_countdown_max
+end
+
+function StructureMetaData:is_self_destructing()
+    return self.self_countdown_active
+end
+
+function StructureMetaData:set_self_countdown_active(value)
+    self.self_countdown_active = value
+    if value == false then
+        self:set_self_countdown(self:get_self_countdown_max())
+    end
+end
+
 function StructureMetaData:set_build_output_list(list)
     self.build_output_list = list
 end
 
+function StructureMetaData:get_build_output_list()
+    return self.build_output_list
+end
+
 function StructureMetaData:set_build_power(value)
     self.build_power = value
+end
+
+function StructureMetaData:get_build_power()
+    return self.build_power
 end
 
 function StructureMetaData:set_construction_distance(value)
@@ -186,6 +219,10 @@ end
 
 function StructureMetaData:set_armor(armorTable)
     self.armor = armorTable
+end
+
+function StructureMetaData:get_armor()
+    return self.armor
 end
 
 function StructureMetaData:get_mass_cost()

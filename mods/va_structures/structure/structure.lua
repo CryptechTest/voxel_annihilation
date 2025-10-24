@@ -151,6 +151,7 @@ function Structure:run_pre(run_stage, net)
         return false
     end
     self:entity_tick()
+    self:do_destruct_self()
     return true
 end
 
@@ -177,6 +178,10 @@ end
 
 function Structure:get_data()
     return self.meta
+end
+
+function Structure:get_entity()
+    return self.entity_obj
 end
 
 function Structure:get_hp()
@@ -257,6 +262,18 @@ function Structure:destroy()
     core.log("structure destroyed... " .. self.name)
     va_structures.remove_active_structure(self.pos)
     core.remove_node(self.pos)
+end
+
+function Structure:do_destruct_self()
+    if self:get_data():is_self_destructing() then
+        local c_max = self:get_data():get_self_countdown_max()
+        local c = self:get_data():get_self_countdown()
+        if c <= 0 then
+            self:destroy()
+        else
+            self:get_data():set_self_countdown(c - 1)
+        end
+    end
 end
 
 -----------------------------------------------------------------

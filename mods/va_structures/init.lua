@@ -1,8 +1,6 @@
-
 va_structures = {}
 
 local path = core.get_modpath("va_structures")
-
 
 dofile(path .. "/core" .. "/functions.lua")
 dofile(path .. "/core" .. "/structures.lua")
