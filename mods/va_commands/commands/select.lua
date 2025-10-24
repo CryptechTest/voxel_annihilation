@@ -29,6 +29,7 @@ core.register_entity("va_commands:selected_structure", {
         textures = { "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png",
             "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png",
             "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png" },
+        backface_culling = false,
         glow = 14,
         size = { x = 0, y = 0, z = 0 },
     },
@@ -142,8 +143,8 @@ local function add_selection(entity)
     if entity._is_va_structure == true then
         selection_entity = core.add_entity(pos, "va_commands:selected_structure")
         selection_entity:set_observers({ [player_name] = true })
-        selection_entity:set_properties({ visual_size = { x = (size / 1.5) + 0.3, y = (size / 1.5) + 0.3 } })
-        selection_entity:set_attach(entity.object, "", { x = 0, y = ((size / 2) / 1.5) + 0.6, z = 0 }, { x = 0, y = 0, z = 0 })
+        selection_entity:set_properties({ visual_size = { x = size + 0.1, y = size + 0.1 } })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = size * 2.1, z = 0 }, { x = 0, y = 0, z = 0 })
     elseif entity._is_va_unit == true then
         selection_entity = core.add_entity(pos, "va_commands:selected_unit")
         selection_entity:set_observers({ [player_name] = true })
