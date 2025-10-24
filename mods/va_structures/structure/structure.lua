@@ -75,6 +75,7 @@ function Structure.new(pos, name, desc, size, category, tier, faction, meta_def,
 
     self.vas_run_pre = meta_def.vas_run_pre or nil
     self.vas_run_post = meta_def.vas_run_post or nil
+    self.destroy_post_effects = meta_def.destroy_post_effects or nil
 
     self.construction_tick_max = self.volume
     self.construction_tick = 0
@@ -319,10 +320,12 @@ end
 
 -- destroy structure
 function Structure:destroy()
-    -- TODO: handle destroy...
-    core.log("structure destroyed... " .. self.name)
-    va_structures.remove_active_structure(self.pos)
-    core.remove_node(self.pos)
+    --core.log("structure destroyed... " .. self.name)
+    self:dispose()
+    va_structures.destroy_effect_particle(self.pos, 1.5)
+    if self.destroy_post_effects then
+        self.destroy_post_effects(self)
+    end
 end
 
 function Structure:do_destruct_self()
@@ -392,5 +395,6 @@ function Structure:entity_tick()
     end
 end
 
+-----------------------------------------------------------------
 -- export class
 return Structure
