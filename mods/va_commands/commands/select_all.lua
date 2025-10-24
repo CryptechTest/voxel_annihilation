@@ -15,10 +15,23 @@ local function add_selection(entity)
         local zsize = math.abs(cbox[6] - cbox[3])
         size = math.max(xsize, ysize, zsize)
     end
-    local selection_entity = core.add_entity(pos, "va_commands:selected_unit")
-    selection_entity:set_observers({ [player_name] = true })
-    selection_entity:set_properties({ visual_size = { x = size + 0.3, y = size + 0.3 } })
-    selection_entity:set_attach(entity.object, "", { x = 0, y = size * 5.6, z = 0 }, { x = 0, y = 0, z = 0 })
+    local selection_entity = nil
+    if entity._is_va_structure == true then
+        selection_entity = core.add_entity(pos, "va_commands:selected_structure")
+        selection_entity:set_observers({ [player_name] = true })
+        selection_entity:set_properties({ visual_size = { x = size + 0.1, y = size + 0.1 } })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = size * 2.1, z = 0 }, { x = 0, y = 0, z = 0 })
+    elseif entity._is_va_unit == true then
+        selection_entity = core.add_entity(pos, "va_commands:selected_unit")
+        selection_entity:set_observers({ [player_name] = true })
+        selection_entity:set_properties({ visual_size = { x = size + 0.3, y = size + 0.3 } })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = size * 5.6, z = 0 }, { x = 0, y = 0, z = 0 })        
+    else
+        return
+    end
+    if not selection_entity then
+        return
+    end
     table.insert(selected_units, entity)
     table.insert(current_selections, selection_entity)
     va_commands.set_player_selected_units(player_name, selected_units)
