@@ -107,7 +107,7 @@ function StructureMetaData.new(def)
     def.attack_type = merged_attack_type or {}
     self:set_attack_type(def.attack_type)
     -- consumes energy based on build power
-    def.energy_consume = def.energyConsume or 0
+    def.energy_consume = def.energy_consume or 0
     self:set_energy_consume(def.energy_consume)
     -- consumes mass based on build power
     def.mass_consume = def.mass_consume or 0
@@ -125,8 +125,8 @@ function StructureMetaData.new(def)
     def.mass_storage = def.mass_storage or 0
     self:set_mass_storage(def.mass_storage)
     -- are upgradable to higher tier (if available)
-    def.nextUpgrade = def.nextUpgrade or nil
-    self:set_next_upgrade(def.nextUpgrade)
+    def.next_upgrade = def.next_upgrade or nil
+    self:set_next_upgrade(def.next_upgrade)
 
     return self
 end
