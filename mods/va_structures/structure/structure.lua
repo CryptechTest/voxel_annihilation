@@ -117,6 +117,7 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
         s.owner = placer:get_player_name()
     end
     s:activate()
+    va_structures.add_player_structure(s)
     va_structures.add_active_structure(pos, s)
 end
 

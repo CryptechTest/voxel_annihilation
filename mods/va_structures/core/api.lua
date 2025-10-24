@@ -40,6 +40,11 @@ function va_structures.keep_loaded(unit)
         unit._current_mapblock = mapblock_pos
         unit._forceloaded_block = pos
         loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
+    elseif loaded_mapblock == nil and current_mapblock then
+        unit._current_mapblock = mapblock_pos
+        core.forceload_block(pos, true)
+        unit._forceloaded_block = pos
+        loaded_mapblocks[mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z] = true
     else
         unit._current_mapblock = mapblock_pos
     end
@@ -164,7 +169,7 @@ end
 function va_structures.get_all_structures()
     local structures = va_structures.get_active_structures()
     local s_ents = {}
-    for _,s in pairs(structures) do
+    for _, s in pairs(structures) do
         local ent = s:get_entity()
         if s:is_active() and ent ~= nil then
             table.insert(s_ents, s:get_entity())
@@ -176,14 +181,16 @@ end
 -----------------------------------------------------------------
 -- player structures
 
-function va_structures.add_player_structure(owner, structure)
+function va_structures.add_player_structure(structure)
+    local owner = structure.owner
     if not player_structures[owner] then
         player_structures[owner] = {}
     end
     table.insert(player_structures[owner], structure)
 end
 
-function va_structures.remove_player_structure(owner, structure)
+function va_structures.remove_player_structure(structure)
+    local owner = structure.owner
     local index = 0
     for i, s in pairs(player_structures[owner]) do
         if s:hash() == structure:hash() then
@@ -195,10 +202,6 @@ end
 
 function va_structures.get_player_structures(owner)
     return player_structures[owner]
-end
-
-function va_structures.get_player_structure(owner, pos)
-
 end
 
 -----------------------------------------------------------------
@@ -225,6 +228,19 @@ end
 
 function va_structures.get_player_actors()
     return player_actors
+end
+
+-----------------------------------------------------------------
+
+function va_structures.get_actors()
+    local actors = {}
+    for p,actor in pairs(player_actors) do
+        actors[p] = {
+            actor = player_actors[p],
+            structures = player_structures[p]
+        }
+    end
+    return actors
 end
 
 -----------------------------------------------------------------
