@@ -62,7 +62,6 @@ local function register_mass_deposit(def)
                 y = 1,
                 z = 0
             })
-            local name = placer:get_player_name()
 
             va_structures.add_mass_deposit(pos, base_name)
 
@@ -182,7 +181,7 @@ local deposit_overlaps = {{
     replace = "silver_sand"
 }, {
     check = "default:permafrost",
-    replace = "permafrot"
+    replace = "permafrost"
 }, {
     check = "default:moss",
     replace = "moss"
@@ -198,6 +197,15 @@ local function match_deposit_overlap(name)
     for _, o in pairs(deposit_overlaps) do
         if o.check == name then
             return o.replace
+        end
+    end
+    return nil
+end
+
+local function match_deposit_check(name)
+    for _, o in pairs(deposit_overlaps) do
+        if o.replace == name then
+            return o.check
         end
     end
     return nil
@@ -265,10 +273,65 @@ local mass_deposits = {{
     base_texture = "default_rainforest_litter"
 }}
 
-function va_structures.add_mass_deposit(pos, b_name)
-	if b_name == nil then
-		b_name = "grass"
-	end
+local groups = {"cracky", "crumbly", "choppy", "soil", "sand"}
+
+function va_structures.add_mass_deposit(pos, b_name, value)
+    if b_name == nil then
+        b_name = "grass"
+    end
+    if value == nil then
+        value = 1
+    end
+
+    local found = false
+    local near_air = false
+    for _, dir in pairs(dirs) do
+        local d_pos = vector.add(pos, dir)
+        local node = core.get_node_or_nil(d_pos)
+        if not node then
+            core.load_area(d_pos, d_pos)
+            node = core.get_node_or_nil(d_pos)
+        end
+        local n_name = node.name
+        local g = core.get_item_group(n_name, 'va_mass')
+        if g > 0 and g < 3 then
+            found = true
+        end
+
+		if n_name == "air" then
+			near_air = true
+		end
+
+        for _, group in pairs(groups) do
+            local g = core.get_item_group(n_name, group)
+            if not g then
+                near_air = true
+            end
+        end
+    end
+    if found or near_air then
+		local nn = match_deposit_check(b_name)
+		core.set_node(pos, {name = nn})
+        return
+    end
+
+    local node = core.get_node_or_nil(pos)
+    if not node then
+        core.load_area(pos, pos)
+        node = core.get_node_or_nil(pos)
+    end
+    local bn_name = node.name
+    local match = match_deposit_overlap(bn_name)
+    if match then
+        b_name = match
+    end
+
+    core.add_node(pos, {
+        name = "va_structures:" .. b_name .. "_with_metal"
+    })
+    local meta = core.get_meta(pos)
+    meta:set_int("va_mass_amount", value)
+
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
         local side = "_1"
@@ -290,26 +353,21 @@ function va_structures.add_mass_deposit(pos, b_name)
             side = "_8"
         end
 
-        local n_name = core.get_node(d_pos).name
-        local match = match_deposit_overlap(n_name)
-        if match then
-            b_name = match
+        local node = core.get_node_or_nil(d_pos)
+        if node then
+            local n_name = node.name
+            local match = match_deposit_overlap(n_name)
+            if match then
+                b_name = match
+            end
+
+            core.add_node(d_pos, {
+                name = "va_structures:" .. b_name .. "_near_metal" .. side
+            })
+            local meta = core.get_meta(d_pos)
+            meta:set_int("va_mass_amount", value)
         end
-
-        core.add_node(d_pos, {
-            name = "va_structures:" .. b_name .. "_near_metal" .. side
-        })
     end
-
-    local n_name = core.get_node(pos).name
-    local match = match_deposit_overlap(n_name)
-    if match then
-        b_name = match
-    end
-
-    core.add_node(pos, {
-        name = "va_structures:" .. b_name .. "_with_metal"
-    })
 end
 
 local function register_resource_mass()

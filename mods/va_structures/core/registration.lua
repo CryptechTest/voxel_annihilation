@@ -4,6 +4,7 @@ local mod_path = core.get_modpath(modname)
 
 local register_structure_gauge = dofile(mod_path .. "/structure/structure_gauge.lua")
 local register_resource_mass = dofile(mod_path .. "/core/resources/mass.lua")
+local register_resource_mapgen = dofile(mod_path .. "/core/resources/mapgen.lua")
 
 register_structure_gauge();
 register_resource_mass();
