@@ -26,7 +26,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         if light_level > 10 then
             local gen = s_obj:get_data():get_energy_generate()
             local energy = net.energy
-            if energy + gen <= net.energy_storage then
+            if energy + gen <= net.energy_storage + 1 then
                 net.energy = energy + gen
             else
                 net.energy = net.energy_storage

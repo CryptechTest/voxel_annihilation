@@ -89,6 +89,7 @@ function va_structures.register_structure(def)
             tier = def.tier,
             faction = def.faction,
             volume = def.volume,
+            do_rotate = def.do_rotate,
             is_vulnerable = def.meta.is_vulnerable,
             is_volatile = def.meta.is_volatile,
             death_explosion_radius = def.meta.death_explosion_radius,
@@ -112,7 +113,7 @@ function va_structures.register_structure(def)
             energy_generate = def.meta.energy_generate,
             mass_extract = def.meta.mass_extract,
             energy_storage = def.meta.energy_storage,
-            mass_storage = def.meta.mass_storage
+            mass_storage = def.meta.mass_storage,
         }
         return sdef
     end

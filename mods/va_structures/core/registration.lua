@@ -4,11 +4,13 @@ local mod_path = core.get_modpath(modname)
 
 local register_structure_gauge = dofile(mod_path .. "/structure/structure_gauge.lua")
 local register_resource_mass = dofile(mod_path .. "/core/resources/mass.lua")
+local register_resource_wind = dofile(mod_path .. "/core/resources/windstep.lua")
 local register_resource_mapgen = dofile(mod_path .. "/core/resources/mapgen.lua")
 local register_resource_indicator, add_resource_indicator = dofile(mod_path .. "/core/resources/resource_entity.lua")
 
 register_structure_gauge();
 register_resource_mass();
+--register_resource_wind();
 register_resource_indicator();
 
 va_structures.add_resource_indicator = add_resource_indicator

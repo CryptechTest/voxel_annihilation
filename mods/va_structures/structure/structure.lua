@@ -69,6 +69,10 @@ function Structure.new(pos, name, def, do_def_check)
     local l = (self.size.z * 2) + 1
     local h = (self.size.y * 2) + 1
     self.volume = w * l * h -- volume size
+    self.do_rotate = true
+    if def.do_rotate == false then
+        self.do_rotate = false
+    end
 
     -- use or build default metadata
     self.meta = StructureMetaData.new(def)
@@ -509,6 +513,9 @@ end
 -- tick checks
 
 function Structure:get_yaw()
+    if not self.do_rotate then
+        return 0, 0
+    end
     local pos = self.pos
     local pi = math.pi
     local rotation = minetest.get_node(pos).param2
