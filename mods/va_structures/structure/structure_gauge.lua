@@ -39,7 +39,9 @@ local function scaleToDefault(structure, field)
     -- Scale "hp" or "breath" to supported amount
     local current = meta["get_" .. field](meta)
     local max = meta["get_max_" .. field](meta)
-    if max <= 0 then
+    if current == max then
+        return -2
+    elseif max <= 0 then
         return -1
     end
     local max_display = math.max(max, current)
@@ -111,7 +113,7 @@ local function register_structure_gauge()
                 local health_t = hp > 0 and "health_" .. hp .. ".png" or ''
                 local shield_t = shield > 0 and "breath_" .. shield .. ".png" or ''
 
-                if hp == 0 then
+                if hp == 0 or hp == -2 then
                     health_t = "blank.png"
                 end
 

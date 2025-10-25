@@ -149,7 +149,7 @@ local function build_effect_particles_cancel(pos, dist)
     local size = 2
     local count = 70
     local radius = 0.9
-    build_effect_particle(pos, "va_structure_energy_particle_stop.png^[colorize:#FF0000:200", dir, dist, size, count, radius, false)
+    build_effect_particle(pos, "va_structure_energy_particle_halt.png^[colorize:#FF0000:200", dir, dist, size, count, radius, false)
 end
 
 va_structures.particle_build_effect = build_effect_particles
