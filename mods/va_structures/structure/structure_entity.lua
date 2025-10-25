@@ -99,13 +99,41 @@ local function register_structure_entity(def)
             end
         end,
 
+        _construct = function(self)
+            if self._constructed then
+                return
+            end
+            local pos = self.object:get_pos()
+            local s = va_structures.get_active_structure(pos)
+            if s then
+                local prog = s.construction_tick
+                local max = s.construction_tick_max
+                if prog >= max then
+                    self.object:set_properties({
+                        textures = def.textures
+                    })
+                    self._constructed = true
+                    return
+                end
+                local prcnt = 255 - math.floor((prog / max) * 255)
+                local textures =
+                    {def.textures[1] .. "^[colorize:#00FF00:" .. tostring(prcnt) .. "^[colorize:#0000FF:" ..
+                        tostring(math.floor(prcnt * 0.6)) .. ""}
+                self.object:set_properties({
+                    textures = textures,
+                    is_visible = true
+                })
+            end
+        end,
+
         -- main step
         on_step = function(self, dtime)
             self._timer = self._timer + 1
-            if self._timer < 10 then
+            if self._timer < 20 then
                 return
             end
             self._timer = 0
+            self:_construct()
             self:_update_info()
             if self._marked_for_removal then
                 return self:_dispose(true)
@@ -123,7 +151,7 @@ local function register_structure_entity(def)
                 hash = self._owner_hash
             })
         end,
-        
+
         -- activation
         on_activate = function(self, staticdata, dtime_s)
             -- core.log("activating...")
@@ -175,7 +203,7 @@ local function register_structure_entity(def)
                     is_visible = false
                 })
                 core.get_node_timer(pos):start(3)]]
-                --va_structures.get_active_structure(pos):get_data():set_self_countdown_active(true)
+                -- va_structures.get_active_structure(pos):get_data():set_self_countdown_active(true)
             end
         end,
 

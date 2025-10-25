@@ -113,29 +113,29 @@ local function build_effect_particle(pos, texture, _dir, dist, size, count, r, c
     core.add_particlespawner(def);
 end
 
-local function build_effect_particles(pos)
+local function build_effect_particles(pos, dist)
     local dir = {
         x = 0,
         y = 1,
         z = 0
     }
-    local dist = 1.5
+    local dist = dist or 1.5
     local size = 2
-    local count = 60
-    local radius = 0.75
+    local count = 88
+    local radius = 0.9
     build_effect_particle(pos, "va_structure_energy_particle.png", dir, dist, size, count, radius, false)
 end
 
-local function build_effect_particles_halt(pos)
+local function build_effect_particles_halt(pos, dist)
     local dir = {
         x = 0,
         y = 1,
         z = 0
     }
-    local dist = 1.5
+    local dist = dist or 1.5
     local size = 2
-    local count = 20
-    local radius = 0.5
+    local count = 25
+    local radius = 0.9
     build_effect_particle(pos, "va_structure_energy_particle_halt.png", dir, dist, size, count, radius, false)
 end
 

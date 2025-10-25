@@ -143,6 +143,7 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
     -- local s = va_structures.get_new(pos, node_name)
     local def = va_structures.get_registered_structure(node_name)
     local s = Structure.new(pos, def.name, def, true)
+    s:set_hp(1)
     if placer:is_player() then
         s.owner = placer:get_player_name()
     end
@@ -448,13 +449,21 @@ function Structure:construct(actor)
         if mass - mass_cost_rate >= 0 then
             actor.energy_demand = actor.energy_demand + energy_cost_rate
         end
+        local max_hp = self:get_hp_max()
+        local hp = self:get_hp()
+        if hp < max_hp then
+            local step = max_hp / self.construction_tick_max
+            local hp = math.min(max_hp, hp + step + 0.1)
+            self:set_hp(hp)
+        end
     end
+    local dist = 0.75 + math.max(1, self.size.y * 2)
     if not has_resources then
-        va_structures.particle_build_effect_halt(pos)
+        va_structures.particle_build_effect_halt(pos, dist)
         return true
     end
     self.construction_tick = self.construction_tick + 1
-    va_structures.particle_build_effect(pos)
+    va_structures.particle_build_effect(pos, dist)
     return true
 end
 
