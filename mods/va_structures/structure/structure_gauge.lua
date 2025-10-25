@@ -83,7 +83,19 @@ local function register_structure_gauge()
             local owner = self.wielder
             local gauge = self.object
 
-            if not owner or not structure then
+            if structure then
+                if structure:get_hp() <= 0 then
+                    gauge:remove()
+                    return
+                end
+            end
+
+            if not owner or not owner:get_pos() or not gauge or not gauge:get_pos() then
+                gauge:remove()
+                return
+            end
+
+            if not structure then
                 gauge:remove()
                 return
             elseif vector_distance(owner:get_pos(), gauge:get_pos()) > 3 then

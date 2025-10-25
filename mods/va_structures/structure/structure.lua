@@ -459,7 +459,7 @@ function Structure:destroy()
     -- core.log("structure destroyed... " .. self.name)
     self:dispose()
     local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
-    va_structures.destroy_effect_particle(self.pos, r + 0.55)
+    va_structures.destroy_effect_particle(self.pos, r + 0.75)
     if self.destroy_post_effects then
         self.destroy_post_effects(self)
     end

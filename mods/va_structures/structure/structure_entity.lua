@@ -58,6 +58,7 @@ local function register_structure_entity(def)
 
         -- dispose of instance, enitity, and node
         _dispose = function(self, removal)
+            self._valid = false
             local pos = self.object:get_pos()
             va_structures.remove_active_structure(pos)
             if removal then
@@ -183,6 +184,13 @@ local function register_structure_entity(def)
                 local node = core.get_node(target)
                 local meta = core.get_meta(target)
                 -- core.log("hit " .. node.name)
+
+                local s = va_structures.get_active_structure(target)
+
+                if s then
+                    local hp = s:get_hp()
+                    s:set_hp(hp - 1)
+                end
 
                 return false
             end
