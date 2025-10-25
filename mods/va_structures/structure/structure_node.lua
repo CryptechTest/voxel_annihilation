@@ -8,7 +8,8 @@ local function register_structure_node(def)
     local node_desc = def.desc
 
     local groups = {
-        cracky = 1
+        cracky = 1,
+        va_structure = 1
     }
 
     local function remove_attached(pos)
@@ -49,10 +50,10 @@ local function register_structure_node(def)
         paramtype = "light",
         node_box = {
             type = "fixed",
-            fixed = {{-0.25, -0.5, -0.25, 0.25, -0.375, 0.25}}
+            fixed = {{-0.3125, -0.5, -0.3125, 0.3125, -0.4375, 0.3125}}
         },
 
-        -- sounds = default.node_sound_metal_defaults(),
+        on_place = def.check_overlap,
         after_place_node = function(pos, placer, itemstack, pointed_thing)
             -- core.add_entity(pos, def.entity_name)
             local meta = core.get_meta(pos)

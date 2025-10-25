@@ -59,12 +59,14 @@ function Structure.new(pos, name, desc, size, category, tier, faction, meta_def,
     self.entity_name = meta_def.entity_name -- name of entity attached
     self.entity_obj = nil -- object corresponding to attached entity
     self.category = category or "none" -- build, combat, economy, utility
+    self.water_type = meta_def.water_type or false
     self.tier = tier -- tech tier of this structure
     self.faction = faction -- factions: 'vox' and 'cube'
     -- TODO: setup faction/team object...
-    self.team_obj = nil
+    -- self.team_obj = nil
     -- TODO: setup owner controllers
     self.owner = nil
+    self.owner_actor = nil
     local w = (self.size.x * 2) + 1
     local l = (self.size.z * 2) + 1
     local h = (self.size.y * 2) + 1
@@ -86,6 +88,33 @@ function Structure.new(pos, name, desc, size, category, tier, faction, meta_def,
     if do_def_check then
         self._defined = va_structures.is_registered_structure(self.fqnn)
     end
+
+    self.check_overlap = function(itemstack, placer, pointed_thing)
+        if pointed_thing.type ~= "node" then
+            return itemstack
+        end
+        local pos = pointed_thing.above
+        local name = placer:get_player_name()
+        if self:collides_solid(pos) then
+            minetest.chat_send_player(name, "Structure requires more room.")
+            return itemstack
+        elseif not self.water_type and not self:collides_has_floor(pos) then
+            minetest.chat_send_player(name, "Structure requires more floor room.")
+            return itemstack
+        elseif not self.water_type and self:collides_liquid(pos) then
+            minetest.chat_send_player(name, "Structure must be built on land.")
+            return itemstack
+        elseif self.water_type and not self:collides_has_floor_water(pos) then
+            minetest.chat_send_player(name, "Structure must be built on water.")
+            return itemstack
+        elseif self:collides_other(pos, self.size) then
+            -- make sure structure doesn't overlap any other structure area
+            minetest.chat_send_player(name, "Structure overlaps into another structure area.")
+            return itemstack
+        end
+        return minetest.item_place(itemstack, placer, pointed_thing)
+    end
+
     return self
 end
 
@@ -125,6 +154,103 @@ function Structure.after_dig_node(pos, oldnode, oldmetadata, digger)
 end
 
 -----------------------------------------------------------------
+-- collision checks
+
+function Structure:collides_with(pos)
+    local pos1 = vector.add(self.pos, self.size)
+    local pos2 = vector.subtract(self.pos, self.size)
+    -- Check if pos is within the bounds of pos1 and pos2
+    local m_x = (pos.x >= pos2.x and pos.x <= pos1.x)
+    local m_y = (pos.y >= pos2.y and pos.y <= pos1.y)
+    local m_z = (pos.z >= pos2.z and pos.z <= pos1.z)
+    return (m_x and m_y and m_z) or false
+end
+
+function Structure:collides_other(pos, size)
+    local size = vector.new(size)
+    if size.y == 0 then
+        size.y = 0.5
+    end
+    local _size = vector.multiply(size, 2)
+    local pos1 = vector.add(pos, _size)
+    local pos2 = vector.subtract(pos, _size)
+    local structures = core.find_nodes_in_area(pos1, pos2, "group:va_structure")
+    for _, s_pos in pairs(structures) do
+        local s = va_structures.get_active_structure(s_pos)
+        if s then
+            if s:collides_with(pos) then
+                return true
+            end
+            local s_pos1 = vector.subtract(pos, size)
+            local s_pos2 = vector.add(pos, size)
+            for y = s_pos1.y - 0.5, s_pos2.y + 0.5 do
+                for x = s_pos1.x, s_pos2.x do
+                    for z = s_pos1.z, s_pos2.z do
+                        local n_pos = vector.new(x, y, z)
+                        if s:collides_with(n_pos) then
+                            return true
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+function Structure:collides_solid(pos)
+    local _size = vector.new(self.size)
+    if _size.y == 0 then
+        _size.y = 0.5
+    end
+    local pos1 = vector.add(pos, _size)
+    local pos2 = vector.subtract(pos, _size)
+    local nodes = core.find_nodes_in_area(pos1, pos2, {"group:cracky", "group:crumbly", "group:choppy"})
+    for _, node in pairs(nodes) do
+        local node = core.get_node(node)
+        local def = core.registered_nodes[node.name]
+        if def.walkable == true and def.buildable_to == false then
+            return true
+        end
+    end
+    return false
+end
+
+function Structure:collides_liquid(pos)
+    local _size = vector.new(self.size)
+    if _size.y == 0 then
+        _size.y = 0.5
+    end
+    local pos1 = vector.add(pos, _size)
+    local pos2 = vector.subtract(pos, _size)
+    local nodes = core.find_nodes_in_area(pos1, pos2, {"group:liquid", "group:water"})
+    return #nodes > 0
+end
+
+function Structure:collides_has_floor_water(pos)
+    local f_pos = vector.new(pos)
+    f_pos.y = f_pos.y - 1
+    local size = vector.new(self.size.x, 0, self.size.z)
+    local pos1 = vector.add(f_pos, size)
+    local pos2 = vector.subtract(f_pos, size)
+    local nodes = core.find_nodes_in_area(pos1, pos2, {"group:liquid", "group:water"})
+    local vol = ((self.size.x * 2) + 1) * ((self.size.z * 2) + 1)
+    return #nodes >= vol
+end
+
+function Structure:collides_has_floor(pos)
+    local f_pos = vector.new(pos)
+    f_pos.y = f_pos.y - 1
+    local size = vector.new(self.size.x, 0, self.size.z)
+    local pos1 = vector.add(f_pos, size)
+    local pos2 = vector.subtract(f_pos, size)
+    local nodes = core.find_nodes_in_area(pos1, pos2,
+        {"group:cracky", "group:crumbly", "group:choppy", "group:soil", "group:sand"})
+    local vol = ((self.size.x * 2) + 1) * ((self.size.z * 2) + 1)
+    return #nodes >= vol
+end
+
+-----------------------------------------------------------------
 -- run functions
 
 function Structure:run_pre(run_stage, net)
@@ -136,18 +262,20 @@ function Structure:run_pre(run_stage, net)
         self:destroy()
         return false
     end
-    if self.team_obj == nil and net ~= nil then
-        self.team_obj = net
+    if self.owner_actor == nil and net ~= nil then
+        self.owner_actor = net
     end
     if self:construct(net) then
         return false
     end
-    self:entity_tick()
-    self:do_destruct_self()
+    if self:do_destruct_self() then
+        return false
+    end
     return true
 end
 
 function Structure:run_post(run_stage, net)
+    self:entity_tick()
     if self.vas_run_post then
         self.vas_run_post(self)
     end
@@ -274,7 +402,7 @@ function Structure:activate(visible)
     end
 end
 
-function Structure:construct(team_obj)
+function Structure:construct(actor)
     if self.is_contructed then
         return false
     end
@@ -291,25 +419,25 @@ function Structure:construct(team_obj)
         return false
     end
     local has_resources = false
-    if team_obj then
+    if actor then
         local mass_cost = self:get_data():get_mass_cost()
         local energy_cost = self:get_data():get_energy_cost()
         local mass_cost_rate = mass_cost > 0 and math.floor((mass_cost / self.construction_tick_max) * 10) * 0.1 or 0
         local energy_cost_rate =
             energy_cost > 0 and math.floor((energy_cost / self.construction_tick_max) * 10) * 0.1 or 0
-        local mass = team_obj.mass
-        local energy = team_obj.energy
+        local mass = actor.mass
+        local energy = actor.energy
         if mass - mass_cost_rate >= 0 and energy - energy_cost_rate >= 0 then
             if mass_cost_rate > 0 then
-                team_obj.mass = mass - mass_cost_rate
+                actor.mass = mass - mass_cost_rate
             end
             if energy_cost_rate > 0 then
-                team_obj.energy = energy - energy_cost_rate
+                actor.energy = energy - energy_cost_rate
             end
             has_resources = true
         end
-        team_obj.mass_demand = team_obj.mass_demand + mass_cost_rate
-        team_obj.energy_demand = team_obj.energy_demand + energy_cost_rate
+        actor.mass_demand = actor.mass_demand + mass_cost_rate
+        actor.energy_demand = actor.energy_demand + energy_cost_rate
     end
     if not has_resources then
         va_structures.particle_build_effect_halt(pos)
@@ -322,9 +450,10 @@ end
 
 -- destroy structure
 function Structure:destroy()
-    --core.log("structure destroyed... " .. self.name)
+    -- core.log("structure destroyed... " .. self.name)
     self:dispose()
-    va_structures.destroy_effect_particle(self.pos, 1.5)
+    local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
+    va_structures.destroy_effect_particle(self.pos, r + 0.55)
     if self.destroy_post_effects then
         self.destroy_post_effects(self)
     end
@@ -336,10 +465,12 @@ function Structure:do_destruct_self()
         local c = self:get_data():get_self_countdown()
         if c <= 0 then
             self:destroy()
+            return true
         else
             self:get_data():set_self_countdown(c - 1)
         end
     end
+    return false
 end
 
 -----------------------------------------------------------------
