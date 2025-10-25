@@ -38,7 +38,7 @@ local function setup_hud(player)
     local player_name = player:get_player_name()
     saved_huds[player_name] = {}
     saved_huds[player_name]["background"] = player:hud_add({
-        hud_elem_type = "image",
+        type = "image",
         position      = { x = 1, y = 0 },
         offset        = { x = -260, y = 68 },
         text          = "va_hud_resources_background.png",
@@ -47,7 +47,7 @@ local function setup_hud(player)
     })
     if mass_storage > 0 then
         saved_huds[player_name]["mass_bar"] = player:hud_add({
-            hud_elem_type = "image",
+            type = "image",
             position      = { x = 1, y = 0 },
             offset        = { x = -460 + 2 * ((mass / mass_storage) * 100), y = 46 },
             text          = "va_hud_mass_bar.png",
@@ -56,7 +56,7 @@ local function setup_hud(player)
         })
     else
         saved_huds[player_name]["mass_bar"] = player:hud_add({
-            hud_elem_type = "image",
+            type = "image",
             position      = { x = 1, y = 0 },
             offset        = { x = -460, y = 46 },
             text          = "va_hud_mass_bar.png",
@@ -67,7 +67,7 @@ local function setup_hud(player)
 
     if energy_storage > 0 then
         saved_huds[player_name]["energy_bar"] = player:hud_add({
-            hud_elem_type = "image",
+            type = "image",
             position      = { x = 1, y = 0 },
             offset        = { x = -460 + 2 * ((energy / energy_storage) * 100), y = 110 },
             text          = "va_hud_energy_bar.png",
@@ -76,7 +76,7 @@ local function setup_hud(player)
         })
     else
         saved_huds[player_name]["energy_bar"] = player:hud_add({
-            hud_elem_type = "image",
+            type = "image",
             position      = { x = 1, y = 0 },
             offset        = { x = -460, y = 110 },
             text          = "va_hud_energy_bar.png",
@@ -146,7 +146,7 @@ local function setup_hud(player)
     })
     if wasting_mass then
         saved_huds[player_name]["notify_mass"] = player:hud_add({
-            hud_elem_type = "text",
+            type = "text",
             position      = { x = 1, y = 0 },
             offset        = { x = -440, y = 26 },
             text          = "Waste",
@@ -155,7 +155,7 @@ local function setup_hud(player)
         })
     elseif overflow_mass then
         saved_huds[player_name]["notify_mass"] = player:hud_add({
-            hud_elem_type = "text",
+            type = "text",
             position      = { x = 1, y = 0 },
             offset        = { x = -430, y = 26 },
             text          = "Overflow",
@@ -164,7 +164,7 @@ local function setup_hud(player)
         })
     else
         saved_huds[player_name]["notify_mass"] = player:hud_add({
-            hud_elem_type = "text",
+            type = "text",
             position      = { x = 1, y = 0 },
             offset        = { x = -430, y = 26 },
             text          = "",
@@ -175,7 +175,7 @@ local function setup_hud(player)
 
     if wasting_energy then
         saved_huds[player_name]["notify_energy"] = player:hud_add({
-            hud_elem_type = "text",
+            type = "text",
             position      = { x = 1, y = 0 },
             offset        = { x = -440, y = 90 },
             text          = "Waste",
@@ -184,7 +184,7 @@ local function setup_hud(player)
         })
     elseif overflow_energy then
         saved_huds[player_name]["notify_energy"] = player:hud_add({
-            hud_elem_type = "text",
+            type = "text",
             position      = { x = 1, y = 0 },
             offset        = { x = -430, y = 90 },
             text          = "Overflow",
@@ -193,7 +193,7 @@ local function setup_hud(player)
         })
     else
         saved_huds[player_name]["notify_energy"] = player:hud_add({
-            hud_elem_type = "text",
+            type = "text",
             position      = { x = 1, y = 0 },
             offset        = { x = -430, y = 90 },
             text          = "",
@@ -292,7 +292,11 @@ local function cyclical_update()
     core.after(1, cyclical_update)
 end
 
-cyclical_update()
+
+core.register_on_mods_loaded(function()
+    core.after(1, cyclical_update)
+end)
+
 
 core.register_allow_player_inventory_action(function(player, action, inventory, inventory_info)
     return 0
