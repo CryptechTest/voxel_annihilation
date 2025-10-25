@@ -37,6 +37,7 @@ local modpath = core.get_modpath(modname)
 local StructureMetaData = dofile(modpath .. "/structure/structure_meta.lua")
 local register_structure_node = dofile(modpath .. "/structure/structure_node.lua")
 local register_structure_entity = dofile(modpath .. "/structure/structure_entity.lua")
+local _, attach_structure_gauge = dofile(modpath .. "/structure/structure_gauge.lua")
 
 -----------------------------------------------------------------
 -----------------------------------------------------------------
@@ -148,6 +149,7 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
     va_structures.add_player_structure(s)
     va_structures.add_active_structure(pos, s)
     s:activate()
+    attach_structure_gauge(s)
 end
 
 function Structure.after_dig_node(pos, oldnode, oldmetadata, digger)
@@ -208,7 +210,7 @@ function Structure:collides_solid(pos)
         _size.y = 0.5
     end
     local pos1 = vector.add(pos, _size)
-    local pos2 = vector.subtract(pos, _size)
+    local pos2 = vector.subtract(pos, {x=_size.x,y=0,z=_size.z})
     local nodes = core.find_nodes_in_area(pos1, pos2, {"group:cracky", "group:crumbly", "group:choppy"})
     for _, node in pairs(nodes) do
         local node = core.get_node(node)

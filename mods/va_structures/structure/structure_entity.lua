@@ -85,6 +85,17 @@ local function register_structure_entity(def)
                 self._marked_for_removal = true
             end
         end,
+        -- update display info
+        _update_info = function(self)
+            local s = va_structures.get_active_structure(self.pos)
+            if s then
+                local health = s:get_health()
+                local max_health = s:get_max_health()
+                self.object:set_properties({
+                    infotext = def.desc .. "\n" .. "HP: " .. tostring(health) .. "/" .. tostring(max_health) .. ""
+                })
+            end
+        end,
 
         -- main step
         on_step = function(self, dtime)

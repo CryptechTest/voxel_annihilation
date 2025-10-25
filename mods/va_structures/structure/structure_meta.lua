@@ -79,6 +79,9 @@ function StructureMetaData.new(def)
     -- has max health
     def.max_health = def.max_health or 10
     self:set_max_health(def.max_health, true)
+    -- has max shield
+    def.max_shield = def.max_shield or 0
+    self:set_max_shield(def.max_shield, true)
     -- has armor
     def.armor = merged_armor_type or {}
     self:set_armor(def.armor)
@@ -214,6 +217,29 @@ function StructureMetaData:set_max_health(value, apply)
     self.max_health = value
     if apply then
         self.health = value
+    end
+end
+
+-- Getter for shield
+function StructureMetaData:get_shield()
+    return self.shield
+end
+
+-- Setter for shield
+function StructureMetaData:set_shield(value)
+    self.shield = value
+end
+
+-- Getter for max shield
+function StructureMetaData:get_max_shield()
+    return self.max_shield
+end
+
+-- Setter for max shield
+function StructureMetaData:set_max_shield(value, apply)
+    self.max_shield = value
+    if apply then
+        self.shield = value
     end
 end
 
