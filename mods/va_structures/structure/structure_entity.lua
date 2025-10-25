@@ -108,6 +108,15 @@ local function register_structure_entity(def)
             if s then
                 local prog = s.construction_tick
                 local max = s.construction_tick_max
+                local hp = s:get_hp()
+                if hp <= 0 then
+                    local textures = {def.textures[1] .. "^[colorize:#FF0000:" .. tostring(100) .. ""}
+                    self.object:set_properties({
+                        textures = textures,
+                        is_visible = false
+                    })
+                    return
+                end
                 if prog >= max then
                     self.object:set_properties({
                         textures = def.textures
