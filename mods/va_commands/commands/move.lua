@@ -10,7 +10,16 @@ va_commands.register_command("move", {
         local player_name = user:get_player_name()
         local target = nil
         if pointed_thing.type == "nothing" then
-            target = user:get_pos()
+            --get the ground under the player
+            local player_pos = user:get_pos()
+            for i = 0, 128 do
+                local node = core.get_node({x = player_pos.x, y = player_pos.y - i, z = player_pos.z})
+                local def = node and core.registered_nodes[node.name]
+                if def and def.walkable then
+                    target = {x = player_pos.x, y = player_pos.y - i + 1, z = player_pos.z}
+                    break
+                end
+            end
         elseif pointed_thing.type == "node" then
             local node = core.get_node(pointed_thing.under)
             if node and core.registered_nodes[node.name].walkable then
@@ -42,13 +51,23 @@ va_commands.register_command("move", {
         end
         if target == nil then
             core.chat_send_player(player_name, "Error: No target selected.")
-            return
-        else
-            core.chat_send_player(player_name, "Targeting position: " .. core.pos_to_string(target))
+            return                
         end
+        
         for _, unit in pairs(va_commands.get_player_selected_units(player_name)) do
-            if unit._owner_name == player_name then
-                va_units.set_target(unit, target)
+            if unit._owner_name == player_name and unit.object and target then
+                local upos = unit.object:get_pos()
+                if upos and upos.x and upos.y and upos.z then
+                    local distance = vector.distance(upos, target)
+                    if distance > 1024 then
+                        core.chat_send_player(player_name, "Error: Target is too far away.")
+                    else
+                        va_units.set_target(unit, target)
+                        core.chat_send_player(player_name, "Targeting position: " .. core.pos_to_string(target))
+                    end
+                else
+                    core.chat_send_player(player_name, "Error: Unit position is invalid.")
+                end
             end
         end
     end,
