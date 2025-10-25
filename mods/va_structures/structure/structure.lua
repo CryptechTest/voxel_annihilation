@@ -449,11 +449,13 @@ function Structure:construct(actor)
         if mass - mass_cost_rate >= 0 then
             actor.energy_demand = actor.energy_demand + energy_cost_rate
         end
+    end
+    if has_resources then
         local max_hp = self:get_hp_max()
         local hp = self:get_hp()
         if hp < max_hp then
             local step = max_hp / self.construction_tick_max
-            local hp = math.min(max_hp, hp + step + 0.1)
+            local hp = math.floor(math.min(max_hp, hp + step + 0.01) * 100) * 0.01
             self:set_hp(hp)
         end
     end
