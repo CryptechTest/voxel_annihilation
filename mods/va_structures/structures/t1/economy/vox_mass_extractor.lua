@@ -25,7 +25,9 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local base_rate = 1
         local has_power = false
         local node = core.get_node(pos_below)
+        local meta = core.get_meta(pos_below)
         local mass_group = core.get_item_group(node.name, 'va_mass')
+        local value = meta:get_int("va_mass_amount") * 0.1
         if mass_group > 0 then
             local amount = 1
             if mass_group == 2 then
@@ -37,7 +39,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             end
             local cost = s_obj:get_data():get_energy_consume()
             local gen = s_obj:get_data():get_mass_extract()
-            local extract = gen * amount
+            local extract = value * gen * amount
             local mass = net.mass
             local energy = net.energy
             if energy - cost >= 0 then
@@ -54,7 +56,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         end
 
         if has_power then
-            local speed = 90 * base_rate
+            local speed = 70 * base_rate  * (value)
             local overrides = s_obj.entity_obj:get_bone_override('top')
             local yawRad = overrides.rotation and overrides.rotation.vec.y or 0
             local yawDeg = math.deg(yawRad)

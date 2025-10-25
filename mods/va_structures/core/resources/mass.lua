@@ -1,3 +1,24 @@
+local function randFloat(min, max, precision)
+    -- Generate a random floating point number between min and max
+    local range = max - min
+    local offset = range * math.random()
+    local unrounded = min + offset
+
+    -- Return unrounded number if precision isn't given
+    if not precision then
+        return unrounded
+    end
+
+    -- Round number to precision and return
+    local powerOfTen = 10 ^ precision
+    local n
+    n = unrounded * powerOfTen
+    n = n + 0.5
+    n = math.floor(n)
+    n = n / powerOfTen
+    return n
+end
+
 local dirs = {{ -- along x beside
     x = 1,
     y = 0,
@@ -280,7 +301,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
         b_name = "grass"
     end
     if value == nil then
-        value = 1
+        value = randFloat(0.7, 3.2)
     end
 
     local found = false
@@ -298,9 +319,9 @@ function va_structures.add_mass_deposit(pos, b_name, value)
             found = true
         end
 
-		if n_name == "air" then
-			near_air = true
-		end
+        if n_name == "air" then
+            near_air = true
+        end
 
         for _, group in pairs(groups) do
             local g = core.get_item_group(n_name, group)
@@ -310,8 +331,10 @@ function va_structures.add_mass_deposit(pos, b_name, value)
         end
     end
     if found or near_air then
-		local nn = match_deposit_check(b_name)
-		core.set_node(pos, {name = nn})
+        local nn = match_deposit_check(b_name)
+        core.set_node(pos, {
+            name = nn
+        })
         return
     end
 
@@ -330,7 +353,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
         name = "va_structures:" .. b_name .. "_with_metal"
     })
     local meta = core.get_meta(pos)
-    meta:set_int("va_mass_amount", value)
+    meta:set_int("va_mass_amount", value * 10)
 
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
@@ -365,10 +388,48 @@ function va_structures.add_mass_deposit(pos, b_name, value)
                 name = "va_structures:" .. b_name .. "_near_metal" .. side
             })
             local meta = core.get_meta(d_pos)
-            meta:set_int("va_mass_amount", value)
+            meta:set_int("va_mass_amount", value * 10)
         end
     end
 end
+
+local function show_indicator(pos)
+    local node = core.get_node(pos)
+    local g = core.get_item_group(node.name, "va_mass")
+    if g ~= 3 then
+        return
+    end
+    local i_pos = vector.add(pos, {
+        x = 0,
+        y = 0.55,
+        z = 0
+    })
+    local found = false
+    local objs = minetest.get_objects_inside_radius(i_pos, 0.1)
+    for _, obj in pairs(objs) do
+        if obj:get_luaentity() then
+            local ent = obj:get_luaentity()
+            if ent.name == "va_structures:resource_mass_indicator" then
+                found = true
+            end
+        end
+    end
+    if not found then
+        va_structures.add_resource_indicator(i_pos)
+    end
+end
+
+core.register_abm({
+    label = "va mass indicator abm",
+    nodenames = {"group:va_mass"},
+    interval = 3,
+    chance = 1,
+    min_y = -1000,
+    max_y = 1000,
+    action = function(pos, node, active_object_count, active_object_count_wider)
+        show_indicator(pos)
+    end
+})
 
 local function register_resource_mass()
 

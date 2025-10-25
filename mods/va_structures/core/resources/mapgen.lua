@@ -131,7 +131,7 @@ minetest.register_on_generated(function(minp, maxp, blockseed)
         if #poslist ~= 0 then
             for i = 1, #poslist do
                 local p = poslist[i]
-                va_structures.add_mass_deposit(p.pos, p.replace, 1)
+                va_structures.add_mass_deposit(p.pos, p.replace)
             end
         end
     end
