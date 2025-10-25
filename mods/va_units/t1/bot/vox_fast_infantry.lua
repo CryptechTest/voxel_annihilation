@@ -8,7 +8,7 @@ va_units.register_unit("vox_fast_infantry", {
     mesh = "va_units_vox_fast_infantry.gltf",
     texture ="va_units_vox_fast_infantry.png",
     visual_size = { x = 1, y = 1},
-    collisionbox = {-0.6, 0, -0.45, 0.6, 1.7, 0.65},
+    collisionbox = {-0.6, 0.05, -0.45, 0.6, 1.7, 0.65},
     selectionbox = { -0.6, 0.0, -0.45, 0.6, 1.65, 0.65},
     driver_eye_offset = { x = 0, y = 10, z = -16 },
     stepheight = 1.0,

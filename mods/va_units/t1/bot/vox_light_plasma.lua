@@ -8,7 +8,7 @@ va_units.register_unit("vox_light_plasma", {
     mesh = "va_units_vox_light_plasma.gltf",
     texture ="va_units_vox_light_plasma.png",
     visual_size = { x = 1, y = 1},
-    collisionbox = {-0.7, 0.0, -0.85, 0.7, 2.1, 0.85},
+    collisionbox = {-0.7, 0.05, -0.85, 0.7, 2.1, 0.85},
     selectionbox = { -0.7, 0.0, -0.85, 0.7, 1.95, 0.85 },
     driver_eye_offset = { x = 0, y = 10, z = -16 },
     stepheight = 1.0,
