@@ -6,8 +6,8 @@ local player_units = {}
 local active_units = {}
 local loaded_mapblocks = {}
 
-local abs, cos, floor, sin, sqrt, pi =
-    math.abs, math.cos, math.floor, math.sin, math.sqrt, math.pi
+local abs, atan2, cos, floor, min, sin, sqrt, pi =
+    math.abs, math.atan2, math.cos, math.floor, math.min, math.sin, math.sqrt, math.pi
 
 local function find_free_pos(pos)
     local check = {
@@ -62,9 +62,9 @@ local function keep_loaded(unit)
     end
     local pos = unit.object:get_pos()
     local mapblock_pos = {
-        x = math.floor(pos.x / 16),
-        y = math.floor(pos.y / 16),
-        z = math.floor(pos.z / 16),
+        x = floor(pos.x / 16),
+        y = floor(pos.y / 16),
+        z = floor(pos.z / 16),
     }
     local mapblock_key = mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z
     local current_mapblock = unit._current_mapblock
@@ -137,6 +137,20 @@ local function update_physics(unit)
     local object = unit.object
     if not object then
         return
+    end
+    --check if unit is stuck inside a solid node
+    local pos = object:get_pos()
+    local collisionbox = object:get_properties().collisionbox or {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
+    local feet_y = pos.y + collisionbox[2] + 0.01 -- slightly below feet
+    local node_pos = {x = floor(pos.x + 0.5), y = floor(feet_y + 0.5), z = floor(pos.z + 0.5)}
+    local node = core.get_node_or_nil(node_pos)
+    if node and node.name ~= "air" then
+        local def = core.registered_nodes[node.name]
+        if def and def.walkable then
+            --set the velocity upwards to try to get out of the node
+            local vel = object:get_velocity()
+            object:set_velocity({ x = vel.x, y = 1, z = vel.z })
+        end
     end
     if unit._movement_type == "ground" then
         physics_api.update_physics(object)
@@ -257,7 +271,7 @@ local function drive(unit, movement_def, dtime)
         -- Apply velocity for smooth stepping
         if step_up_needed then
             -- Gradually adjust the y velocity for smoother stepping
-            local new_y_velocity = math.min(vel.y + 0.2, 1.5) -- Lower max value for less aggressive stepping
+            local new_y_velocity = min(vel.y + 0.2, 1.5) -- Lower max value for less aggressive stepping
             unit.object:set_velocity({
                 x = movement_def.movement_speed * cos(yaw + pi / 2),
                 y = new_y_velocity,
@@ -387,7 +401,8 @@ function va_units.register_unit(name, def)
                 return
             end
             update_physics(self)
-            keep_loaded(self)
+            keep_loaded(self)            
+            
             if not self._target_pos and (not self._command_queue or #self._command_queue == 0) then
                 drive(self, {
                     movement_speed = def.movement_speed * 2.5,
@@ -406,7 +421,7 @@ function va_units.register_unit(name, def)
                     self._last_pos = self._last_pos or self.object:get_pos()
                     self._stuck_timer = self._stuck_timer or 0
                     local pos = self.object:get_pos()
-                    local moved_dist = math.sqrt((pos.x - self._last_pos.x)^2 + (pos.y - self._last_pos.y)^2 + (pos.z - self._last_pos.z)^2)
+                    local moved_dist = sqrt((pos.x - self._last_pos.x)^2 + (pos.y - self._last_pos.y)^2 + (pos.z - self._last_pos.z)^2)
                     if moved_dist < 0.05 then
                         self._stuck_timer = self._stuck_timer + dtime
                     else
@@ -429,8 +444,8 @@ function va_units.register_unit(name, def)
                     local target_pos = self._target_pos
                     if target_pos then
                         local tpos = self.object:get_pos()
-                        local dist = math.sqrt((target_pos.x - tpos.x)^2 + (target_pos.y - tpos.y)^2 + (target_pos.z - tpos.z)^2)
-                        if dist <= 2 then
+                        local dist = sqrt((target_pos.x - tpos.x)^2 + (target_pos.y - tpos.y)^2 + (target_pos.z - tpos.z)^2)
+                        if dist < 1 then
                             self._target_pos = nil
                             self._path = nil
                             local vel = self.object:get_velocity()
@@ -442,18 +457,18 @@ function va_units.register_unit(name, def)
                             return
                         end
                     end
-                    local pos = self.object:get_pos()
+                    
                     local next_pos = path[2]
                     local dir_vector = vector.subtract(next_pos, pos)
-                    local yaw = math.atan2(dir_vector.z, dir_vector.x) - (math.pi / 2)
+                    local yaw = atan2(dir_vector.z, dir_vector.x) - (pi / 2)
                     self.object:set_yaw(yaw)
                     local vel = self.object:get_velocity()
                     local animation = self._animation
 
                     -- Snap to next node if close horizontally
-                    local horiz_dist = math.sqrt((next_pos.x - pos.x)^2 + (next_pos.z - pos.z)^2)
+                    local horiz_dist = sqrt((next_pos.x - pos.x)^2 + (next_pos.z - pos.z)^2)
                     if horiz_dist < 0.25 then
-                        self.object:set_pos({x = next_pos.x, y = pos.y, z = next_pos.z})
+                        self.object:set_pos({x = next_pos.x + 0.5, y = pos.y, z = next_pos.z + 0.5})
                     end
 
                     -- Step-up logic for walkable or liquid nodes
@@ -479,13 +494,13 @@ function va_units.register_unit(name, def)
                     end
 
                     -- If vertical movement is blocked, nudge upward
-                    if not step_up_needed and math.abs(next_pos.y - pos.y) > stepheight and horiz_dist < 0.5 then
+                    if not step_up_needed and abs(next_pos.y - pos.y) > stepheight and horiz_dist < 0.5 then
                         self.object:set_pos({x = pos.x, y = next_pos.y, z = pos.z})
                     end
 
                     -- Apply velocity for smooth stepping
                     if step_up_needed then
-                        local new_y_velocity = math.min(vel.y + stepheight, stepheight * 2)
+                        local new_y_velocity = min(vel.y + stepheight, stepheight * 2)
                         self.object:set_velocity({
                             x = (def.movement_speed * 2.5) * cos(yaw + pi / 2),
                             y = new_y_velocity,
