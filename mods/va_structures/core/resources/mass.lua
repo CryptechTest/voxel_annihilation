@@ -77,7 +77,7 @@ local function register_mass_deposit(def)
         tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformFYR90])"},
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_mass = 2
         },
         drop = ""
     })
@@ -86,7 +86,7 @@ local function register_mass_deposit(def)
         tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformR90])"},
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_mass = 2
         },
         drop = ""
     })
@@ -95,7 +95,7 @@ local function register_mass_deposit(def)
         tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformFX])"},
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_mass = 2
         },
         drop = ""
     })
@@ -104,7 +104,7 @@ local function register_mass_deposit(def)
         tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformR180])"},
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_mass = 2
         },
         drop = ""
     })

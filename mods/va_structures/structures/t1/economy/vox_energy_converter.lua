@@ -21,7 +21,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local cost = s_obj:get_data():get_energy_consume()
         local energy = net.energy
         local mass = net.mass
-        if energy - cost > 0 then
+        if energy - cost >= 0 then
             net.energy = energy - cost
             if net.mass + gen <= net.mass_storage then
                 net.mass = mass + gen
