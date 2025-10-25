@@ -442,8 +442,12 @@ function Structure:construct(actor)
             end
             has_resources = true
         end
-        actor.mass_demand = actor.mass_demand + mass_cost_rate
-        actor.energy_demand = actor.energy_demand + energy_cost_rate
+        if energy - energy_cost_rate >= 0 then
+            actor.mass_demand = actor.mass_demand + mass_cost_rate
+        end
+        if mass - mass_cost_rate >= 0 then
+            actor.energy_demand = actor.energy_demand + energy_cost_rate
+        end
     end
     if not has_resources then
         va_structures.particle_build_effect_halt(pos)
