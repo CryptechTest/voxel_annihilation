@@ -6,8 +6,8 @@ local player_units = {}
 local active_units = {}
 local loaded_mapblocks = {}
 
-local abs, atan2, cos, floor, min, sin, sqrt, pi =
-    math.abs, math.atan2, math.cos, math.floor, math.min, math.sin, math.sqrt, math.pi
+local abs, atan2, cos, floor, max, min, sin, sqrt, pi =
+    math.abs, math.atan2, math.cos, math.floor, math.max, math.min, math.sin, math.sqrt, math.pi
 
 local function find_free_pos(pos)
     local check = {
@@ -40,8 +40,9 @@ end
 local function find_path(unit, target_pos, ...)
     local start = unit.object:get_pos()
     local step_height = unit.object:get_properties().stepheight or 0.6
-    return core.find_path(start, target_pos, ...) or
+    local path = core.find_path(start, target_pos, ...) or
         core.find_path(vector.add(start, vector.new(0, step_height, 0)), target_pos, ...)
+    return path
 end
 
 
