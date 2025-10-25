@@ -3,8 +3,10 @@ local modname = core.get_current_modname()
 local mod_path = core.get_modpath(modname)
 
 local register_structure_gauge = dofile(mod_path .. "/structure/structure_gauge.lua")
+local register_resource_mass = dofile(mod_path .. "/core/resources/mass.lua")
 
 register_structure_gauge();
+register_resource_mass();
 
 local lua_ext = ".lua"
 local root_path = mod_path .. "/structures/"

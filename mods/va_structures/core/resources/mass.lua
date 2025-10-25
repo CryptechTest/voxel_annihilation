@@ -1,0 +1,323 @@
+local dirs = {{ -- along x beside
+    x = 1,
+    y = 0,
+    z = 0
+}, {
+    x = -1,
+    y = 0,
+    z = 0
+}, { -- along z beside
+    x = 0,
+    y = 0,
+    z = 1
+}, {
+    x = 0,
+    y = 0,
+    z = -1
+}, { -- nodes on x corner
+    x = 1,
+    y = 0,
+    z = 1
+}, {
+    x = -1,
+    y = 0,
+    z = 1
+}, { -- nodes on z corner
+    x = -1,
+    y = 0,
+    z = -1
+}, {
+    x = 1,
+    y = 0,
+    z = -1
+}}
+
+local function register_mass_deposit(def)
+
+    local base_name = def.base_name or "grass"
+    local node_desc = " on " .. (def.node_desc or "Grass")
+    local base_texture = def.base_texture or "default_grass"
+    local mass_texture = def.mass_texture or "va_mineral"
+
+    local t_name_b = "va_structures:" .. base_name .. "_with_metal"
+    local t_name = "va_structures:" .. base_name .. "_near_metal"
+
+    core.register_node(t_name_b, {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^(" .. mass_texture .. ".png)"},
+        groups = {
+            cracky = 2,
+            va_mass = 3
+        },
+        drop = "",
+
+        on_place = function(itemstack, placer, pointed_thing)
+            if pointed_thing.type ~= "node" then
+                return itemstack
+            end
+
+            local a_pos = pointed_thing.above
+            local pos = vector.subtract(a_pos, {
+                x = 0,
+                y = 1,
+                z = 0
+            })
+            local name = placer:get_player_name()
+
+            va_structures.add_mass_deposit(pos, base_name)
+
+            itemstack:take_item(1)
+
+            return itemstack
+        end
+    })
+
+    core.register_node(t_name .. "_1", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformFYR90])"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+    core.register_node(t_name .. "_2", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformR90])"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+    core.register_node(t_name .. "_3", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformFX])"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+    core.register_node(t_name .. "_4", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_1.png^[opacity:240)^[transformR180])"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+
+    core.register_node(t_name .. "_5", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_2.png^[opacity:240))"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+    core.register_node(t_name .. "_6", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_2.png^[opacity:240)^[transformR180])"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+    core.register_node(t_name .. "_7", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_2.png^[opacity:240)^[transformFY])"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+    core.register_node(t_name .. "_8", {
+        description = ("Metal Ore" .. node_desc),
+        tiles = {base_texture .. ".png^((" .. mass_texture .. "_2.png^[opacity:240)^[transformR90])"},
+        groups = {
+            cracky = 2,
+            va_mass = 1
+        },
+        drop = ""
+    })
+end
+
+local deposit_overlaps = {{
+    check = "default:dirt_with_grass",
+    replace = "grass"
+}, {
+    check = "default:dry_dirt_with_dry_grass",
+    replace = "dry_grass"
+}, {
+    check = "default:dirt",
+    replace = "dirt"
+}, {
+    check = "default:dirt_with_snow",
+    replace = "dirt_snow"
+}, {
+    check = "default:sand",
+    replace = "sand"
+}, {
+    check = "default:desert_sand",
+    replace = "desert_sand"
+}, {
+    check = "default:gravel",
+    replace = "gravel"
+}, {
+    check = "default:stone",
+    replace = "stone"
+}, {
+    check = "default:desert_stone",
+    replace = "desert_stone"
+}, {
+    check = "default:desert_sandstone",
+    replace = "desert_sandstone"
+}, {
+    check = "default:silver_sand",
+    replace = "silver_sand"
+}, {
+    check = "default:permafrost",
+    replace = "permafrot"
+}, {
+    check = "default:moss",
+    replace = "moss"
+}, {
+    check = "default:dirt_with_coniferous_litter",
+    replace = "coniferous_litter"
+}, {
+    check = "default:dirt_with_rainforest_litter",
+    replace = "rainforest_litter"
+}}
+
+local function match_deposit_overlap(name)
+    for _, o in pairs(deposit_overlaps) do
+        if o.check == name then
+            return o.replace
+        end
+    end
+    return nil
+end
+
+local mass_deposits = {{
+    base_name = "grass",
+    node_desc = "Grass",
+    base_texture = "default_grass"
+}, {
+    base_name = "dry_grass",
+    node_desc = "Dry Grass",
+    base_texture = "default_dry_grass"
+}, {
+    base_name = "dirt_snow",
+    node_desc = "Snow",
+    base_texture = "default_snow"
+}, {
+    base_name = "dirt",
+    node_desc = "Dirt",
+    base_texture = "default_dirt"
+}, {
+    base_name = "gravel",
+    node_desc = "Gravel",
+    base_texture = "default_gravel"
+}, {
+    base_name = "stone",
+    node_desc = "Stone",
+    base_texture = "default_stone"
+}, {
+    base_name = "desert_stone",
+    node_desc = "Desert Stone",
+    base_texture = "default_desert_stone"
+}, {
+    base_name = "desert_sandstone",
+    node_desc = "Desert Sandstone",
+    base_texture = "default_desert_sandstone"
+}, {
+    base_name = "sand",
+    node_desc = "Sand",
+    base_texture = "default_sand"
+}, {
+    base_name = "desert_sand",
+    node_desc = "Desert Sand",
+    base_texture = "default_desert_sand"
+}, {
+    base_name = "silver_sand",
+    node_desc = "Silver Sand",
+    base_texture = "default_silver_sand"
+}, {
+    base_name = "permafrost",
+    node_desc = "Permaforst",
+    base_texture = "default_permafrost"
+}, {
+    base_name = "moss",
+    node_desc = "Moss",
+    base_texture = "default_moss"
+}, {
+    base_name = "coniferous_litter",
+    node_desc = "Coniferous Litter",
+    base_texture = "default_coniferous_litter"
+}, {
+    base_name = "rainforest_litter",
+    node_desc = "Rainforest Litter",
+    base_texture = "default_rainforest_litter"
+}}
+
+function va_structures.add_mass_deposit(pos, b_name)
+	if b_name == nil then
+		b_name = "grass"
+	end
+    for _, dir in pairs(dirs) do
+        local d_pos = vector.add(pos, dir)
+        local side = "_1"
+        if dir.x == 1 and dir.z == 0 then
+            side = "_1"
+        elseif dir.x == -1 and dir.z == 0 then
+            side = "_2"
+        elseif dir.x == 0 and dir.z == 1 then
+            side = "_3"
+        elseif dir.x == 0 and dir.z == -1 then
+            side = "_4"
+        elseif dir.x == 1 and dir.z == 1 then
+            side = "_5"
+        elseif dir.x == -1 and dir.z == -1 then
+            side = "_6"
+        elseif dir.x == 1 and dir.z == -1 then
+            side = "_7"
+        elseif dir.x == -1 and dir.z == 1 then
+            side = "_8"
+        end
+
+        local n_name = core.get_node(d_pos).name
+        local match = match_deposit_overlap(n_name)
+        if match then
+            b_name = match
+        end
+
+        core.add_node(d_pos, {
+            name = "va_structures:" .. b_name .. "_near_metal" .. side
+        })
+    end
+
+    local n_name = core.get_node(pos).name
+    local match = match_deposit_overlap(n_name)
+    if match then
+        b_name = match
+    end
+
+    core.add_node(pos, {
+        name = "va_structures:" .. b_name .. "_with_metal"
+    })
+end
+
+local function register_resource_mass()
+
+    for _, d in pairs(mass_deposits) do
+        register_mass_deposit(d)
+    end
+
+end
+
+return register_resource_mass
