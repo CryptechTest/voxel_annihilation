@@ -430,7 +430,7 @@ function va_units.register_unit(name, def)
                     if target_pos then
                         local tpos = self.object:get_pos()
                         local dist = math.sqrt((target_pos.x - tpos.x)^2 + (target_pos.y - tpos.y)^2 + (target_pos.z - tpos.z)^2)
-                        if dist <= 3 then
+                        if dist <= 2 then
                             self._target_pos = nil
                             self._path = nil
                             local vel = self.object:get_velocity()
