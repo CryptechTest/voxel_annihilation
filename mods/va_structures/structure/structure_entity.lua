@@ -19,8 +19,8 @@ local function register_structure_entity(def)
                 y = 1.0
             },
             glow = 2,
-            --infotext = "HP: " .. tostring(def.max_health) .. "/" .. tostring(def.max_health) .. ""
-            infotext = def.desc
+            type = "va_structure",
+            infotext = def.desc .. "\n" .. "HP: " .. tostring(def.max_health) .. "/" .. tostring(def.max_health) .. ""
         },
 
         -- va general vars

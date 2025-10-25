@@ -11,13 +11,17 @@ local modpath = core.get_modpath(modname)
 local Structure = dofile(modpath .. "/structure/structure.lua")
 
 local vas_run = function(pos, node, s_obj, run_stage, net)
-    --core.log("vas_run() tick... " .. s_obj.name)
+    -- core.log("vas_run() tick... " .. s_obj.name)
     if net == nil then
         return
     end
     -- run 
     if run_stage == "main" then
-        local pos_above = vector.add(pos, {x=0,y=1,z=0})
+        local pos_above = vector.add(pos, {
+            x = 0,
+            y = 1,
+            z = 0
+        })
         local light_level = minetest.get_node_light(pos_above)
         if light_level > 10 then
             local gen = s_obj:get_data():get_energy_generate()
@@ -46,17 +50,17 @@ local def = {
 }
 
 -- Setup structure definition
-local node_name = "solar_collector"
-local node_desc = "Solar Collector"
-local size = {
+def.name = "solar_collector"
+def.desc = "Solar Collector"
+def.size = {
     x = 1,
     y = 0,
     z = 1
 }
-local category = "economy"
-local tier = 1
-local faction = "vox"
+def.category = "economy"
+def.tier = 1
+def.faction = "vox"
 
 -- Create a new SolarCollector
-local solar_collector = Structure.register(node_name, node_desc, size, category, tier, faction, def)
+local solar_collector = Structure.register(def)
 

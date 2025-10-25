@@ -34,17 +34,17 @@ local def = {
 }
 
 -- Setup structure definition
-local node_name = "energy_storage"
-local node_desc = "Energy Storage"
-local size = {
+def.name = "energy_storage"
+def.desc = "Energy Storage"
+def.size = {
     x = 1,
     y = 0,
     z = 1
 }
-local category = "economy"
-local tier = 1
-local faction = "vox"
+def.category = "economy"
+def.tier = 1
+def.faction = "vox"
 
 -- Create a new EnergyStorage
-local energy_storage = Structure.register(node_name, node_desc, size, category, tier, faction, def)
+local energy_storage = Structure.register(def)
 

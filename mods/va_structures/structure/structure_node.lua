@@ -53,7 +53,7 @@ local function register_structure_node(def)
             fixed = {{-0.3125, -0.5, -0.3125, 0.3125, -0.4375, 0.3125}}
         },
 
-        on_place = def.check_overlap,
+        on_place = def.check_placement,
         after_place_node = function(pos, placer, itemstack, pointed_thing)
             -- core.add_entity(pos, def.entity_name)
             local meta = core.get_meta(pos)
@@ -70,18 +70,13 @@ local function register_structure_node(def)
             local node = core.get_node(pos)
             local meta = core.get_meta(pos)
             meta:set_string("infotext", node_desc)
-            local inv = meta:get_inventory()
+            --local inv = meta:get_inventory()
             -- inv:set_size("src", 1)
             meta:set_int("active", 1)
             meta:set_int("is_constructed", 0)
             meta:set_int("health", def.meta.max_health)
             meta:set_int("max_health", def.meta.max_health)
-            meta:set_string("last_tick", "0")
             meta:set_int("last_hit", 0)
-            meta:set_int("e_demand", 0)
-            meta:set_int("m_demand", 0)
-            meta:set_int("e_generate", 0)
-            meta:set_int("m_extract", 0)
         end,
 
         va_structure_run = def.vas_run,

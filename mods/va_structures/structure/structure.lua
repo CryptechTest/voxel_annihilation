@@ -47,49 +47,50 @@ Structure.__index = Structure
 
 local modname = core.get_current_modname()
 
-function Structure.new(pos, name, desc, size, category, tier, faction, meta_def, do_def_check)
+function Structure.new(pos, name, def, do_def_check)
     local self = setmetatable({}, Structure)
-    self.pos = pos
+    self.pos = pos -- position of structure in world
     self.name = name or "base_structure" -- name of this structure
-    self.desc = desc or "Abstract Structure" -- description of this structure
-    self.size = size or {1, 0, 1} -- base size
-    meta_def.fqnn = modname .. ":" .. faction .. "_" .. self.name -- fully qualified node name
-    self.fqnn = meta_def.fqnn
-    meta_def.entity_name = meta_def and meta_def.entity_name or self.fqnn .. "_entity"
-    self.entity_name = meta_def.entity_name -- name of entity attached
+    self.desc = def.desc or "Abstract Structure" -- description of this structure
+    self.size = def.size or {1, 0, 1} -- structure area size
+    def.fqnn = modname .. ":" .. def.faction .. "_" .. self.name
+    self.fqnn = def.fqnn -- fully qualified node name
+    def.entity_name = def and def.entity_name or self.fqnn .. "_entity"
+    self.entity_name = def.entity_name -- name of entity attached
     self.entity_obj = nil -- object corresponding to attached entity
-    self.category = category or "none" -- build, combat, economy, utility
-    self.water_type = meta_def.water_type or false
-    self.tier = tier -- tech tier of this structure
-    self.faction = faction -- factions: 'vox' and 'cube'
-    -- TODO: setup faction/team object...
-    -- self.team_obj = nil
-    -- TODO: setup owner controllers
-    self.owner = nil
-    self.owner_actor = nil
+    self.category = def.category or "none" -- build, combat, economy, utility
+    self.water_type = def.water_type or false -- flag for water structures
+    self.tier = def.tier -- tech tier of this structure
+    self.faction = def.faction -- faction teams: 'vox' and 'cube'
+    self.owner = nil -- owner player name
+    self.owner_actor = nil -- owner player actor
     local w = (self.size.x * 2) + 1
     local l = (self.size.z * 2) + 1
     local h = (self.size.y * 2) + 1
     self.volume = w * l * h -- volume size
 
     -- use or build default metadata
-    self.meta = StructureMetaData.new(meta_def)
+    self.meta = StructureMetaData.new(def)
 
-    self.vas_run_pre = meta_def.vas_run_pre or nil
-    self.vas_run_post = meta_def.vas_run_post or nil
-    self.destroy_post_effects = meta_def.destroy_post_effects or nil
+    -- external functions
+    self.vas_run_pre = def.vas_run_pre or nil
+    self.vas_run_post = def.vas_run_post or nil
+    self.destroy_post_effects = def.destroy_post_effects or nil
 
+    -- construction step vars
     self.construction_tick_max = self.volume
     self.construction_tick = 0
     self.is_contructed = false
 
+    -- validitiy flags
     self._active = false
     self._defined = false
     if do_def_check then
         self._defined = va_structures.is_registered_structure(self.fqnn)
     end
 
-    self.check_overlap = function(itemstack, placer, pointed_thing)
+    -- check for valid placement location
+    self.check_placement = function(itemstack, placer, pointed_thing)
         if pointed_thing.type ~= "node" then
             return itemstack
         end
@@ -118,11 +119,11 @@ function Structure.new(pos, name, desc, size, category, tier, faction, meta_def,
     return self
 end
 
-function Structure.register(name, desc, size, category, tier, faction, def)
+function Structure.register(def)
     if not def then
         return
     end
-    local structure = Structure.new(nil, name, desc, size, category, tier, faction, def, false)
+    local structure = Structure.new(nil, def.name, def)
     structure.after_place_node = def.after_place_node
     structure.after_dig_node = def.after_dig_node
     structure.vas_run = def.vas_run
@@ -140,7 +141,7 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
     end
     -- local s = va_structures.get_new(pos, node_name)
     local def = va_structures.get_registered_structure(node_name)
-    local s = Structure.new(pos, def.name, def.desc, def.size, def.category, def.tier, def.faction, def, true)
+    local s = Structure.new(pos, def.name, def, true)
     if placer:is_player() then
         s.owner = placer:get_player_name()
     end
@@ -150,7 +151,10 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
 end
 
 function Structure.after_dig_node(pos, oldnode, oldmetadata, digger)
-    va_structures.remove_active_structure(pos)
+    local s = va_structures.get_active_structure(pos)
+    if s then
+        s:dispose();
+    end
 end
 
 -----------------------------------------------------------------

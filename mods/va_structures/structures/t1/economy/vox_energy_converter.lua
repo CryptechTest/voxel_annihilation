@@ -49,17 +49,17 @@ local def = {
 }
 
 -- Setup structure definition
-local node_name = "energy_converter"
-local node_desc = "Energy Converter"
-local size = {
+def.name = "energy_converter"
+def.desc = "Energy Converter"
+def.size = {
     x = 1,
     y = 0,
     z = 1
 }
-local category = "economy"
-local tier = 1
-local faction = "vox"
+def.category = "economy"
+def.tier = 1
+def.faction = "vox"
 
 -- Create a new SolarCollector
-local solar_collector = Structure.register(node_name, node_desc, size, category, tier, faction, def)
+local solar_collector = Structure.register(def)
 
