@@ -87,8 +87,8 @@ function Structure.new(pos, name, def, do_def_check)
     self.build_time = def.build_time
     self.construction_tick_max = def.build_time or 10 -- max ticks to build structure
     self.construction_tick = 0
-    self.is_contructed = false
-    self.build_power_total = 10
+    self.is_constructed = false
+    self.build_power_total = 0.1
 
     self.last_hit = 0 -- last time structure was hit by player
 
@@ -355,22 +355,18 @@ function Structure:get_hp_max()
 end
 
 function Structure:can_store_energy()
-    return (self.is_contructed and self.meta:get_energy_storage() > 0)
+    return (self.is_constructed and self.meta:get_energy_storage() > 0)
 end
 
 function Structure:can_store_mass()
-    return (self.is_contructed and self.meta:get_mass_storage() > 0)
-end
-
-function Structure:get_build_step()
-    return self.build_power_total
+    return (self.is_constructed and self.meta:get_mass_storage() > 0)
 end
 
 function Structure:build_assist_reset()
-    self.build_power_total = 10 -- 1 second
+    self.build_power_total = 1 -- 10 seconds
 end
 
-function Structure:build_assist(amount_power)
+function Structure:build_assist_add(amount_power)
     self.build_power_total = self.build_power_total + amount_power
 end
 
@@ -428,7 +424,7 @@ function Structure:activate(visible)
         local ent = obj:get_luaentity()
         ent._owner_hash = tostring(hash)
         ent._owner_name = self.owner
-        if not self.is_contructed then
+        if not self.is_constructed then
             visible = false
         end
         obj:set_properties({
@@ -442,14 +438,26 @@ function Structure:activate(visible)
 end
 
 function Structure:construct(actor)
-    if self.is_contructed then
+    if self.is_constructed then
+        return false
+    end
+    local build_power = math.min(10, self.build_power_total)
+    if build_power > 0 then
+        return self:construct_with_power(actor, build_power)
+    end
+    -- return true if constructing
+    return not self.is_constructed
+end
+
+function Structure:construct_with_power(actor, build_power, constructor)
+    if self.is_constructed then
         return false
     end
     local pos = self.pos
     local meta = core.get_meta(pos)
     if self.construction_tick >= self.construction_tick_max then
-        self.is_contructed = true
-        meta:set_int('is_contructed', 1)
+        self.is_constructed = true
+        meta:set_int('is_constructed', 1)
         if self.entity_obj then
             self.entity_obj:set_properties({
                 is_visible = true
@@ -457,7 +465,7 @@ function Structure:construct(actor)
         end
         return false
     end
-    local build_power = math.min(10, self:get_build_step())
+    build_power = build_power or 10
     local has_resources = false
     if actor then
         local mass_cost = self:get_data():get_mass_cost()
@@ -516,7 +524,7 @@ function Structure:destroy()
     core.after(0.1, function()
         self:dispose()
     end)
-    if self.is_contructed then
+    if self.is_constructed then
         self:explode()
         if self.destroy_post_effects then
             self.destroy_post_effects(self)
