@@ -224,6 +224,7 @@ function va_hud.update_hud(player)
     local window_info = core.get_player_window_information(player_name)
     local scale = 1.5
     if window_info then
+        core.chat_send_all(player_name .. " window_info: " ..dump(window_info))
         local hud_scaling = window_info.real_hud_scaling or 1
         local gui_scaling = window_info.real_gui_scaling or 1
         if window_info.size.y >= 1360 then
