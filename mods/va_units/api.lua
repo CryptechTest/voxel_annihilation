@@ -236,8 +236,8 @@ local function drive(unit, movement_def, dtime)
     end
     local head_bone = "head"
     local head_override = unit.object:get_bone_override(head_bone) or {}
-    head_override.position = head_override.position or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=0 }
-    head_override.rotation = head_override.rotation or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=0 }
+    head_override.position = head_override.position or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
+    head_override.rotation = head_override.rotation or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
     head_override.rotation.vec = head_override.rotation.vec or {x=0, y=0, z=0}
     head_override.rotation.vec.x = head_override.rotation.vec.x or 0
     head_override.rotation.vec.y = head_override.rotation.vec.y or 0
@@ -245,8 +245,8 @@ local function drive(unit, movement_def, dtime)
 
     local gun_bone = "arms"
     local gun_override = unit.object:get_bone_override(gun_bone) or {}
-    gun_override.position = gun_override.position or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=0 }
-    gun_override.rotation = gun_override.rotation or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=0 }
+    gun_override.position = gun_override.position or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
+    gun_override.rotation = gun_override.rotation or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
     gun_override.rotation.vec = gun_override.rotation.vec or {x=0, y=0, z=0}
     gun_override.rotation.vec.x = gun_override.rotation.vec.x or 0
     gun_override.rotation.vec.y = gun_override.rotation.vec.y or 0
@@ -254,7 +254,7 @@ local function drive(unit, movement_def, dtime)
 
     local target_yaw = driver:get_look_horizontal()
     local target_pitch = driver:get_look_vertical() - math.pi/12
-    local speed = 0.15
+    local speed = 0.25
 
     local function angle_diff(a, b)
         local diff = a - b
@@ -262,16 +262,22 @@ local function drive(unit, movement_def, dtime)
         while diff < -math.pi do diff = diff + 2 * math.pi end
         return diff
     end
-    local relative_yaw = target_yaw - unit.object:get_yaw()
-    head_override.rotation.vec.y = head_override.rotation.vec.y + angle_diff(-relative_yaw, head_override.rotation.vec.y) * speed
-    head_override.rotation.interpolation = 1
+
+    local relative_yaw = horizontal - target_yaw
+    local max_delta = 0.08 -- maximum radians to change per frame (about 4.5 degrees)
+    local desired_delta = angle_diff(relative_yaw, head_override.rotation.vec.y) * speed
+    -- Clamp the delta to avoid sudden jumps
+    if desired_delta > max_delta then desired_delta = max_delta end
+    if desired_delta < -max_delta then desired_delta = -max_delta end
+    head_override.rotation.vec.y = head_override.rotation.vec.y + desired_delta
+    head_override.rotation.interpolation = 2
     -- Clamp and smoothly interpolate gun bone pitch
     local function clamp(val, minv, maxv)
         return math.max(minv, math.min(maxv, val))
     end
     local new_pitch = gun_override.rotation.vec.x + angle_diff(target_pitch, gun_override.rotation.vec.x) * speed
     gun_override.rotation.vec.x = clamp(new_pitch, -math.pi/2, math.pi/12)
-    gun_override.rotation.interpolation = 1
+    gun_override.rotation.interpolation = 2
     unit.object:set_bone_override(head_bone, head_override)
     unit.object:set_bone_override(gun_bone, gun_override)
     unit.object:set_yaw(horizontal)
