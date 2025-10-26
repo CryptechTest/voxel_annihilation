@@ -121,6 +121,10 @@ local function register_structure_gauge()
                     shield_t = "blank.png"
                 end
 
+                if structure.last_hit == 0 then
+                    health_t = "blank.png"
+                end
+
                 gauge:set_properties({
                     textures = {health_t .. "^" .. shield_t}
                 })

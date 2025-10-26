@@ -39,7 +39,7 @@ def.name = "mass_storage"
 def.desc = "Mass Storage"
 def.size = {
     x = 1,
-    y = 0,
+    y = 1,
     z = 1
 }
 def.category = "economy"

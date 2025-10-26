@@ -37,7 +37,8 @@ local modpath = core.get_modpath(modname)
 local StructureMetaData = dofile(modpath .. "/structure/structure_meta.lua")
 local register_structure_node = dofile(modpath .. "/structure/structure_node.lua")
 local register_structure_entity = dofile(modpath .. "/structure/structure_entity.lua")
-local _, attach_structure_gauge = dofile(modpath .. "/structure/structure_gauge.lua")
+local _, attach_structure_gauge = dofile(modpath .. "/structure/structure_entity_gauge.lua")
+local _, attach_structure_build = dofile(modpath .. "/structure/structure_entity_build.lua")
 
 -----------------------------------------------------------------
 -----------------------------------------------------------------
@@ -88,6 +89,8 @@ function Structure.new(pos, name, def, do_def_check)
     self.construction_tick = 0
     self.is_contructed = false
     self.build_power_total = 10
+
+    self.last_hit = 0 -- last time structure was hit by player
 
     -- validitiy flags
     self._active = false
@@ -156,6 +159,7 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
     va_structures.add_player_structure(s)
     va_structures.add_active_structure(pos, s)
     s:activate()
+    attach_structure_build(s)
     attach_structure_gauge(s)
 end
 

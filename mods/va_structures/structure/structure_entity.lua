@@ -229,6 +229,7 @@ local function register_structure_entity(def)
                 if s then
                     local hp = s:get_hp()
                     s:set_hp(hp - 1)
+                    s.last_hit = core.get_us_time()
                 end
 
                 return false
