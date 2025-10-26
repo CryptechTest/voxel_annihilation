@@ -15,6 +15,18 @@ local function round(number, steps)
 end
 
 local function setup_hud(player)
+    local player_name = player:get_player_name()
+    local window_info = core.get_player_window_information(player_name)
+    local scale = 1.5
+    if window_info then
+        if window_info.size.y >= 1360 then
+            scale = 2.5
+        elseif window_info.size.y >= 1040 then
+            scale = 2
+        else
+            scale = 1.5
+        end
+    end
     local mass = 0
     local mass_supply = 0
     local mass_demand = 0
@@ -40,27 +52,27 @@ local function setup_hud(player)
     saved_huds[player_name]["background"] = player:hud_add({
         type = "image",
         position      = { x = 1, y = 0 },
-        offset        = { x = -260, y = 68 },
+        offset        = { x = -130 * scale, y = 34 * scale },
         text          = "va_hud_resources_background.png",
-        scale         = { x = 2, y = 2 },
+        scale         = { x = scale, y = scale },
         alignment     = 0,
     })
     if mass_storage > 0 then
         saved_huds[player_name]["mass_bar"] = player:hud_add({
             type = "image",
             position      = { x = 1, y = 0 },
-            offset        = { x = -460 + 2 * ((mass / mass_storage) * 100), y = 46 },
+            offset        = { x = -230 * scale, y = 23 * scale },
             text          = "va_hud_mass_bar.png",
-            scale         = { x = 2 * ((mass / mass_storage) * 200), y = 2 },
+            scale         = { x = scale * 200 * (mass / mass_storage), y = scale },
             alignment     = 1,
         })
     else
         saved_huds[player_name]["mass_bar"] = player:hud_add({
             type = "image",
             position      = { x = 1, y = 0 },
-            offset        = { x = -460, y = 46 },
+            offset        = { x = -230 * scale, y = 23 * scale },
             text          = "va_hud_mass_bar.png",
-            scale         = { x = 0, y = 2 },
+            scale         = { x = 0, y = scale },
             alignment     = 1,
         })
     end
@@ -69,18 +81,18 @@ local function setup_hud(player)
         saved_huds[player_name]["energy_bar"] = player:hud_add({
             type = "image",
             position      = { x = 1, y = 0 },
-            offset        = { x = -460 + 2 * ((energy / energy_storage) * 100), y = 110 },
+            offset        = { x = -230 * scale, y = 55 * scale },
             text          = "va_hud_energy_bar.png",
-            scale         = { x = 2 * ((energy / energy_storage) * 200), y = 2 },
+            scale         = { x = scale * 200 * (energy / energy_storage), y = scale },
             alignment     = 1,
         })
     else
         saved_huds[player_name]["energy_bar"] = player:hud_add({
             type = "image",
             position      = { x = 1, y = 0 },
-            offset        = { x = -460, y = 110 },
+            offset        = { x = -230 * scale, y = 55 * scale },
             text          = "va_hud_energy_bar.png",
-            scale         = { x = 0, y = 2 },
+            scale         = { x = 0, y = scale },
             alignment     = 1,
         })
     end
@@ -88,7 +100,7 @@ local function setup_hud(player)
     saved_huds[player_name]["mass"] = player:hud_add({
         type = "text",
         position      = { x = 1, y = 0 },
-        offset        = { x = -260, y = 26 },
+        offset        = { x = -130 * scale, y = 13 * scale },
         text          = tostring(mass) .. " / " .. tostring(mass_storage),
         alignment     = 0,
         number        = 0xFFFFFF,
@@ -98,7 +110,7 @@ local function setup_hud(player)
     saved_huds[player_name]["mass_demand"] = player:hud_add({
         type = "text",
         position      = { x = 1, y = 0 },
-        offset        = { x = -33, y = 26 },
+        offset        = { x = -16.5 * scale, y = 13 * scale },
         text          = tostring(mass_demand),
         alignment     = -1,
         number        = 0xFF0000,
@@ -108,7 +120,7 @@ local function setup_hud(player)
     saved_huds[player_name]["mass_supply"] = player:hud_add({
         type = "text",
         position      = { x = 1, y = 0 },
-        offset        = { x = -33, y = 46 },
+        offset        = { x = -16.5 * scale, y = 23 * scale },
         text          = tostring(mass_supply),
         alignment     = -1,
         number        = 0x00FF00,
@@ -118,7 +130,7 @@ local function setup_hud(player)
     saved_huds[player_name]["energy"] = player:hud_add({
         type = "text",
         position      = { x = 1, y = 0 },
-        offset        = { x = -260, y = 90 },
+        offset        = { x = -130 * scale, y = 45 * scale },
         text          = tostring(energy) .. " / " .. tostring(energy_storage),
         alignment     = 0,
         number        = 0xFFFFFF,
@@ -128,7 +140,7 @@ local function setup_hud(player)
     saved_huds[player_name]["energy_demand"] = player:hud_add({
         type = "text",
         position      = { x = 1, y = 0 },
-        offset        = { x = -33, y = 90 },
+        offset        = { x = -16.5 * scale, y = 45 * scale },
         text          = tostring(energy_demand),
         alignment     = -1,
         number        = 0xFF0000,
@@ -138,7 +150,7 @@ local function setup_hud(player)
     saved_huds[player_name]["energy_supply"] = player:hud_add({
         type = "text",
         position      = { x = 1, y = 0 },
-        offset        = { x = -33, y = 110 },
+        offset        = { x = -16.5 * scale, y = 55 * scale },
         text          = tostring(energy_supply),
         alignment     = -1,
         number        = 0x00FF00,
@@ -148,7 +160,7 @@ local function setup_hud(player)
         saved_huds[player_name]["notify_mass"] = player:hud_add({
             type = "text",
             position      = { x = 1, y = 0 },
-            offset        = { x = -440, y = 26 },
+            offset        = { x = -220 * scale, y = 13 * scale },
             text          = "Waste",
             alignment     = -1,
             number        = 0xFF0000,
@@ -157,7 +169,7 @@ local function setup_hud(player)
         saved_huds[player_name]["notify_mass"] = player:hud_add({
             type = "text",
             position      = { x = 1, y = 0 },
-            offset        = { x = -430, y = 26 },
+            offset        = { x = -215 * scale, y = 13 * scale },
             text          = "Overflow",
             alignment     = -1,
             number        = 0xFFF9900,
@@ -166,7 +178,7 @@ local function setup_hud(player)
         saved_huds[player_name]["notify_mass"] = player:hud_add({
             type = "text",
             position      = { x = 1, y = 0 },
-            offset        = { x = -430, y = 26 },
+            offset        = { x = -215 * scale, y = 13 * scale },
             text          = "",
             alignment     = -1,
             number        = 0x000000,
@@ -177,7 +189,7 @@ local function setup_hud(player)
         saved_huds[player_name]["notify_energy"] = player:hud_add({
             type = "text",
             position      = { x = 1, y = 0 },
-            offset        = { x = -440, y = 90 },
+            offset        = { x = -220 * scale, y = 45 * scale },
             text          = "Waste",
             alignment     = -1,
             number        = 0xFF0000,
@@ -186,7 +198,7 @@ local function setup_hud(player)
         saved_huds[player_name]["notify_energy"] = player:hud_add({
             type = "text",
             position      = { x = 1, y = 0 },
-            offset        = { x = -430, y = 90 },
+            offset        = { x = -215 * scale, y = 45 * scale },
             text          = "Overflow",
             alignment     = -1,
             number        = 0xFF9900,
@@ -195,7 +207,7 @@ local function setup_hud(player)
         saved_huds[player_name]["notify_energy"] = player:hud_add({
             type = "text",
             position      = { x = 1, y = 0 },
-            offset        = { x = -430, y = 90 },
+            offset        = { x = -215 * scale, y = 45 * scale },
             text          = "",
             alignment     = -1,
             number        = 0x000000,
@@ -205,6 +217,17 @@ end
 
 function va_hud.update_hud(player)
     local player_name = player:get_player_name()
+    local window_info = core.get_player_window_information(player_name)
+    local scale = 1.5
+    if window_info then
+        if window_info.size.y >= 1360 then
+            scale = 2.5
+        elseif window_info.size.y >= 1040 then
+            scale = 2
+        else
+            scale = 1.5
+        end
+    end
     local player_actor = va_structures.get_player_actor(player_name)
     local mass = round(player_actor.mass, 2)
     local mass_supply = round(player_actor.mass_supply, 3)
@@ -228,25 +251,33 @@ function va_hud.update_hud(player)
 
     local ids = saved_huds[player_name]
     if ids then
+        player:hud_change(ids["background"], "offset", { x = -130 * scale, y = 34 * scale })
+        player:hud_change(ids["background"], "scale", { x = scale, y = scale })
+        player:hud_change(ids["mass"], "offset", { x = -130 * scale, y = 13 * scale })
         player:hud_change(ids["mass"], "text", tostring(mass) .. " / " .. tostring(mass_storage))
+        player:hud_change(ids["mass_demand"], "offset", { x = -16.5 * scale, y = 13 * scale })
         player:hud_change(ids["mass_demand"], "text", tostring(mass_demand))
+        player:hud_change(ids["mass_supply"], "offset", { x = -16.5 * scale, y = 23 * scale })
         player:hud_change(ids["mass_supply"], "text", tostring(mass_supply))
+        player:hud_change(ids["energy"], "offset", { x = -130 * scale, y = 45 * scale })
         player:hud_change(ids["energy"], "text", tostring(energy) .. " / " .. tostring(energy_storage))
+        player:hud_change(ids["energy_demand"], "offset", { x = -16.5 * scale, y = 45 * scale })
         player:hud_change(ids["energy_demand"], "text", tostring(energy_demand))
+        player:hud_change(ids["energy_supply"], "offset", { x = -16.5 * scale, y = 55 * scale })
         player:hud_change(ids["energy_supply"], "text", tostring(energy_supply))
         if mass_storage > 0 then
-            player:hud_change(ids["mass_bar"], "offset", { x = -460 + 2 * ((mass / mass_storage) * 100), y = 46 })
-            player:hud_change(ids["mass_bar"], "scale", { x = 2 * ((mass / mass_storage) * 200), y = 2 })
+            player:hud_change(ids["mass_bar"], "offset", { x = (-230 * scale) + scale * ((mass / mass_storage) * 100), y = 23 * scale })
+            player:hud_change(ids["mass_bar"], "scale", { x = scale * ((mass / mass_storage) * 200), y = scale })
         else
-            player:hud_change(ids["mass_bar"], "offset", { x = -460, y = 46 })
-            player:hud_change(ids["mass_bar"], "scale", { x = 0, y = 2 })
+            player:hud_change(ids["mass_bar"], "offset", { x = -230 * scale, y = 23 * scale })
+            player:hud_change(ids["mass_bar"], "scale", { x = 0, y = scale})
         end
         if energy_storage > 0 then
-            player:hud_change(ids["energy_bar"], "offset", { x = -460 + 2 * ((energy / energy_storage) * 100), y = 110 })
-            player:hud_change(ids["energy_bar"], "scale", { x = 2 * ((energy / energy_storage) * 200), y = 2 })
+            player:hud_change(ids["energy_bar"], "offset", { x = (-230 * scale) + scale * ((energy / energy_storage) * 100), y = 55 * scale })
+            player:hud_change(ids["energy_bar"], "scale", { x = scale * ((energy / energy_storage) * 200), y = scale })
         else
-            player:hud_change(ids["energy_bar"], "offset", { x = -460, y = 110 })
-            player:hud_change(ids["energy_bar"], "scale", { x = 0, y = 2 })
+            player:hud_change(ids["energy_bar"], "offset", { x = -230 * scale, y = 55 * scale })
+            player:hud_change(ids["energy_bar"], "scale", { x = 0, y = scale })
         end
         if wasting_mass then
             player:hud_change(ids["notify_mass"], "text", "Waste")
@@ -286,7 +317,6 @@ end)
 
 local function cyclical_update()
     for _, player in pairs(core.get_connected_players()) do
-        local player_name = player:get_player_name()
         va_hud.update_hud(player)
     end
     core.after(1, cyclical_update)
