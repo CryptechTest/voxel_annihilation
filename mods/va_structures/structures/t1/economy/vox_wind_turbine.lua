@@ -39,15 +39,16 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         end
 
         if wind_vel > 0 then
-            local arm = s_obj.entity_obj:get_bone_override('rotor')
-            local rollRad = arm.rotation and arm.rotation.vec.y or 0
-            rollRad = ((rollRad + wind_dir) / 2) % 360
+            local arm = s_obj.entity_obj:get_bone_override('fan')
+            local yawRad = arm.rotation and arm.rotation.vec.y or 0
+            local yawDeg = math.deg(yawRad)
+            yawDeg = ((yawDeg + wind_dir) / 2) % 360
             local rot_arm = {
                 x = 0,
-                y = math.rad(rollRad),
+                y = math.rad(yawDeg),
                 z = 0
             }
-            local speed = math.min(100, 90 * (wind_vel * 2))
+            local speed = math.min(200, 100 * (wind_vel * 1))
             local rotor = s_obj.entity_obj:get_bone_override('rotor')
             local rollRad = rotor.rotation and rotor.rotation.vec.z or 0
             local rollDeg = math.deg(rollRad)
