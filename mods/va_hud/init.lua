@@ -19,6 +19,8 @@ local function setup_hud(player)
     local window_info = core.get_player_window_information(player_name)
     local scale = 1.5
     if window_info then
+        local hud_scaling = window_info.real_hud_scaling or 1
+        local gui_scaling = window_info.real_gui_scaling or 1
         if window_info.size.y >= 1360 then
             scale = 2.5
         elseif window_info.size.y >= 1040 then
@@ -26,6 +28,7 @@ local function setup_hud(player)
         else
             scale = 1.5
         end
+        scale = scale * hud_scaling * gui_scaling
     end
     local mass = 0
     local mass_supply = 0
@@ -220,6 +223,8 @@ function va_hud.update_hud(player)
     local window_info = core.get_player_window_information(player_name)
     local scale = 1.5
     if window_info then
+        local hud_scaling = window_info.real_hud_scaling or 1
+        local gui_scaling = window_info.real_gui_scaling or 1
         if window_info.size.y >= 1360 then
             scale = 2.5
         elseif window_info.size.y >= 1040 then
@@ -227,6 +232,7 @@ function va_hud.update_hud(player)
         else
             scale = 1.5
         end
+        scale = scale * hud_scaling * gui_scaling
     end
     local player_actor = va_structures.get_player_actor(player_name)
     local mass = round(player_actor.mass, 2)
