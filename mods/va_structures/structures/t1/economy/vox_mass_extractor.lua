@@ -27,7 +27,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local node = core.get_node(pos_below)
         local meta = core.get_meta(pos_below)
         local mass_group = core.get_item_group(node.name, 'va_mass')
-        local value = meta:get_int("va_mass_amount") * 0.1
+        local value = meta:get_int("va_mass_amount") * 0.01
         if mass_group > 0 then
             local amount = 1
             if mass_group == 2 then

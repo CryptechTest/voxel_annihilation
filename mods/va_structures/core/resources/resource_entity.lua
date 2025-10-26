@@ -59,7 +59,7 @@ local function register_resource_indicator()
             if is_player_near(pos) then
                 local n_pos = vector.subtract(pos, {x=0,y=0.6,z=0})
                 local meta = core.get_meta(n_pos)
-                local value = meta:get_int("va_mass_amount") * 0.1
+                local value = meta:get_int("va_mass_amount") * 0.01
                 self.object:set_nametag_attributes({text = tostring(value), color = "#ffffff"})
             end
         end,
@@ -82,7 +82,7 @@ local function register_resource_indicator()
             if is_player_near(pos) then
                 local n_pos = vector.subtract(pos, {x=0,y=0.6,z=0})
                 local meta = core.get_meta(n_pos)
-                local value = meta:get_int("va_mass_amount") * 0.1
+                local value = meta:get_int("va_mass_amount") * 0.01
                 self.object:set_nametag_attributes({text = tostring(value), color = "#d9d9ffff"})
             else
                 self.object:set_nametag_attributes({text = ""})

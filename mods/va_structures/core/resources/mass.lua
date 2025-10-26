@@ -1,24 +1,3 @@
-local function randFloat(min, max, precision)
-    -- Generate a random floating point number between min and max
-    local range = max - min
-    local offset = range * math.random()
-    local unrounded = min + offset
-
-    -- Return unrounded number if precision isn't given
-    if not precision then
-        return unrounded
-    end
-
-    -- Round number to precision and return
-    local powerOfTen = 10 ^ precision
-    local n
-    n = unrounded * powerOfTen
-    n = n + 0.5
-    n = math.floor(n)
-    n = n / powerOfTen
-    return n
-end
-
 local dirs = {{ -- along x beside
     x = 1,
     y = 0,
@@ -301,7 +280,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
         b_name = "grass"
     end
     if value == nil then
-        value = randFloat(0.7, 3.2)
+        value = va_structures.util.randFloat(0.1, 2.1)
     end
 
     local found = false
@@ -353,7 +332,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
         name = "va_structures:" .. b_name .. "_with_metal"
     })
     local meta = core.get_meta(pos)
-    meta:set_int("va_mass_amount", value * 10)
+    meta:set_int("va_mass_amount", value * 100)
 
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
@@ -388,7 +367,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
                 name = "va_structures:" .. b_name .. "_near_metal" .. side
             })
             local meta = core.get_meta(d_pos)
-            meta:set_int("va_mass_amount", value * 10)
+            meta:set_int("va_mass_amount", value * 100)
         end
     end
 end

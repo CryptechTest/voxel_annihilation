@@ -1,3 +1,5 @@
+va_structures.util = {}
+
 local function randFloat(min, max, precision)
     -- Generate a random floating point number between min and max
     local range = max - min
@@ -18,6 +20,8 @@ local function randFloat(min, max, precision)
     n = n / powerOfTen
     return n
 end
+
+va_structures.util.randFloat = randFloat
 
 local function build_effect_particle(pos, texture, _dir, dist, size, count, r, center)
     local grav = 1;
@@ -149,7 +153,8 @@ local function build_effect_particles_cancel(pos, dist)
     local size = 2
     local count = 70
     local radius = 0.9
-    build_effect_particle(pos, "va_structure_energy_particle_halt.png^[colorize:#FF0000:200", dir, dist, size, count, radius, false)
+    build_effect_particle(pos, "va_structure_energy_particle_halt.png^[colorize:#FF0000:200", dir, dist, size, count,
+        radius, false)
 end
 
 va_structures.particle_build_effect = build_effect_particles
@@ -159,30 +164,38 @@ va_structures.particle_build_effect_cancel = build_effect_particles_cancel
 -----------------------------------------------------------------
 
 local function destroy_effect_particle(pos, radius)
-	minetest.add_particle({
-		pos = pos,
-		velocity = vector.new(),
-		acceleration = vector.new(),
-		expirationtime = 0.64,
-		size = radius * 16,
-		collisiondetection = false,
-		vertical = false,
-		texture = "va_explosion_boom.png",
-		glow = 15,
-	})
-	minetest.add_particlespawner({
-		amount = 12,
-		time = 0.6,
-		minpos = vector.subtract(pos, radius / 4),
-		maxpos = vector.add(pos, radius / 4),
-		minvel = {x = -1, y = -0.5, z = -1},
-		maxvel = {x = 1, y = 1, z = 1},
-		minacc = vector.new(),
-		maxacc = vector.new(),
-		minexptime = 3,
-		maxexptime = 7,
-		minsize = radius * 4,
-		maxsize = radius * 7,
+    minetest.add_particle({
+        pos = pos,
+        velocity = vector.new(),
+        acceleration = vector.new(),
+        expirationtime = 0.64,
+        size = radius * 16,
+        collisiondetection = false,
+        vertical = false,
+        texture = "va_explosion_boom.png",
+        glow = 15
+    })
+    minetest.add_particlespawner({
+        amount = 12,
+        time = 0.6,
+        minpos = vector.subtract(pos, radius / 4),
+        maxpos = vector.add(pos, radius / 4),
+        minvel = {
+            x = -1,
+            y = -0.5,
+            z = -1
+        },
+        maxvel = {
+            x = 1,
+            y = 1,
+            z = 1
+        },
+        minacc = vector.new(),
+        maxacc = vector.new(),
+        minexptime = 3,
+        maxexptime = 7,
+        minsize = radius * 4,
+        maxsize = radius * 7,
         texture = {
             name = "va_explosion_vapor.png",
             blend = "alpha",
@@ -198,22 +211,30 @@ local function destroy_effect_particle(pos, radius)
             }}
         },
         collisiondetection = true,
-        glow = 3,
-	})
-	minetest.add_particlespawner({
-		amount = 16,
-		time = 0.8,
-		minpos = vector.subtract(pos, radius / 3),
-		maxpos = vector.add(pos, radius / 3),
-		minvel = {x = -1, y = -0.5, z = -1},
-		maxvel = {x = 1, y = 1.25, z = 1},
-		minacc = vector.new(),
-		maxacc = vector.new(),
-		minexptime = 2,
-		maxexptime = 5,
-		minsize = radius * 3,
-		maxsize = radius * 6,
-		--texture = "tnt_smoke.png",
+        glow = 3
+    })
+    minetest.add_particlespawner({
+        amount = 16,
+        time = 0.8,
+        minpos = vector.subtract(pos, radius / 3),
+        maxpos = vector.add(pos, radius / 3),
+        minvel = {
+            x = -1,
+            y = -0.5,
+            z = -1
+        },
+        maxvel = {
+            x = 1,
+            y = 1.25,
+            z = 1
+        },
+        minacc = vector.new(),
+        maxacc = vector.new(),
+        minexptime = 2,
+        maxexptime = 5,
+        minsize = radius * 3,
+        maxsize = radius * 6,
+        -- texture = "tnt_smoke.png",
         texture = {
             name = "va_explosion_smoke.png",
             blend = "alpha",
@@ -229,21 +250,37 @@ local function destroy_effect_particle(pos, radius)
             }}
         },
         collisiondetection = true,
-        glow = 5,
-	})
-	minetest.add_particlespawner({
-		amount = 72,
-		time = 0.45,
-		minpos = vector.subtract(pos, radius / 2),
-		maxpos = vector.add(pos, radius / 2),
-		minvel = {x = -3.5, y = -3.5, z = -3.5},
-		maxvel = {x = 3.5, y = 5.0, z = 3.5},
-		minacc = {x = -0.5, y = -2.0, z = -0.5},
-		maxacc = {x = 0.5, y = 0.5, z = 0.5},
-		minexptime = 0.5,
-		maxexptime = 2,
-		minsize = radius * 0.2,
-		maxsize = radius * 0.6,
+        glow = 5
+    })
+    minetest.add_particlespawner({
+        amount = 72,
+        time = 0.45,
+        minpos = vector.subtract(pos, radius / 2),
+        maxpos = vector.add(pos, radius / 2),
+        minvel = {
+            x = -3.5,
+            y = -3.5,
+            z = -3.5
+        },
+        maxvel = {
+            x = 3.5,
+            y = 5.0,
+            z = 3.5
+        },
+        minacc = {
+            x = -0.5,
+            y = -2.0,
+            z = -0.5
+        },
+        maxacc = {
+            x = 0.5,
+            y = 0.5,
+            z = 0.5
+        },
+        minexptime = 0.5,
+        maxexptime = 2,
+        minsize = radius * 0.2,
+        maxsize = radius * 0.6,
         texture = {
             name = "va_explosion_spark.png",
             blend = "alpha",
@@ -259,9 +296,22 @@ local function destroy_effect_particle(pos, radius)
             }}
         },
         collisiondetection = true,
-        glow = 15,
-	})
+        glow = 15
+    })
 
 end
 
 va_structures.destroy_effect_particle = destroy_effect_particle
+
+-----------------------------------------------------------------
+
+local function explode_effect_sound(pos, r)
+    core.sound_play("va_explode", {
+        pos = pos,
+        gain = 1.5,
+        pitch = 1.2,
+        max_hear_distance = math.min(r * 20, 64)
+    }, true)
+end
+
+va_structures.explode_effect_sound = explode_effect_sound

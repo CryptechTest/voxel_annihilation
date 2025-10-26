@@ -302,6 +302,15 @@ end
 -----------------------------------------------------------------
 -- local methods
 
+function Structure:equals(structure)
+    if not structure then
+        return false
+    end
+    local s_hash = core.hash_node_position(self.pos)
+    local o_hash = core.hash_node_position(structure.pos)
+    return s_hash == o_hash
+end
+
 function Structure:getInfo()
     local info = {
         pos = self.pos,
@@ -508,8 +517,7 @@ function Structure:destroy()
         self:dispose()
     end)
     if self.is_contructed then
-        local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
-        va_structures.destroy_effect_particle(self.pos, r + 0.75)
+        self:explode()
         if self.destroy_post_effects then
             self.destroy_post_effects(self)
         end
@@ -530,6 +538,45 @@ function Structure:do_destruct_self()
         end
     end
     return false
+end
+
+function Structure:damage(amount, d_type)
+    if self:get_data().is_vulnerable then
+        local amount = math.floor(amount * 100) * 0.01
+        -- TODO: armor handling
+        local hp = self:get_hp()
+        self:set_hp(hp - amount)
+        self.last_hit = core.get_us_time()
+    end
+end
+
+function Structure:explode()
+    local meta = self:get_data()
+    local s_d = meta:is_self_destructing()
+    local ds = meta.self_explosion_radius
+    local de = meta.death_explosion_radius
+    local dist = (s_d and ds or de) + 3
+
+    if meta.is_volatile then
+        local pos = self.pos
+        local objs = minetest.get_objects_inside_radius(pos, dist + 0.55)
+        for _, obj in pairs(objs) do
+            local o_pos = obj:get_pos()
+            if obj:get_luaentity() then
+                local ent = obj:get_luaentity()
+                local structure = va_structures.get_active_structure(o_pos)
+                if structure and not self:equals(structure) then
+                    local d = vector.distance(pos, o_pos)
+                    local dam = 1 + (dist - math.min(dist, (d / dist))) * 0.1
+                    structure:damage(dam, "kinetic")
+                end
+            end
+        end
+    end
+
+    local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
+    va_structures.destroy_effect_particle(self.pos, (r + dist) * 0.5)
+    va_structures.explode_effect_sound(self.pos, (r + dist) * 0.5)
 end
 
 -----------------------------------------------------------------
