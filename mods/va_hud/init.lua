@@ -245,8 +245,8 @@ function va_hud.update_hud(player)
     end
     local player_actor = va_structures.get_player_actor(player_name)
     local mass = round(player_actor.mass, 2)
-    local mass_supply = round(player_actor.mass_supply, 3)
-    local mass_demand = round(player_actor.mass_demand, 3)
+    local mass_supply = round(player_actor.mass_supply, 2)
+    local mass_demand = round(player_actor.mass_demand, 2)
     local mass_storage = round(player_actor.mass_storage, 2)
     local storing_mass = mass_supply > mass_demand and mass < mass_storage
     local overflow_mass = mass_supply > 0 and mass >= mass_storage and
@@ -254,8 +254,8 @@ function va_hud.update_hud(player)
         storing_mass -- this needs to be set based on if there are teammate and can overflow mass
     local wasting_mass = mass_supply > mass_demand and mass <= mass_storage and not overflow_mass and not storing_mass
     local energy = round(player_actor.energy, 2)
-    local energy_supply = round(player_actor.energy_supply, 3)
-    local energy_demand = round(player_actor.energy_demand, 3)
+    local energy_supply = round(player_actor.energy_supply, 2)
+    local energy_demand = round(player_actor.energy_demand, 2)
     local energy_storage = round(player_actor.energy_storage, 2)
     local storing_energy = energy_supply > energy_demand and energy < energy_storage
     local overflow_energy = energy_supply > 0 and energy >= energy_storage and
