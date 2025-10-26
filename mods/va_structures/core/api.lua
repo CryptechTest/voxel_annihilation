@@ -90,6 +90,7 @@ function va_structures.register_structure(def)
             faction = def.faction,
             volume = def.volume,
             do_rotate = def.do_rotate,
+            build_time = def.build_time,
             is_vulnerable = def.meta.is_vulnerable,
             is_volatile = def.meta.is_volatile,
             death_explosion_radius = def.meta.death_explosion_radius,

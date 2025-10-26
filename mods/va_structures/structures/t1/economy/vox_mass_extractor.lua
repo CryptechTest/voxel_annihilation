@@ -83,11 +83,12 @@ local def = {
     textures = {"va_vox_mass_extractor_1.png"},
     collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.70, 0.75},
     max_health = 16,
-    mass_storage = 10,
-    mass_extract = 1,
-    mass_cost = 8,
-    energy_cost = 42,
-    energy_consume = 1.2,
+    mass_storage = 5,
+    mass_extract = 1, -- this used as a percent here
+    mass_cost = 5,
+    energy_cost = 50,
+    energy_consume = 0.3,
+    build_time = 180,
     vas_run = vas_run
 }
 

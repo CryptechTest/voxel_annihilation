@@ -83,9 +83,11 @@ function Structure.new(pos, name, def, do_def_check)
     self.destroy_post_effects = def.destroy_post_effects or nil
 
     -- construction step vars
-    self.construction_tick_max = self.volume
+    self.build_time = def.build_time
+    self.construction_tick_max = def.build_time or 10 -- max ticks to build structure
     self.construction_tick = 0
     self.is_contructed = false
+    self.build_power_total = 10
 
     -- validitiy flags
     self._active = false
@@ -277,6 +279,7 @@ function Structure:run_pre(run_stage, net)
         self.owner_actor = net
     end
     if self:construct(net) then
+        self:build_assist_reset()
         return false
     end
     if self:do_destruct_self() then
@@ -344,6 +347,18 @@ end
 
 function Structure:can_store_mass()
     return (self.is_contructed and self.meta:get_mass_storage() > 0)
+end
+
+function Structure:get_build_step()
+    return self.build_power_total
+end
+
+function Structure:build_assist_reset()
+    self.build_power_total = 10 -- 1 second
+end
+
+function Structure:build_assist(amount_power)
+    self.build_power_total = self.build_power_total + amount_power
 end
 
 function Structure:place(pos, param2)
@@ -429,13 +444,16 @@ function Structure:construct(actor)
         end
         return false
     end
+    local build_power = math.min(10, self:get_build_step())
     local has_resources = false
     if actor then
         local mass_cost = self:get_data():get_mass_cost()
         local energy_cost = self:get_data():get_energy_cost()
-        local mass_cost_rate = mass_cost > 0 and math.floor((mass_cost / self.construction_tick_max) * 10) * 0.1 or 0
+        local mass_cost_rate = mass_cost > 0 and math.floor((mass_cost / self.construction_tick_max) * 10000) * 0.0001 or 0
         local energy_cost_rate =
-            energy_cost > 0 and math.floor((energy_cost / self.construction_tick_max) * 10) * 0.1 or 0
+            energy_cost > 0 and math.floor((energy_cost / self.construction_tick_max) * 10000) * 0.0001 or 0
+        mass_cost_rate = mass_cost_rate * build_power
+        energy_cost_rate = energy_cost_rate * build_power
         local mass = actor.mass
         local energy = actor.energy
         if mass - mass_cost_rate >= 0 and energy - energy_cost_rate >= 0 then
@@ -459,6 +477,7 @@ function Structure:construct(actor)
         local hp = self:get_hp()
         if hp < max_hp then
             local step = max_hp / self.construction_tick_max
+            step = step * build_power
             local hp = math.floor(math.min(max_hp, hp + step + 0.01) * 100) * 0.01
             self:set_hp(hp)
         end
@@ -468,7 +487,7 @@ function Structure:construct(actor)
         va_structures.particle_build_effect_halt(pos, dist)
         return true
     end
-    self.construction_tick = self.construction_tick + 1
+    self.construction_tick = self.construction_tick + (build_power * 1)
     va_structures.particle_build_effect(pos, dist)
     return true
 end

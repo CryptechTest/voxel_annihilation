@@ -83,9 +83,10 @@ local def = {
     collisionbox = {-0.8, -0.75, -0.8, 0.8, 2.5, 0.8},
     max_health = 12,
     energy_generate = 1, -- this used as a percent here
-    energy_storage = 5,
-    mass_cost = 6.7,
-    energy_cost = 30,
+    energy_storage = 0.05,
+    mass_cost = 4,
+    energy_cost = 17.5,
+    build_time = 160,
     vas_run = vas_run
 }
 

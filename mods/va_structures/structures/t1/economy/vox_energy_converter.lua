@@ -45,6 +45,7 @@ local def = {
     mass_cost = 0.1,
     energy_consume = 7,
     energy_cost = 115,
+    build_time = 260,
     vas_run = vas_run
 }
 

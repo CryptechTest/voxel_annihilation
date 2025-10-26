@@ -30,6 +30,7 @@ local def = {
     mass_storage = 300,
     mass_cost = 33,
     energy_cost = 57,
+    build_time = 292,
     vas_run = vas_run
 }
 
