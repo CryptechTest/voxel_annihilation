@@ -55,7 +55,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     -- do build...
                     local b_power = s_obj:get_data():get_build_power()
                     s_obj._build_target:construct_with_power(net, b_power, s_obj)
-                    core.log("turret assisting build...")
+                    --core.log("turret assisting build...")
                 end
                 net.energy_demand = net.energy_demand + e_use
             end
@@ -69,7 +69,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
             local turret = s_obj.entity_obj:get_bone_override('turret')
             local yawRad = turret.rotation and turret.rotation.vec.y or 0
-            local yawDeg = yaw_degt
+            local yawDeg = yaw_deg
             --yawDeg = ((yawDeg + (yaw_deg * 1)) / 2) % 360
             if s_obj._last_dir ~= nil and num_is_close(yaw_deg, math.deg(yawRad), 20) then
                 s_obj._target_locked = true
@@ -77,7 +77,6 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             if s_obj._last_dir == nil or yaw_deg ~= s_obj._last_dir then
                 s_obj._target_locked = false
                 s_obj._last_dir = yawDeg
-                core.log(yawDeg)
                 local rot_turret = {
                     x = 0,
                     y = math.rad(yawDeg),
