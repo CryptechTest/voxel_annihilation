@@ -139,7 +139,7 @@ local function update_physics(unit)
     if not object then
         return
     end
-    --check if unit is stuck inside a solid node
+        --check if unit is stuck inside a solid node
     local pos = object:get_pos()
     local collisionbox = object:get_properties().collisionbox or {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
     local feet_y = pos.y + collisionbox[2] + 0.01 -- slightly below feet
@@ -192,48 +192,7 @@ local function process_queue(unit)
     -- Process next command in the queue
 end
 
-local function drive(unit, movement_def, dtime)
-    if not unit.object then
-        return
-    end
-    if not movement_def.movement_speed then
-        return
-    end
-    if not unit._driver then
-        local vel = unit.object:get_velocity()
-        unit.object:set_velocity({ x = 0, y = vel.y, z = 0 })
-        if unit._animation ~= unit._animations.stand then
-            unit._animation = unit._animations.stand
-            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
-        end
-        return
-    end
-    local yaw = unit.object:get_yaw() or 0
-
-
-    local driver = unit._driver
-    if not driver then
-        return
-    end
-    local controls = driver:get_player_control()
-    local animation = unit._animation
-    local vel = unit.object:get_velocity()
-
-    local horizontal = yaw
-
-    if controls.left then
-        horizontal = horizontal + (0.05 * (movement_def.turn_speed or 1))
-        if animation ~= unit._animations.walk then
-            unit._animation = unit._animations.walk
-            unit.object:set_animation(unit._animation, unit._animation_speed * 0.66 or 15)
-        end
-    elseif controls.right then
-        horizontal = horizontal - (0.05 * (movement_def.turn_speed or 1))
-        if animation ~= unit._animations.walk then
-            unit._animation = unit._animations.walk
-            unit.object:set_animation(unit._animation, unit._animation_speed * 0.66 or 15)
-        end
-    end
+local function process_look(driver, unit, horizontal)
     local head_bone = "head"
     local head_override = unit.object:get_bone_override(head_bone) or {}
     head_override.position = head_override.position or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
@@ -280,6 +239,51 @@ local function drive(unit, movement_def, dtime)
     gun_override.rotation.interpolation = 2
     unit.object:set_bone_override(head_bone, head_override)
     unit.object:set_bone_override(gun_bone, gun_override)
+end
+
+local function drive(unit, movement_def, dtime)
+    if not unit.object then
+        return
+    end
+    if not movement_def.movement_speed then
+        return
+    end
+    if not unit._driver then
+        local vel = unit.object:get_velocity()
+        unit.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+        if unit._animation ~= unit._animations.stand then
+            unit._animation = unit._animations.stand
+            unit.object:set_animation(unit._animation, unit._animation_speed or 30)
+        end
+        return
+    end
+    local yaw = unit.object:get_yaw() or 0
+
+
+    local driver = unit._driver
+    if not driver then
+        return
+    end
+    local controls = driver:get_player_control()
+    local animation = unit._animation
+    local vel = unit.object:get_velocity()
+
+    local horizontal = yaw
+
+    if controls.left then
+        horizontal = horizontal + (0.05 * (movement_def.turn_speed or 1))
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, unit._animation_speed * 0.66 or 15)
+        end
+    elseif controls.right then
+        horizontal = horizontal - (0.05 * (movement_def.turn_speed or 1))
+        if animation ~= unit._animations.walk then
+            unit._animation = unit._animations.walk
+            unit.object:set_animation(unit._animation, unit._animation_speed * 0.66 or 15)
+        end
+    end
+    process_look(driver, unit, horizontal)
     unit.object:set_yaw(horizontal)
 
     if controls.up then
@@ -455,6 +459,9 @@ function va_units.register_unit(name, def)
                     backward_speed = def.backward_speed or 0,
                 }, dtime)
             else
+                if self._driver ~= nil then
+                    process_look(self._driver, self, self.object:get_yaw())
+                end
                 -- Handle movement towards target
                 local stepheight = self.object:get_properties().stepheight or 0.6
 
