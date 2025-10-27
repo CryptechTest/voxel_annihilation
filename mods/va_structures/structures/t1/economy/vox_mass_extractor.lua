@@ -104,5 +104,5 @@ def.category = "economy"
 def.tier = 1
 def.faction = "vox"
 
--- Create a new Mass Extractor
-local mass_extractor = Structure.register(def)
+-- Register a new Mass Extractor
+Structure.register(def)

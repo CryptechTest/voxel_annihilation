@@ -40,6 +40,8 @@ local register_structure_entity = dofile(modpath .. "/structure/structure_entity
 local _, attach_structure_gauge = dofile(modpath .. "/structure/structure_entity_gauge.lua")
 local _, attach_structure_build = dofile(modpath .. "/structure/structure_entity_build.lua")
 
+local modname = core.get_current_modname()
+
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
@@ -47,30 +49,33 @@ local _, attach_structure_build = dofile(modpath .. "/structure/structure_entity
 local Structure = {}
 Structure.__index = Structure
 
-local modname = core.get_current_modname()
-
 function Structure.new(pos, name, def, do_def_check)
     local self = setmetatable({}, Structure)
+
     self.pos = pos -- position of structure in world
     self.name = name or "base_structure" -- name of this structure
     self.desc = def.desc or "Abstract Structure" -- description of this structure
-    self.size = def.size or {1, 0, 1} -- structure area size
+
     def.fqnn = modname .. ":" .. def.faction .. "_" .. self.name
     self.fqnn = def.fqnn -- fully qualified node name
     def.entity_name = def and def.entity_name or self.fqnn .. "_entity"
     self.entity_name = def.entity_name -- name of entity attached
     self.entity_obj = nil -- object corresponding to attached entity
+
     self.category = def.category or "none" -- build, combat, economy, utility
     self.water_type = def.water_type or false -- flag for water structures
     self.tier = def.tier -- tech tier of this structure
     self.faction = def.faction -- faction teams: 'vox' and 'cube'
     self.owner = nil -- owner player name
     self.owner_actor = nil -- owner player actor
+
+    self.size = def.size or {1, 0, 1} -- structure area size
     local w = (self.size.x * 2) + 1
     local l = (self.size.z * 2) + 1
     local h = (self.size.y * 2) + 1
     self.volume = w * l * h -- volume size
-    self.do_rotate = true
+
+    self.do_rotate = true -- toggle rotation on place for enitity
     if def.do_rotate == false then
         self.do_rotate = false
     end
@@ -79,6 +84,7 @@ function Structure.new(pos, name, def, do_def_check)
     self.meta = StructureMetaData.new(def)
 
     -- external functions
+    self.vas_run = def.vas_run or nil
     self.vas_run_pre = def.vas_run_pre or nil
     self.vas_run_post = def.vas_run_post or nil
     self.destroy_post_effects = def.destroy_post_effects or nil
@@ -134,9 +140,6 @@ function Structure.register(def)
         return
     end
     local structure = Structure.new(nil, def.name, def)
-    structure.after_place_node = def.after_place_node
-    structure.after_dig_node = def.after_dig_node
-    structure.vas_run = def.vas_run
     local result = register_structure_node(structure) and register_structure_entity(def)
     if result then
         va_structures.register_structure(structure)
@@ -149,7 +152,6 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
     if not va_structures.is_registered_structure(node_name) then
         return
     end
-    -- local s = va_structures.get_new(pos, node_name)
     local def = va_structures.get_registered_structure(node_name)
     local s = Structure.new(pos, def.name, def, true)
     s:set_hp(1)
@@ -221,7 +223,11 @@ function Structure:collides_solid(pos)
         _size.y = 0.5
     end
     local pos1 = vector.add(pos, _size)
-    local pos2 = vector.subtract(pos, {x=_size.x,y=0,z=_size.z})
+    local pos2 = vector.subtract(pos, {
+        x = _size.x,
+        y = 0,
+        z = _size.z
+    })
     local nodes = core.find_nodes_in_area(pos1, pos2, {"group:cracky", "group:crumbly", "group:choppy"})
     for _, node in pairs(nodes) do
         local node = core.get_node(node)
@@ -470,9 +476,10 @@ function Structure:construct_with_power(actor, build_power, constructor)
     if actor then
         local mass_cost = self:get_data():get_mass_cost()
         local energy_cost = self:get_data():get_energy_cost()
-        local mass_cost_rate = mass_cost > 0 and math.floor((mass_cost / self.construction_tick_max) * 10000) * 0.0001 or 0
-        local energy_cost_rate =
-            energy_cost > 0 and math.floor((energy_cost / self.construction_tick_max) * 10000) * 0.0001 or 0
+        local mass_cost_rate =
+            mass_cost > 0 and math.floor((mass_cost / self.construction_tick_max) * 10000) * 0.0001 or 0
+        local energy_cost_rate = energy_cost > 0 and math.floor((energy_cost / self.construction_tick_max) * 10000) *
+                                     0.0001 or 0
         mass_cost_rate = mass_cost_rate * build_power
         energy_cost_rate = energy_cost_rate * build_power
         local mass = actor.mass
@@ -505,11 +512,11 @@ function Structure:construct_with_power(actor, build_power, constructor)
     end
     local dist = 0.75 + math.max(1, self.size.y * 2)
     if not has_resources then
-        --va_structures.particle_build_effect_halt(pos, dist)
+        -- va_structures.particle_build_effect_halt(pos, dist)
         return true
     end
     self.construction_tick = self.construction_tick + (build_power * 1)
-    --va_structures.particle_build_effect(pos, dist)
+    -- va_structures.particle_build_effect(pos, dist)
     if constructor then
         local pos2 = constructor.pos
         va_structures.particle_build_effects(pos, pos2)

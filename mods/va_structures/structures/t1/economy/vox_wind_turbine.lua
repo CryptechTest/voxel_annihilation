@@ -104,6 +104,6 @@ def.faction = "vox"
 
 def.do_rotate = false
 
--- Create a new Wind Turbine
-local wind_turbine = Structure.register(def)
+-- Register a new Wind Turbine
+Structure.register(def)
 

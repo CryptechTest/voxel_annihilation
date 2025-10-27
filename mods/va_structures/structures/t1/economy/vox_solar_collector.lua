@@ -62,6 +62,6 @@ def.category = "economy"
 def.tier = 1
 def.faction = "vox"
 
--- Create a new SolarCollector
-local solar_collector = Structure.register(def)
+-- Register a new Solar Collector
+Structure.register(def)
 

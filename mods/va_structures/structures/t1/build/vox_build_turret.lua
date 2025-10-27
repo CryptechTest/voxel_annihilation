@@ -125,5 +125,5 @@ def.faction = "vox"
 
 def.do_rotate = false
 
--- Create a new Build Turret
-local build_turret = Structure.register(def)
+-- Register a new Build Turret
+Structure.register(def)

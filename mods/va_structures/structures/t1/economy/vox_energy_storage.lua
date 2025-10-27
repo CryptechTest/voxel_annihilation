@@ -48,6 +48,6 @@ def.category = "economy"
 def.tier = 1
 def.faction = "vox"
 
--- Create a new EnergyStorage
-local energy_storage = Structure.register(def)
+-- Register a new EnergyStorage
+Structure.register(def)
 
