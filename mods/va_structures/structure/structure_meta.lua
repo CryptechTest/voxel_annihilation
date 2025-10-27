@@ -60,7 +60,7 @@ function StructureMetaData.new(def)
     def.death_explosion_radius = def.death_explosion_radius or 1
     self:set_death_explosion_radius(def.death_explosion_radius)
     -- self-destruct explosion radius
-    def.self_explosion_radius = def.self_explosion_radius or 1
+    def.self_explosion_radius = def.self_explosion_radius or 2
     self:set_self_explosion_radius(def.self_explosion_radius)
     -- has self-destruct countdown
     def.self_countdown = def.self_countdown or 3

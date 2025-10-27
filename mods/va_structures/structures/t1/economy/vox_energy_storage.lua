@@ -31,6 +31,8 @@ local def = {
     mass_cost = 17,
     energy_cost = 170,
     build_time = 411,
+    self_explosion_radius = 2.75,
+    death_explosion_radius = 2.25,
     vas_run = vas_run
 }
 

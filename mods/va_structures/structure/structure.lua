@@ -517,6 +517,24 @@ function Structure:construct_with_power(actor, build_power, constructor)
     return true
 end
 
+function Structure:repair_with_power(actor, build_power, constructor)
+    if not self.is_constructed then
+        return false
+    end
+    local hp = self:get_hp()
+    if hp >= self:get_hp_max() then
+        return false
+    end
+    local amount = math.floor(build_power) * 0.1
+    self:set_hp(hp + amount)
+    if constructor then
+        local pos = self.pos
+        local pos2 = constructor.pos
+        va_structures.particle_build_effects(pos, pos2)
+    end
+    return true
+end
+
 -- destroy structure
 function Structure:destroy()
     if self.entity_obj then
@@ -560,24 +578,6 @@ function Structure:damage(amount, d_type)
         self:set_hp(hp - amount)
         self.last_hit = core.get_us_time()
     end
-end
-
-function Structure:repair_with_power(actor, build_power, constructor)
-    if not self.is_constructed then
-        return false
-    end
-    local hp = self:get_hp()
-    if hp >= self:get_hp_max() then
-        return false
-    end
-    local amount = math.floor(build_power) * 0.1
-    self:set_hp(hp + amount)
-    if constructor then
-        local pos = self.pos
-        local pos2 = constructor.pos
-        va_structures.particle_build_effects(pos, pos2)
-    end
-    return true
 end
 
 function Structure:explode()

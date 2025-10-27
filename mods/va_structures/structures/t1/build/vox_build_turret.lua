@@ -116,7 +116,7 @@ def.name = "build_turret"
 def.desc = "Build Turret"
 def.size = {
     x = 1,
-    y = 0.5,
+    y = 0,
     z = 1
 }
 def.category = "build"
