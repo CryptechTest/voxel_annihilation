@@ -1,1 +1,264 @@
-{"asset":{"version":"2.0","generator":"Blockbench 5.0.2 glTF exporter"},"scenes":[{"nodes":[1],"name":"blockbench_export"}],"scene":0,"nodes":[{"name":"root"},{"name":"root","mesh":0,"children":[0],"skin":0}],"bufferViews":[{"buffer":0,"byteOffset":0,"byteLength":48,"target":34962,"byteStride":12},{"buffer":0,"byteOffset":48,"byteLength":48,"target":34962,"byteStride":12},{"buffer":0,"byteOffset":96,"byteLength":32,"target":34962,"byteStride":8},{"buffer":0,"byteOffset":128,"byteLength":32,"target":34962,"byteStride":8},{"buffer":0,"byteOffset":160,"byteLength":64,"target":34962,"byteStride":16},{"buffer":0,"byteOffset":224,"byteLength":12,"target":34963},{"buffer":0,"byteOffset":236,"byteLength":64}],"buffers":[{"byteLength":300,"uri":"data:application/octet-stream;base64,AAAMQQAAAAAAAAxBAAAMQQAAAAAAAAzBAAAMwQAAAAAAAAzBAAAMwQAAAAAAAAxBAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAEAAgAAAAIAAwAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/"}],"accessors":[{"bufferView":0,"componentType":5126,"count":4,"max":[8.75,0,8.75],"min":[-8.75,0,-8.75],"type":"VEC3"},{"bufferView":1,"componentType":5126,"count":4,"max":[0,1,0],"min":[0,1,0],"type":"VEC3"},{"bufferView":2,"componentType":5126,"count":4,"max":[1,1],"min":[0,0],"type":"VEC2"},{"bufferView":3,"componentType":5123,"count":4,"max":[0,0,0,0],"min":[0,0,0,0],"type":"VEC4"},{"bufferView":4,"componentType":5126,"count":4,"max":[0,1,0,0],"min":[0,1,0,0],"type":"VEC4"},{"bufferView":5,"componentType":5123,"count":6,"max":[3],"min":[0],"type":"SCALAR"},{"bufferView":6,"componentType":5126,"count":1,"max":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"min":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"type":"MAT4"}],"materials":[{"pbrMetallicRoughness":{"metallicFactor":0,"roughnessFactor":1,"baseColorTexture":{"index":0}},"alphaMode":"MASK","alphaCutoff":0.05,"doubleSided":true}],"textures":[{"sampler":0,"source":0,"name":"va_resource_mass_1"}],"samplers":[{"magFilter":9728,"minFilter":9728,"wrapS":33071,"wrapT":33071}],"images":[{"mimeType":"image/png","name":"va_resource_mass_1.png","uri":"va_resource_mass_1.png"}],"meshes":[{"primitives":[{"mode":4,"attributes":{"POSITION":0,"NORMAL":1,"TEXCOORD_0":2,"JOINTS_0":3,"WEIGHTS_0":4},"indices":5,"material":0}]}],"skins":[{"inverseBindMatrices":6,"joints":[0],"skeleton":0}]}
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "Blockbench 5.0.2 glTF exporter"
+  },
+  "scenes": [
+    {
+      "nodes": [
+        1
+      ],
+      "name": "blockbench_export"
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "name": "root"
+    },
+    {
+      "name": "root",
+      "mesh": 0,
+      "children": [
+        0
+      ],
+      "skin": 0
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 48,
+      "target": 34962,
+      "byteStride": 12
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 48,
+      "byteLength": 48,
+      "target": 34962,
+      "byteStride": 12
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 96,
+      "byteLength": 32,
+      "target": 34962,
+      "byteStride": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 128,
+      "byteLength": 32,
+      "target": 34962,
+      "byteStride": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 160,
+      "byteLength": 64,
+      "target": 34962,
+      "byteStride": 16
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 224,
+      "byteLength": 12,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 236,
+      "byteLength": 64
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 300,
+      "uri": "data:application/octet-stream;base64,AAAMQQAAAAAAAAxBAAAMQQAAAAAAAAzBAAAMwQAAAAAAAAzBAAAMwQAAAAAAAAxBAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAEAAgAAAAIAAwAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        8.75,
+        0,
+        8.75
+      ],
+      "min": [
+        -8.75,
+        0,
+        -8.75
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0,
+        1,
+        0
+      ],
+      "min": [
+        0,
+        1,
+        0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        1,
+        1
+      ],
+      "min": [
+        0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 4,
+      "max": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "min": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "min": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5123,
+      "count": 6,
+      "max": [
+        3
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 1,
+      "max": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "min": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "type": "MAT4"
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "baseColorFactor": [
+          0.8,
+          0.8,
+          0.8,
+          1
+        ]
+      },
+      "alphaMode": "MASK",
+      "alphaCutoff": 0.05,
+      "doubleSided": true
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "mode": 4,
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2,
+            "JOINTS_0": 3,
+            "WEIGHTS_0": 4
+          },
+          "indices": 5,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "skins": [
+    {
+      "inverseBindMatrices": 6,
+      "joints": [
+        0
+      ],
+      "skeleton": 0
+    }
+  ]
+}
