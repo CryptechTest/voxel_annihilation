@@ -23,6 +23,35 @@ end
 
 va_structures.util.randFloat = randFloat
 
+local function calculatePitch(vector1, vector2)
+    -- Calculate the difference vector
+    local dx = vector2.x - vector1.x
+    local dy = vector2.y - vector1.y
+    local dz = vector2.z - vector1.z
+    -- Calculate the pitch angle
+    local pitch = math.atan2(dy, math.sqrt(dx * dx + dz * dz))
+    -- Optional: Convert pitch from radians to degrees
+    --local pitch_degrees = pitch * 180 / math.pi
+    local pitch_degrees = math.deg(pitch)
+    return pitch, pitch_degrees
+end
+va_structures.util.calculatePitch = calculatePitch
+
+local function calculateYaw(vector1, vector2)
+    -- Calculate yaw for each vector
+    local yaw = math.atan2(vector1.x - vector2.x, vector1.z - vector2.z)
+    -- Optional: Convert to degrees
+    --local yaw_degrees = yaw * 180 / math.pi
+    local yaw_degrees = math.deg(yaw) + 0
+    return math.rad(yaw_degrees), yaw_degrees
+end
+va_structures.util.calculateYaw = calculateYaw
+
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+-- Particles
+-----------------------------------------------------------------
+
 local function build_effect_particle(pos, texture, _dir, dist, size, count, r, center)
     local grav = 1;
     if (pos.y > 4000) then
@@ -125,8 +154,8 @@ local function build_effect_particles(pos, dist)
     }
     local dist = dist or 1.5
     local size = 2
-    local count = 88
-    local radius = 0.9
+    local count = 28
+    local radius = 0.8
     build_effect_particle(pos, "va_structure_energy_particle.png", dir, dist, size, count, radius, false)
 end
 
@@ -160,6 +189,186 @@ end
 va_structures.particle_build_effect = build_effect_particles
 va_structures.particle_build_effect_halt = build_effect_particles_halt
 va_structures.particle_build_effect_cancel = build_effect_particles_cancel
+
+-----------------------------------------------------------------
+
+
+
+local function spawn_build_effect_particle(pos, texture, _dir, dist, size, count, radius)
+    local grav = 1;
+    if (pos.y > 4000) then
+        grav = 0.4;
+    end
+    local _vel = vector.multiply(_dir, {
+        x = 2.0,
+        y = 2.0,
+        z = 2.0
+    })
+    local vel = vector.multiply(_vel, size)
+    local t = 1.5 + (dist * 0.1) - randFloat(0.2, 0.4)
+    local texture = texture
+    if math.random(0, 1) == 0 then
+        texture = texture .. "^[transformR90"
+    end
+    local r = radius
+    local minpos = {
+        x = pos.x - r,
+        y = pos.y - r,
+        z = pos.z - r
+    }
+    local maxpos = {
+        x = pos.x + r,
+        y = pos.y + r,
+        z = pos.z + r
+    }
+    local def = {
+        amount = count,
+        minpos = minpos,
+        maxpos = maxpos,
+        minvel = {
+            x = vel.x,
+            y = vel.y,
+            z = vel.z
+        },
+        maxvel = {
+            x = vel.x,
+            y = vel.y,
+            z = vel.z
+        },
+        minacc = {
+            x = -vel.x * 0.15,
+            y = randFloat(-0.02, -0.01) * grav,
+            z = -vel.z * 0.15
+        },
+        maxacc = {
+            x = vel.x * 0.15,
+            y = randFloat(0.01, 0.02) * grav,
+            z = vel.z * 0.15
+        },
+        time = t * 0.5,
+        minexptime = t - 0.28,
+        maxexptime = t,
+        minsize = randFloat(1.02, 1.42) * ((size + 0.5) / 2),
+        maxsize = randFloat(1.05, 1.44) * ((size + 0.81) / 2),
+        collisiondetection = false,
+        collision_removal = false,
+        object_collision = false,
+        vertical = false,
+
+        texture = {
+            name = texture,
+            alpha = 1,
+            alpha_tween = {1, 0.88},
+            scale_tween = {{
+                x = 1.0,
+                y = 1.0
+            }, {
+                x = 1.5,
+                y = 1.5
+            }},
+            blend = "alpha"
+        },
+        glow = 13
+    }
+
+    core.add_particlespawner(def);
+end
+
+local function spawn_particle(pos, dir, i, dist)
+    local grav = 1;
+    if (pos.y > 4000) then
+        grav = 0.4;
+    end
+    dir = vector.multiply(dir, {
+        x = 1.05,
+        y = 1.05,
+        z = 1.05
+    })
+    local i = (dist - (dist - i * 0.1)) * 0.064
+    local t = 0.6 + i
+    local def = {
+        pos = pos,
+        velocity = {
+            x = dir.x,
+            y = dir.y,
+            z = dir.z
+        },
+        acceleration = {
+            x = 0,
+            y = randFloat(-0.02, 0.05) * grav,
+            z = 0
+        },
+
+        expirationtime = t,
+        size = randFloat(1.32, 1.6),
+        collisiondetection = false,
+        collision_removal = false,
+        object_collision = false,
+        vertical = false,
+
+        texture = {
+            name = "va_structure_energy_particle.png",
+            alpha = 1.0,
+            alpha_tween = {1, 0},
+            scale_tween = {{
+                x = 0.5,
+                y = 0.5
+            }, {
+                x = 1.3,
+                y = 1.3
+            }},
+            blend = "alpha"
+        },
+        glow = 12
+    }
+
+    minetest.add_particle(def);
+end
+
+
+local function beam_effect(pos1, pos2)
+    local dir = vector.direction(pos1, pos2)
+    local step_min = 0.5
+    local step = vector.multiply(dir, {
+        x = step_min,
+        y = step_min,
+        z = step_min
+    })
+
+    minetest.after(0, function()
+        local i = 1
+        local cur_pos = pos1
+        while (vector.distance(cur_pos, pos2) > step_min * 5) do
+            if math.random(1, 10) > 0 then
+                --spawn_particle(cur_pos, dir, i, vector.distance(cur_pos, pos2))
+                local dist = vector.distance(cur_pos, pos2)
+                local size = 1
+                local count = 3
+                local dist2 = vector.distance(cur_pos, pos1)
+                local r = 0.025 * dist2
+                spawn_build_effect_particle(cur_pos, "va_structure_energy_particle.png", dir, dist, size, count, r)
+            end
+            cur_pos = vector.add(cur_pos, step)
+            i = i + 1
+            if i > 256 then
+                break
+            end
+        end
+    end)
+
+    return true
+end
+
+local function particle_build_effects(target, source)
+    
+    local source = vector.add(source, {x=0,y=0.95,z=0})
+    local target = vector.add(target, {x=0,y=0.6,z=0})
+
+    beam_effect(source, target)
+
+end
+
+va_structures.particle_build_effects = particle_build_effects
 
 -----------------------------------------------------------------
 
@@ -304,6 +513,8 @@ end
 va_structures.destroy_effect_particle = destroy_effect_particle
 
 -----------------------------------------------------------------
+-----------------------------------------------------------------
+-- Sounds
 
 local function explode_effect_sound(pos, r)
     core.sound_play("va_explode", {

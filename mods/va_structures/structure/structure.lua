@@ -363,7 +363,7 @@ function Structure:can_store_mass()
 end
 
 function Structure:build_assist_reset()
-    self.build_power_total = 1 -- 10 seconds
+    self.build_power_total = 30 -- 10 seconds
 end
 
 function Structure:build_assist_add(amount_power)
@@ -441,7 +441,7 @@ function Structure:construct(actor)
     if self.is_constructed then
         return false
     end
-    local build_power = math.min(10, self.build_power_total)
+    local build_power = math.min(50, self.build_power_total)
     if build_power > 0 then
         return self:construct_with_power(actor, build_power)
     end
@@ -510,6 +510,10 @@ function Structure:construct_with_power(actor, build_power, constructor)
     end
     self.construction_tick = self.construction_tick + (build_power * 1)
     va_structures.particle_build_effect(pos, dist)
+    if constructor then
+        local pos2 = constructor.pos
+        va_structures.particle_build_effects(pos, pos2)
+    end
     return true
 end
 
