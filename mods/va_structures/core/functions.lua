@@ -31,7 +31,7 @@ local function calculatePitch(vector1, vector2)
     -- Calculate the pitch angle
     local pitch = math.atan2(dy, math.sqrt(dx * dx + dz * dz))
     -- Optional: Convert pitch from radians to degrees
-    --local pitch_degrees = pitch * 180 / math.pi
+    -- local pitch_degrees = pitch * 180 / math.pi
     local pitch_degrees = math.deg(pitch)
     return pitch, pitch_degrees
 end
@@ -41,7 +41,7 @@ local function calculateYaw(vector1, vector2)
     -- Calculate yaw for each vector
     local yaw = math.atan2(vector1.x - vector2.x, vector1.z - vector2.z)
     -- Optional: Convert to degrees
-    --local yaw_degrees = yaw * 180 / math.pi
+    -- local yaw_degrees = yaw * 180 / math.pi
     local yaw_degrees = math.deg(yaw) + 0
     return math.rad(yaw_degrees), yaw_degrees
 end
@@ -192,8 +192,6 @@ va_structures.particle_build_effect_cancel = build_effect_particles_cancel
 
 -----------------------------------------------------------------
 
-
-
 local function spawn_build_effect_particle(pos, texture, _dir, dist, size, count, radius)
     local grav = 1;
     if (pos.y > 4000) then
@@ -325,7 +323,6 @@ local function spawn_particle(pos, dir, i, dist)
     minetest.add_particle(def);
 end
 
-
 local function beam_effect(pos1, pos2)
     local dir = vector.direction(pos1, pos2)
     local step_min = 0.5
@@ -337,10 +334,14 @@ local function beam_effect(pos1, pos2)
 
     minetest.after(0, function()
         local i = 1
-        local cur_pos = pos1
+        local cur_pos = vector.add(pos1, vector.multiply(dir, {
+            x = 0.25,
+            y = 0.25,
+            z = 0.25
+        }))
         while (vector.distance(cur_pos, pos2) > step_min * 5) do
             if math.random(1, 10) > 0 then
-                --spawn_particle(cur_pos, dir, i, vector.distance(cur_pos, pos2))
+                -- spawn_particle(cur_pos, dir, i, vector.distance(cur_pos, pos2))
                 local dist = vector.distance(cur_pos, pos2)
                 local size = 1
                 local count = 3
@@ -360,9 +361,17 @@ local function beam_effect(pos1, pos2)
 end
 
 local function particle_build_effects(target, source)
-    
-    local source = vector.add(source, {x=0,y=0.95,z=0})
-    local target = vector.add(target, {x=0,y=0.6,z=0})
+
+    local source = vector.add(source, {
+        x = 0,
+        y = 0.7,
+        z = 0
+    })
+    local target = vector.add(target, {
+        x = 0,
+        y = 0.5,
+        z = 0
+    })
 
     beam_effect(source, target)
 

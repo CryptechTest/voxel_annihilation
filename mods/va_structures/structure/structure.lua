@@ -465,7 +465,7 @@ function Structure:construct_with_power(actor, build_power, constructor)
         end
         return false
     end
-    build_power = build_power or 10
+    build_power = build_power or 1
     local has_resources = false
     if actor then
         local mass_cost = self:get_data():get_mass_cost()
@@ -505,11 +505,11 @@ function Structure:construct_with_power(actor, build_power, constructor)
     end
     local dist = 0.75 + math.max(1, self.size.y * 2)
     if not has_resources then
-        va_structures.particle_build_effect_halt(pos, dist)
+        --va_structures.particle_build_effect_halt(pos, dist)
         return true
     end
     self.construction_tick = self.construction_tick + (build_power * 1)
-    va_structures.particle_build_effect(pos, dist)
+    --va_structures.particle_build_effect(pos, dist)
     if constructor then
         local pos2 = constructor.pos
         va_structures.particle_build_effects(pos, pos2)
@@ -560,6 +560,24 @@ function Structure:damage(amount, d_type)
         self:set_hp(hp - amount)
         self.last_hit = core.get_us_time()
     end
+end
+
+function Structure:repair_with_power(actor, build_power, constructor)
+    if not self.is_constructed then
+        return false
+    end
+    local hp = self:get_hp()
+    if hp >= self:get_hp_max() then
+        return false
+    end
+    local amount = math.floor(build_power) * 0.1
+    self:set_hp(hp + amount)
+    if constructor then
+        local pos = self.pos
+        local pos2 = constructor.pos
+        va_structures.particle_build_effects(pos, pos2)
+    end
+    return true
 end
 
 function Structure:explode()
