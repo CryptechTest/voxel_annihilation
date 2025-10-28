@@ -47,7 +47,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             find_build_target(pos, s_obj)
         end
 
-        if s_obj._build_target._disposed then
+        if s_obj._build_target ~= nil and s_obj._build_target._disposed then
             s_obj._build_target = nil
             s_obj._last_dir = nil
             s_obj._target_locked = false

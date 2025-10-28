@@ -80,7 +80,7 @@ end
 local def = {
     mesh = "va_wind_turbine_1.gltf",
     textures = {"va_vox_wind_turbine_1.png"},
-    collisionbox = {-0.8, -0.75, -0.8, 0.8, 2.5, 0.8},
+    collisionbox = {-1, -0.75, -1, 1, 2.5, 1},
     max_health = 12,
     energy_generate = 1, -- this used as a percent here
     energy_storage = 0.05,
