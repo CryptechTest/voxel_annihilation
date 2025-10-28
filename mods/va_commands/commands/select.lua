@@ -428,8 +428,8 @@ va_commands.register_command("select", {
         end
         if pointed_thing.type == "object" then
             local entity = pointed_thing.ref:get_luaentity()
-            if entity._is_va_unit == true then
-                local player_name = user:get_player_name()
+            local player_name = user:get_player_name()
+            if entity._is_va_unit == true then                
                 if entity._owner_name == player_name then
                     if entity._driver == nil then
                         va_units.attach(user, entity)
@@ -438,6 +438,9 @@ va_commands.register_command("select", {
                     end
                     return
                 end
+            elseif entity._is_va_structure == true then
+                core.chat_send_player(player_name, "Bring up structure formspec menu or control structure if combat")
+                return
             end
         elseif pointed_thing.type == "node" then
             local attached = user:get_attach()
