@@ -19,4 +19,8 @@ va_units.register_unit("vox_repair", {
     movement_speed = 1.0,
     spawn_item_description = "VRRRB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
+    mass_cost = 13,
+    energy_cost = 140,
+    build_time = 280,
+    build_power = 20
 })

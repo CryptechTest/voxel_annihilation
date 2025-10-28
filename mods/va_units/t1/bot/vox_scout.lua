@@ -19,4 +19,7 @@ va_units.register_unit("vox_scout", {
     movement_speed = 3.0,
     spawn_item_description = "VFSB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
+    mass_cost = 2.1,
+    energy_cost = 30,
+    build_time = 80
 })

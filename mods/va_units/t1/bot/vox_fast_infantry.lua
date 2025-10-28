@@ -21,4 +21,7 @@ va_units.register_unit("vox_fast_infantry", {
     turn_speed = 1.0,
     spawn_item_description = "VFIB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
+    mass_cost = 5.4,
+    energy_cost = 90,
+    build_time = 165
 })

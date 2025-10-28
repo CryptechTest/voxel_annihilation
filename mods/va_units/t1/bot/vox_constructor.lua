@@ -19,4 +19,8 @@ va_units.register_unit("vox_constructor", {
     movement_speed = 0.8,
     spawn_item_description = "VCB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
+    mass_cost = 11,
+    energy_cost = 160,
+    build_time = 345,
+    build_power = 8
 })

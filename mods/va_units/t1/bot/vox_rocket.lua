@@ -19,4 +19,7 @@ va_units.register_unit("vox_rocket", {
     movement_speed = 1.0,
     spawn_item_description = "VRB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
+    mass_cost = 12,
+    energy_cost = 100,
+    build_time = 201
 })

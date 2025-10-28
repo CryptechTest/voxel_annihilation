@@ -18,4 +18,8 @@ va_units.register_unit("vox_commander", {
     movement_speed = 0.7,
     spawn_item_description = "VCOM Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
+    mass_cost = 270,
+    energy_cost = 2600,
+    build_time = 7500,
+    build_power = 30
 })

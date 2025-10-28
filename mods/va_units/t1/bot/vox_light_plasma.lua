@@ -21,4 +21,7 @@ va_units.register_unit("vox_light_plasma", {
     turn_speed = 0.4,
     spawn_item_description = "VLPB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
+    mass_cost = 13,
+    energy_cost = 130,
+    build_time = 220
 })
