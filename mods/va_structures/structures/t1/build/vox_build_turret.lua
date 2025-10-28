@@ -47,6 +47,13 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             find_build_target(pos, s_obj)
         end
 
+        if s_obj._build_target._disposed then
+            s_obj._build_target = nil
+            s_obj._last_dir = nil
+            s_obj._target_locked = false
+            return
+        end
+
         if s_obj._build_target ~= nil then
             if s_obj._target_locked then
                 local e_use = s_obj:get_data():get_energy_consume()
@@ -62,6 +69,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             if s_obj._build_target.is_constructed then
                 s_obj._build_target = nil
                 s_obj._last_dir = nil
+                s_obj._target_locked = false
                 return
             end
 

@@ -104,6 +104,7 @@ function Structure.new(pos, name, def, do_def_check)
     -- validitiy flags
     self._active = false
     self._defined = false
+    self._disposed = false
     if do_def_check then
         self._defined = va_structures.is_registered_structure(self.fqnn)
     end
@@ -389,6 +390,7 @@ end
 
 function Structure:dispose()
     va_structures.remove_active_structure(self.pos)
+    self._disposed = true
     if self.entity_obj then
         local ent = self.entity_obj:get_luaentity()
         if ent then
