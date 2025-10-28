@@ -250,8 +250,8 @@ local function add_selection(entity)
     elseif entity._is_va_unit == true then
         selection_entity = core.add_entity(pos, "va_commands:selected_unit", player_name)
         selection_entity:set_observers({ [player_name] = true })
-        selection_entity:set_properties({ visual_size = { x = size + 0.3, y = size + 0.3 } })
-        selection_entity:set_attach(entity.object, "", { x = 0, y = size * 5.6, z = 0 }, { x = 0, y = 0, z = 0 })        
+        selection_entity:set_properties({ visual_size = { x = size + 0.5, y = ysize + 0.5 } })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = (ysize / 2) * 10, z = 0 }, { x = 0, y = 0, z = 0 })
     else
         return
     end

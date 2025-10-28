@@ -212,13 +212,13 @@ local function process_look(driver, unit, horizontal)
     gun_override.rotation.vec.z = gun_override.rotation.vec.z or 0
 
     local target_yaw = driver:get_look_horizontal()
-    local target_pitch = driver:get_look_vertical() - math.pi/12
+    local target_pitch = driver:get_look_vertical() - pi/12
     local speed = 0.25
 
     local function angle_diff(a, b)
         local diff = a - b
-        while diff > math.pi do diff = diff - 2 * math.pi end
-        while diff < -math.pi do diff = diff + 2 * math.pi end
+        while diff > pi do diff = diff - 2 * pi end
+        while diff < -pi do diff = diff + 2 * pi end
         return diff
     end
 
@@ -232,10 +232,10 @@ local function process_look(driver, unit, horizontal)
     head_override.rotation.interpolation = 2
     -- Clamp and smoothly interpolate gun bone pitch
     local function clamp(val, minv, maxv)
-        return math.max(minv, math.min(maxv, val))
+        return max(minv, min(maxv, val))
     end
     local new_pitch = gun_override.rotation.vec.x + angle_diff(target_pitch, gun_override.rotation.vec.x) * speed
-    gun_override.rotation.vec.x = clamp(new_pitch, -math.pi/2, math.pi/12)
+    gun_override.rotation.vec.x = clamp(new_pitch, -pi/2, pi/12)
     gun_override.rotation.interpolation = 2
     unit.object:set_bone_override(head_bone, head_override)
     unit.object:set_bone_override(gun_bone, gun_override)
