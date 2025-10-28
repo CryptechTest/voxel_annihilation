@@ -246,7 +246,7 @@ local function add_selection(entity)
         selection_entity = core.add_entity(pos, "va_commands:selected_structure", player_name)
         selection_entity:set_observers({ [player_name] = true })
         selection_entity:set_properties({ visual_size = { x = size + 0.1, y = ysize + 0.1 } })
-        selection_entity:set_attach(entity.object, "", { x = 0, y = ysize * 5, z = 0 }, { x = 0, y = 0, z = 0 })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = ysize * 3, z = 0 }, { x = 0, y = 0, z = 0 })
     elseif entity._is_va_unit == true then
         selection_entity = core.add_entity(pos, "va_commands:selected_unit", player_name)
         selection_entity:set_observers({ [player_name] = true })
