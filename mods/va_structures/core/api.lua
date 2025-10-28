@@ -114,7 +114,7 @@ function va_structures.register_structure(def)
             energy_generate = def.meta.energy_generate,
             mass_extract = def.meta.mass_extract,
             energy_storage = def.meta.energy_storage,
-            mass_storage = def.meta.mass_storage,
+            mass_storage = def.meta.mass_storage
         }
         return sdef
     end
@@ -142,6 +142,21 @@ end
 function va_structures.get_active_structure(pos)
     local hash = core.hash_node_position(pos)
     return _active_instances[hash]
+end
+
+function va_structures.get_active_structure_by_id(id)
+    local pos = nil
+    for k, v in pairs(_active_instances) do
+        if v.id == id then
+            -- pos = core.unhash_node_position(k)
+            pos = v.pos
+            break
+        end
+    end
+    if pos then
+        return va_structures.get_active_structure(pos)
+    end
+    return nil
 end
 
 function va_structures.add_active_structure(pos, s)
@@ -201,9 +216,10 @@ end
 -----------------------------------------------------------------
 -- player actor owners
 
-function va_structures.add_player_actor(owner, team)
+function va_structures.add_player_actor(owner, faction, team)
     local actor_default = {
-        team_id = team or "vox",
+        faction = faction or "vox",
+        team = team or 1,
         energy = 100,
         energy_storage = 100,
         energy_demand = 0,
