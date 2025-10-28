@@ -234,18 +234,19 @@ local function add_selection(entity)
     end
     local cbox = entity.object:get_properties().collisionbox
     local size = 1 -- fallback default
+    local xsize, ysize, zsize = 1, 1, 1
     if cbox then
-        local xsize = math.abs(cbox[4] - cbox[1])
-        local ysize = math.abs(cbox[5] - cbox[2])
-        local zsize = math.abs(cbox[6] - cbox[3])
-        size = math.max(xsize, ysize, zsize)
+        xsize = math.abs(cbox[4] - cbox[1])
+        ysize = math.abs(cbox[5] - cbox[2])
+        zsize = math.abs(cbox[6] - cbox[3])
+        size = math.max(xsize, zsize)
     end
     local selection_entity = nil
     if entity._is_va_structure == true then
         selection_entity = core.add_entity(pos, "va_commands:selected_structure", player_name)
         selection_entity:set_observers({ [player_name] = true })
-        selection_entity:set_properties({ visual_size = { x = size + 0.1, y = size + 0.1 } })
-        selection_entity:set_attach(entity.object, "", { x = 0, y = size * 2.1, z = 0 }, { x = 0, y = 0, z = 0 })
+        selection_entity:set_properties({ visual_size = { x = size + 0.1, y = ysize + 0.1 } })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = ysize * 2.1, z = 0 }, { x = 0, y = 0, z = 0 })
     elseif entity._is_va_unit == true then
         selection_entity = core.add_entity(pos, "va_commands:selected_unit", player_name)
         selection_entity:set_observers({ [player_name] = true })
