@@ -83,6 +83,9 @@ function Structure.new(pos, name, def, do_def_check)
     -- use or build default metadata
     self.meta = StructureMetaData.new(def)
 
+    -- queue for processing pending actions
+    self.process_queue = {}
+
     -- external functions
     self.vas_run = def.vas_run or nil
     self.vas_run_pre = def.vas_run_pre or nil
