@@ -323,7 +323,7 @@ end
 
 core.register_on_joinplayer(function(player)
     va_hud.update_hud(player)
-    player:hud_set_hotbar_itemcount(10)
+    player:hud_set_hotbar_itemcount(11)
     player:hud_set_hotbar_image("va_hud_hotbar_10.png")
 end)
 
