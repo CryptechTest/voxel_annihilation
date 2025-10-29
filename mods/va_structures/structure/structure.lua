@@ -648,55 +648,31 @@ end
 function Structure:find_free_pos()
     local pos = self.pos
     local collisionbox = self.entity_obj:get_properties().collisionbox or {-0.5,-0.5,-0.5, 0.5,0.5,0.5}
-    local check = {{
-        x = collisionbox[4] * 2,
+    local yawRad = self:get_yaw()
+    -- Facing vector (unit length)
+    local dir = {x = 0, z = 1}
+    if yawRad then
+        dir.x = math.sin(yawRad)
+        dir.z = math.cos(yawRad)
+    end
+    -- Offset in front by collisionbox size
+    local offset = {
+        x = dir.x * collisionbox[6] * 2,
         y = 0,
-        z = 0
-    }, {
-        x = collisionbox[4] * 2,
-        y = collisionbox[5] * 2,
-        z = 0
-    }, {
-        x = collisionbox[1] * 2,
-        y = 0,
-        z = 0
-    }, {
-        x = collisionbox[1] * 2,
-        y = collisionbox[5] * 2,
-        z = 0
-    }, {
-        x = 0,
-        y = 0,
-        z = collisionbox[6] * 2
-    }, {
-        x = 0,
-        y = collisionbox[5] * 2,
-        z = collisionbox[6] * 2
-    }, {
-        x = 0,
-        y = 0,
-        z = collisionbox[3] * 2
-    }, {
-        x = 0,
-        y = collisionbox[5] * 2,
-        z = collisionbox[3] * 2
-    }}
-
-    for _, c in pairs(check) do
-        local npos = {
-            x = pos.x + c.x,
-            y = pos.y + c.y,
-            z = pos.z + c.z
-        }
-        local node = core.get_node_or_nil(npos)
-        if node and node.name then
-            local def = core.registered_nodes[node.name]
-            if def and not def.walkable and def.liquidtype == "none" then
-                return npos
-            end
+        z = dir.z * collisionbox[6] * 2
+    }
+    local npos = {
+        x = pos.x + offset.x,
+        y = pos.y + offset.y,
+        z = pos.z + offset.z
+    }
+    local node = core.get_node_or_nil(npos)
+    if node and node.name then
+        local def = core.registered_nodes[node.name]
+        if def and not def.walkable and def.liquidtype == "none" then
+            return npos
         end
     end
-
     return pos
 end
 
