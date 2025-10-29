@@ -712,7 +712,7 @@ function Structure:attach_unit(unit)
     local yawRad, rotation = self:get_yaw()
     local attach_at = {
         x = 0,
-        y = 0,
+        y = 0.3,
         z = 0
     }
     local unit_rotation = {
@@ -722,7 +722,6 @@ function Structure:attach_unit(unit)
     }
     self:force_detach_unit(unit)
     unit:set_attach(self.entity_obj, "build_plate", attach_at, unit_rotation)
-    unit:set_rotation(unit_rotation)
 end
 
 function Structure:detach_unit(unit)
