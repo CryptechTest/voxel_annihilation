@@ -213,7 +213,7 @@ local function process_look(driver, unit, horizontal)
 
     local target_yaw = driver:get_look_horizontal()
     local target_pitch = driver:get_look_vertical() - pi/12
-    local speed = 0.25
+    local speed = 0.2
 
     local function angle_diff(a, b)
         local diff = a - b
@@ -223,7 +223,7 @@ local function process_look(driver, unit, horizontal)
     end
 
     local relative_yaw = horizontal - target_yaw
-    local max_delta = 0.08 -- maximum radians to change per frame (about 4.5 degrees)
+    local max_delta = 0.02
     local desired_delta = angle_diff(relative_yaw, head_override.rotation.vec.y) * speed
     -- Clamp the delta to avoid sudden jumps
     if desired_delta > max_delta then desired_delta = max_delta end
