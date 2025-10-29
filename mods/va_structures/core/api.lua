@@ -11,6 +11,9 @@ local player_structures = {}
 -- player tracking...
 local player_actors = {}
 
+-- player selected pos list
+local player_selects = {}
+
 -----------------------------------------------------------------
 -- registered structures
 
@@ -85,12 +88,16 @@ function va_structures.register_structure(def)
             desc = def.desc,
             size = def.size,
             category = def.category,
+            water_type = def.water_type,
+            factory_type = def.factory_type,
             entity_name = def.entity_name,
             tier = def.tier,
             faction = def.faction,
             volume = def.volume,
             do_rotate = def.do_rotate,
             build_time = def.build_time,
+            formspec = def.ui.formspec,
+            -- meta defs
             is_vulnerable = def.meta.is_vulnerable,
             is_volatile = def.meta.is_volatile,
             death_explosion_radius = def.meta.death_explosion_radius,
@@ -114,7 +121,7 @@ function va_structures.register_structure(def)
             energy_generate = def.meta.energy_generate,
             mass_extract = def.meta.mass_extract,
             energy_storage = def.meta.energy_storage,
-            mass_storage = def.meta.mass_storage
+            mass_storage = def.meta.mass_storage,
         }
         return sdef
     end
@@ -285,6 +292,17 @@ local function calculate_player_actor_structures()
             end
         end
     end
+end
+
+-----------------------------------------------------------------
+-- player_selects
+
+function va_structures.set_selected_pos(player_name, pos)
+    player_selects[player_name] = pos
+end
+
+function va_structures.get_selected_pos(player_name)
+    return player_selects[player_name]
 end
 
 -----------------------------------------------------------------

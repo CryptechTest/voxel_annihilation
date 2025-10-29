@@ -9,12 +9,12 @@ local vector_distance = vector.distance
 local texture_base = "construction_bar_0b.png"
 local texture_build = "construction_bar_fullb.png"
 
-local function add_structure_gauge(structure)
-    if structure and structure.entity_obj then
-        local s_ent = structure.entity_obj
-        local entity = minetest.add_entity(structure.pos, "va_structures:build_bar")
-        local s_h = math.max(structure.size.y, 0.25)
-        local height = 8.5 + (s_h * 10)
+local function add_construction_gauge(unit)
+    if unit and unit.entity_obj then
+        local s_ent = unit.entity_obj
+        local entity = minetest.add_entity(unit.pos, "va_structures:unit_build_bar")
+        local s_h = math.max(unit.size.y, 0.25)
+        local height = 10.0 + (s_h * 10)
         entity:set_attach(s_ent, "", {
             x = 0,
             y = height,
@@ -25,12 +25,12 @@ local function add_structure_gauge(structure)
             z = 0
         })
         entity:get_luaentity().wielder = s_ent
-        entity:get_luaentity():_set_structure(structure)
+        entity:get_luaentity():_set_structure(unit)
     end
 end
 
-local function register_structure_gauge()
-    core.register_entity("va_structures:build_bar", {
+local function register_construction_gauge()
+    core.register_entity("va_structures:unit_build_bar", {
 
         initial_properties = {
             visual = "sprite",
@@ -83,14 +83,20 @@ local function register_structure_gauge()
                 return
             elseif vector_distance(owner:get_pos(), gauge:get_pos()) > 3 then
                 gauge:remove()
-                add_structure_gauge(owner)
+                add_construction_gauge(owner)
                 return
             end
 
-            local c_index = structure.construction_tick
-            local c_max = structure.construction_tick_max
+            local q = structure.process_queue[1]
+            if q == nil or q.type ~= "build" then
+                gauge:remove()
+                return
+            end
 
-            if c_index ~= self.construction_index then
+            local c_index = q.build_time
+            local c_max = q.build_time_max
+
+            if c_index ~= self.build_time then
 
                 local prog = math.floor((c_index / c_max) * 100)
                 local build_t = texture_base
@@ -105,14 +111,14 @@ local function register_structure_gauge()
                 gauge:set_properties({
                     textures = {build_t}
                 })
-                self.construction_index = c_index
+                self.build_time = c_index
             end
 
-            if c_index > c_max or structure.is_constructed then
+            if c_index >= c_max then
                 gauge:remove()
             end
         end
     })
 end
 
-return register_structure_gauge, add_structure_gauge
+return register_construction_gauge, add_construction_gauge

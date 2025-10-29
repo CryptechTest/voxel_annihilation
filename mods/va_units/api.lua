@@ -661,6 +661,10 @@ function va_units.detach(player)
     end)
 end
 
+function va_units.get_unit_def(unit_name)
+    return units[unit_name]
+end
+
 function va_units.get_all_units()
     return active_units
 end

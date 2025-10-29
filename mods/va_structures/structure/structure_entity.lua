@@ -213,6 +213,7 @@ local function register_structure_entity(def)
                 })
                 core.get_node_timer(pos):start(3)]]
                 -- va_structures.get_active_structure(pos):get_data():set_self_countdown_active(true)
+
             end
         end,
 

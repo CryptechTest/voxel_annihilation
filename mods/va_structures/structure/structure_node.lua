@@ -70,8 +70,12 @@ local function register_structure_node(def)
             local node = core.get_node(pos)
             local meta = core.get_meta(pos)
             meta:set_string("infotext", node_desc)
-            --local inv = meta:get_inventory()
-            -- inv:set_size("src", 1)
+            local inv = meta:get_inventory()
+            if def.ui.formspec then
+                inv:set_size("build_unit", 1)
+                inv:set_size("build_queue", 14)
+            end
+
             meta:set_int("active", 1)
             meta:set_int("is_constructed", 0)
             meta:set_int("health", def.meta.max_health)
@@ -84,6 +88,37 @@ local function register_structure_node(def)
 
         on_timer = on_timer
     })
+
+    if def.ui.formspec then
+        -- register formspec control listener
+        core.register_on_player_receive_fields(function(player, formname, fields)
+            -- check if our form
+            if formname ~= def.ui.form_name then
+                return
+            end
+
+            local name = player:get_player_name()
+            local pos = va_structures.get_selected_pos(name)
+            if not name or not pos then
+                core.chat_send_player(name, "Access Denied!")
+                return
+            end
+
+            -- reset formspec until close button pressed
+            if (fields.close_me or fields.quit) then
+                va_structures.set_selected_pos(name, nil)
+                return
+            end
+
+            local structure = va_structures.get_active_structure(pos)
+
+            if def.ui.on_receive_fields then
+                def.ui.on_receive_fields(structure, player, formname, fields)
+            end
+
+            core.show_formspec(name, formname, def.ui.formspec(structure))
+        end)
+    end
 
     return true
 

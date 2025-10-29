@@ -39,6 +39,7 @@ local register_structure_node = dofile(modpath .. "/structure/structure_node.lua
 local register_structure_entity = dofile(modpath .. "/structure/structure_entity.lua")
 local _, attach_structure_gauge = dofile(modpath .. "/structure/structure_entity_gauge.lua")
 local _, attach_structure_build = dofile(modpath .. "/structure/structure_entity_build.lua")
+local _, add_construction_gauge = dofile(modpath .. "/structure/unit/construction_entity.lua")
 
 local modname = core.get_current_modname()
 
@@ -64,6 +65,8 @@ function Structure.new(pos, name, def, do_def_check)
 
     self.category = def.category or "none" -- build, combat, economy, utility
     self.water_type = def.water_type or false -- flag for water structures
+    self.factory_type = def.factory_type or false
+
     self.tier = def.tier -- tech tier of this structure
     self.faction = def.faction -- faction teams: 'vox' and 'cube'
     self.owner = nil -- owner player name
@@ -85,6 +88,11 @@ function Structure.new(pos, name, def, do_def_check)
 
     -- queue for processing pending actions
     self.process_queue = {}
+
+    self.ui = {}
+    self.ui.form_name = self.fqnn .. "_form"
+    self.ui.formspec = def.formspec or nil
+    self.ui.on_receive_fields = def.on_receive_fields or nil
 
     -- external functions
     self.vas_run = def.vas_run or nil
@@ -619,6 +627,235 @@ function Structure:explode()
     local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
     va_structures.destroy_effect_particle(self.pos, (r + dist) * 0.5)
     va_structures.explode_effect_sound(self.pos, (r + dist) * 0.5)
+end
+
+function Structure:show_menu_update()
+    if self.ui.formspec then
+        local name = self.owner
+        if va_structures.get_selected_pos(name) then
+            core.show_formspec(name, self.ui.form_name, self.ui.formspec(self))
+        end
+    end
+end
+
+function Structure:show_menu(name)
+    if self.ui.formspec then
+        va_structures.set_selected_pos(name, self.pos)
+        core.show_formspec(name, self.ui.form_name, self.ui.formspec(self))
+    end
+end
+
+function Structure:find_free_pos()
+    local pos = self.pos
+    local collisionbox = self.entity_obj:get_properties().collisionbox or {-0.5,-0.5,-0.5, 0.5,0.5,0.5}
+    local check = {{
+        x = collisionbox[4] * 2,
+        y = 0,
+        z = 0
+    }, {
+        x = collisionbox[4] * 2,
+        y = collisionbox[5] * 2,
+        z = 0
+    }, {
+        x = collisionbox[1] * 2,
+        y = 0,
+        z = 0
+    }, {
+        x = collisionbox[1] * 2,
+        y = collisionbox[5] * 2,
+        z = 0
+    }, {
+        x = 0,
+        y = 0,
+        z = collisionbox[6] * 2
+    }, {
+        x = 0,
+        y = collisionbox[5] * 2,
+        z = collisionbox[6] * 2
+    }, {
+        x = 0,
+        y = 0,
+        z = collisionbox[3] * 2
+    }, {
+        x = 0,
+        y = collisionbox[5] * 2,
+        z = collisionbox[3] * 2
+    }}
+
+    for _, c in pairs(check) do
+        local npos = {
+            x = pos.x + c.x,
+            y = pos.y + c.y,
+            z = pos.z + c.z
+        }
+        local node = core.get_node_or_nil(npos)
+        if node and node.name then
+            local def = core.registered_nodes[node.name]
+            if def and not def.walkable and def.liquidtype == "none" then
+                return npos
+            end
+        end
+    end
+
+    return pos
+end
+
+function Structure:force_detach_unit(unit)
+    if not unit then
+        return
+    end
+    unit:set_detach()
+end
+
+function Structure:attach_unit(unit)
+    local rot_view = 0
+    local yawRad, rotation = self:get_yaw()
+    local attach_at = {
+        x = 0,
+        y = 0,
+        z = 0
+    }
+    local unit_rotation = {
+        x = 0,
+        y = yawRad,
+        z = 0
+    }
+    self:force_detach_unit(unit)
+    unit:set_attach(self.entity_obj, "build_plate", attach_at, unit_rotation)
+    unit:set_rotation(unit_rotation)
+end
+
+function Structure:detach_unit(unit)
+    self:force_detach_unit(unit)
+
+    core.after(0.1, function()
+        local pos = self:find_free_pos()
+        pos.y = pos.y + 0.5
+        unit:set_pos(pos)
+    end)
+end
+
+function Structure:build_unit_with_power(actor, b_power)
+    local q = self.process_queue[1]
+    if q == nil or q.type ~= "build" then
+        return
+    end
+
+    if not q.started then
+        q.started = true
+        add_construction_gauge(self)
+        local unit_name = q.unit
+        local owner = self.owner
+        local pos = vector.add(self.pos, {
+            x = 0,
+            y = 1,
+            z = 0
+        })
+
+        local unit = va_units.spawn_unit(unit_name, owner, pos)
+        self:attach_unit(unit)
+    end
+
+    local build_power = b_power or 10
+    local has_resources = false
+    if actor then
+        local mass_cost = q.mass_cost
+        local energy_cost = q.energy_cost
+        local mass_cost_rate = mass_cost > 0 and math.floor((mass_cost / q.build_time_max) * 10000) * 0.0001 or 0
+        local energy_cost_rate = energy_cost > 0 and math.floor((energy_cost / q.build_time_max) * 10000) * 0.0001 or 0
+        mass_cost_rate = mass_cost_rate * build_power
+        energy_cost_rate = energy_cost_rate * build_power
+        local mass = actor.mass
+        local energy = actor.energy
+        if mass - mass_cost_rate >= 0 and energy - energy_cost_rate >= 0 then
+            if mass_cost_rate > 0 then
+                actor.mass = mass - mass_cost_rate
+            end
+            if energy_cost_rate > 0 then
+                actor.energy = energy - energy_cost_rate
+            end
+            has_resources = true
+        end
+        if energy - energy_cost_rate >= 0 then
+            actor.mass_demand = actor.mass_demand + mass_cost_rate
+        end
+        if mass - mass_cost_rate >= 0 then
+            actor.energy_demand = actor.energy_demand + energy_cost_rate
+        end
+    end
+
+    if has_resources then
+        q.build_time = q.build_time + b_power
+        va_structures.particle_build_effect(self.pos, 1)
+        -- self:show_menu_update()
+    end
+
+    if q.build_time < q.build_time_max then
+        return
+    end
+
+    local meta = core.get_meta(self.pos)
+    local inv = meta:get_inventory()
+    inv:set_list("build_unit", {})
+
+    table.remove(self.process_queue, 1)
+
+    -- detach
+    local attach = self.entity_obj:get_children()
+    if #attach > 0 then
+        self:detach_unit(attach[1])
+    end
+end
+
+function Structure:build_unit_enqueue()
+    local q = self.process_queue[1]
+    if q then
+        return
+    end
+
+    local meta = core.get_meta(self.pos)
+    local inv = meta:get_inventory()
+    local queue = inv:get_list("build_queue")
+    local build = inv:get_list("build_unit")
+
+    if queue[1]:is_empty() then
+        return
+    end
+
+    local new_queue = {}
+    local build_unit = {}
+
+    if build[1] == nil or build[1]:is_empty() then
+
+        if not queue[1]:is_empty() then
+            build_unit = {ItemStack(queue[1]:get_name(), 1)}
+            queue[1]:take_item(1)
+        end
+
+        for i, stack in ipairs(queue) do
+            if not stack:is_empty() then
+                table.insert(new_queue, stack)
+            end
+        end
+
+        inv:set_list("build_queue", new_queue)
+        inv:set_list("build_unit", build_unit)
+
+        if build_unit and not build_unit[1]:is_empty() then
+            local unit_name = build_unit[1]:get_name()
+            local unit_def = va_units.get_unit_def(unit_name)
+            table.insert(self.process_queue, {
+                type = "build",
+                unit = unit_name,
+                mass_cost = unit_def.mass_cost,
+                energy_cost = unit_def.energy_cost,
+                build_time_max = unit_def.build_time,
+                build_time = 0,
+                started = false
+            })
+            self:show_menu_update()
+        end
+    end
 end
 
 -----------------------------------------------------------------

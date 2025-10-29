@@ -439,7 +439,10 @@ va_commands.register_command("select", {
                     return
                 end
             elseif entity._is_va_structure == true then
-                core.chat_send_player(player_name, "Bring up structure formspec menu or control structure if combat")
+                local pos = pointed_thing.ref:get_pos()
+                local structure = va_structures.get_active_structure(pos)
+                --core.chat_send_player(player_name, "Bring up structure formspec menu or control structure if combat")
+                structure:show_menu(player_name)
                 return
             end
         elseif pointed_thing.type == "node" then
