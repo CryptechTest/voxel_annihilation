@@ -548,7 +548,7 @@ function Structure:construct_with_power(actor, build_power, constructor)
             y = 0.5,
             z = 0
         })
-        va_structures.particle_build_effects(target, source, 5)
+        va_structures.particle_build_effects(target, source, 2, build_power / 3)
     end
     return true
 end
@@ -566,91 +566,9 @@ function Structure:repair_with_power(actor, build_power, constructor)
     if constructor then
         local pos = self.pos
         local pos2 = constructor.pos
-        va_structures.particle_build_effects(pos, pos2, 5)
+        va_structures.particle_build_effects(pos, pos2, 5, build_power / 3)
     end
     return true
-end
-
--- destroy structure
-function Structure:destroy()
-    if self._disposing or self._disposed then
-        return
-    end
-    self._disposing = true
-    if self.entity_obj then
-        self.entity_obj:set_properties({
-            is_visible = false
-        })
-    end
-    -- core.log("structure destroyed... " .. self.name)
-    core.after(0.1, function()
-        self:dispose()
-    end)
-    if self.is_constructed then
-        core.after(0, function()
-            self:explode()
-        end)
-        core.after(0, function()
-            if self.destroy_post_effects then
-                self.destroy_post_effects(self)
-            end
-        end)
-    else
-        va_structures.particle_build_effect_cancel(self.pos, 3)
-    end
-end
-
-function Structure:do_destruct_self()
-    if self:get_data():is_self_destructing() then
-        local c_max = self:get_data():get_self_countdown_max()
-        local c = self:get_data():get_self_countdown()
-        if c <= 0 then
-            self:destroy()
-            return true
-        else
-            self:get_data():set_self_countdown(c - 1)
-        end
-    end
-    return false
-end
-
-function Structure:damage(amount, d_type)
-    if self:get_data().is_vulnerable then
-        local amount = math.floor(amount * 100) * 0.01
-        -- TODO: armor handling
-        local hp = self:get_hp()
-        self:set_hp(hp - amount)
-        self.last_hit = core.get_us_time()
-    end
-end
-
-function Structure:explode()
-    local meta = self:get_data()
-    local s_d = meta:is_self_destructing()
-    local ds = meta.self_explosion_radius
-    local de = meta.death_explosion_radius
-    local dist = (s_d and ds or de) + 3
-
-    if meta.is_volatile then
-        local pos = self.pos
-        local objs = minetest.get_objects_inside_radius(pos, dist + 0.55)
-        for _, obj in pairs(objs) do
-            local o_pos = obj:get_pos()
-            if obj:get_luaentity() then
-                local ent = obj:get_luaentity()
-                local structure = va_structures.get_active_structure(o_pos)
-                if structure and not self:equals(structure) then
-                    local d = vector.distance(pos, o_pos)
-                    local dam = 1 + (dist - math.min(dist, (d / dist))) * 0.1
-                    structure:damage(dam, "kinetic")
-                end
-            end
-        end
-    end
-
-    local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
-    va_structures.destroy_effect_particle(self.pos, (r + dist) * 0.5)
-    va_structures.explode_effect_sound(self.pos, (r + dist) * 0.5)
 end
 
 function Structure:show_menu_update()
@@ -663,6 +581,9 @@ function Structure:show_menu_update()
 end
 
 function Structure:show_menu(name)
+    if self.owner ~= name then
+        return
+    end
     if self.ui.formspec then
         va_structures.set_selected_pos(name, self.pos)
         core.show_formspec(name, self.ui.form_name, self.ui.formspec(self))
@@ -793,9 +714,33 @@ function Structure:order_child_to_rally(unit, rad)
     end)
 end
 
-function Structure:build_unit_with_power(actor, b_power)
-    local q = self.process_queue[1]
+function Structure:repair_unit_with_power(actor, unit, b_power)
+    local unit_obj = unit.object
+    if not unit_obj._is_constructed then
+        unit_obj._is_constructed = true
+    end
+    local hp = unit_obj:get_hp()
+    if hp >= unit_obj:get_hp_max() then
+        return false
+    end
+    local amount = math.floor(b_power) * 0.1
+    self:set_hp(hp + amount)
+    local pos = unit_obj:get_pos()
+    local pos2 = self.pos
+    va_structures.particle_build_effects(pos, pos2, 2, b_power / 3)
+    return true
+end
+
+function Structure:build_unit_with_power(actor, unit, b_power, constructor)
+    if unit and not unit.object:get_attach() then
+        unit.object:get_luaentity()._is_constructed = true
+        core.log("build_unit_with_power is_constructred")
+        return
+    end
+    local q = constructor and constructor.process_queue[1] or self.process_queue[1]
     if q == nil or q.type ~= "build" then
+        core.log("build_unit_with_power q is nil")
+        core.log(dump(constructor.process_queue))
         return
     end
 
@@ -810,6 +755,7 @@ function Structure:build_unit_with_power(actor, b_power)
         })
 
         local unit = va_units.spawn_unit(unit_name, owner, pos)
+        q.unit_id = unit and unit:get_guid() or nil
         self:attach_child(unit)
         add_construction_gauge(self, unit)
     end
@@ -842,7 +788,23 @@ function Structure:build_unit_with_power(actor, b_power)
         end
     end
 
-    if has_resources then
+    if constructor ~= nil and has_resources then
+        q.build_time = q.build_time + b_power
+
+        local pos2 = self.pos
+        local pos = unit.object:get_pos()
+        local source = vector.add(pos2, {
+            x = 0,
+            y = 0.7,
+            z = 0
+        })
+        local target = vector.add(pos, {
+            x = 0,
+            y = 0.45,
+            z = 0
+        })
+        va_structures.particle_build_effects(target, source, 0.5, build_power / 2)
+    elseif has_resources then
         q.build_time = q.build_time + b_power
         -- va_structures.particle_build_effect(self.pos, 1)
         -- self:show_menu_update()
@@ -888,8 +850,8 @@ function Structure:build_unit_with_power(actor, b_power)
         local b_pos = vector.add(self.pos, build_plate)
         local e_l_pos = vector.add(self.pos, l_turret)
         local e_r_pos = vector.add(self.pos, r_turret)
-        va_structures.particle_build_effects(b_pos, e_l_pos, 0.7)
-        va_structures.particle_build_effects(b_pos, e_r_pos, 0.7)
+        va_structures.particle_build_effects(b_pos, e_l_pos, 0.7, build_power / 3)
+        va_structures.particle_build_effects(b_pos, e_r_pos, 0.7, build_power / 3)
     end
 
     if q.build_time < q.build_time_max then
@@ -904,6 +866,7 @@ function Structure:build_unit_with_power(actor, b_power)
     if #attached > 0 then
         for _, child in pairs(attached) do
             if child and child:get_luaentity()._is_va_unit then
+                child:get_luaentity()._is_constructed = true
                 self:detach_child(child)
             end
         end
@@ -997,6 +960,7 @@ function Structure:build_unit_enqueue()
             table.insert(self.process_queue, {
                 type = "build",
                 unit = unit_name,
+                unit_id = nil,
                 mass_cost = unit_def.mass_cost,
                 energy_cost = unit_def.energy_cost,
                 build_time_max = unit_def.build_time,
@@ -1011,8 +975,15 @@ end
 
 function Structure:build_unit_cancel()
     if #self.process_queue > 0 then
+        local unit_id = self.process_queue[1].unit_id
         table.remove(self.process_queue)
+        local unit = va_units.get_unit_by_id(unit_id)
+        if unit then
+            unit.object:remove()
+        end
     end
+    local meta = core.get_meta(self.pos)
+    local inv = meta:get_inventory()
     local build = inv:get_list("build_unit")
     if build then
         inv:set_list("build_unit", {})
@@ -1031,8 +1002,99 @@ function Structure:build_queue_clear()
         inv:set_list("build_queue", {})
     end
     if #self.process_queue > 0 then
+        local unit_id = self.process_queue[1].unit_id
         table.remove(self.process_queue)
+        local unit = va_units.get_unit_by_id(unit_id)
+        if unit then
+            unit.object:remove()
+        end
     end
+end
+
+-- destroy structure
+function Structure:destroy()
+    if self._disposing or self._disposed then
+        return
+    end
+    self._disposing = true
+    if self.entity_obj then
+        self.entity_obj:set_properties({
+            is_visible = false
+        })
+    end
+    -- core.log("structure destroyed... " .. self.name)
+    core.after(0.1, function()
+        self:dispose()
+    end)
+    if self.is_constructed then
+        core.after(0, function()
+            self:explode()
+        end)
+        core.after(0, function()
+            if self.destroy_post_effects then
+                self.destroy_post_effects(self)
+            end
+        end)
+    else
+        va_structures.particle_build_effect_cancel(self.pos, 3)
+    end
+end
+
+function Structure:do_destruct_self()
+    if self:get_data():is_self_destructing() then
+        local c_max = self:get_data():get_self_countdown_max()
+        local c = self:get_data():get_self_countdown()
+        if c <= 0 then
+            self:destroy()
+            return true
+        else
+            self:get_data():set_self_countdown(c - 1)
+        end
+    end
+    return false
+end
+
+function Structure:is_damaged()
+    return self:get_hp() < self:get_hp_max()
+end
+
+function Structure:damage(amount, d_type)
+    if self:get_data().is_vulnerable then
+        local amount = math.floor(amount * 100) * 0.01
+        -- TODO: armor handling
+        local hp = self:get_hp()
+        self:set_hp(hp - amount)
+        self.last_hit = core.get_us_time()
+    end
+end
+
+function Structure:explode()
+    local meta = self:get_data()
+    local s_d = meta:is_self_destructing()
+    local ds = meta.self_explosion_radius
+    local de = meta.death_explosion_radius
+    local dist = (s_d and ds or de) + 3
+
+    if meta.is_volatile then
+        local pos = self.pos
+        local objs = minetest.get_objects_inside_radius(pos, dist + 0.55)
+        for _, obj in pairs(objs) do
+            local o_pos = obj:get_pos()
+            if obj:get_luaentity() then
+                local ent = obj:get_luaentity()
+                local structure = va_structures.get_active_structure(o_pos)
+                if structure and not self:equals(structure) then
+                    local d = vector.distance(pos, o_pos)
+                    local dam = 1 + (dist - math.min(dist, (d / dist))) * 0.1
+                    structure:damage(dam, "kinetic")
+                end
+            end
+        end
+    end
+
+    local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
+    va_structures.destroy_effect_particle(self.pos, (r + dist) * 0.5)
+    va_structures.explode_effect_sound(self.pos, (r + dist) * 0.5)
 end
 
 -----------------------------------------------------------------

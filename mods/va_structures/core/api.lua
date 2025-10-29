@@ -154,7 +154,7 @@ end
 function va_structures.get_active_structure_by_id(id)
     local pos = nil
     for k, v in pairs(_active_instances) do
-        if v.id == id then
+        if v.entity_obj and v.entity_obj._id == id then
             -- pos = core.unhash_node_position(k)
             pos = v.pos
             break

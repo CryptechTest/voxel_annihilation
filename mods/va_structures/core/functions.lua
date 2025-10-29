@@ -342,7 +342,7 @@ local function spawn_particle(pos, dir, i, dist)
     minetest.add_particle(def);
 end
 
-local function beam_effect(pos1, pos2, min)
+local function beam_effect(pos1, pos2, min, count)
     local dir = vector.direction(pos1, pos2)
     local step_min = 0.5
     local step = vector.multiply(dir, {
@@ -363,8 +363,7 @@ local function beam_effect(pos1, pos2, min)
             if true then
                 -- spawn_particle(cur_pos, dir, i, vector.distance(cur_pos, pos2))
                 local dist = vector.distance(cur_pos, pos2)
-                local size = 0.25
-                local count = 5
+                local size = 0.2
                 local dist2 = vector.distance(cur_pos, pos1)
                 local r = 0.025 * dist2
                 spawn_build_effect_particle(cur_pos, "va_structure_energy_particle.png", dir, dist, size, count, r)
@@ -380,9 +379,9 @@ local function beam_effect(pos1, pos2, min)
     return true
 end
 
-local function particle_build_effects(target, source, min)
+local function particle_build_effects(target, source, min, count)
 
-    beam_effect(source, target, min)
+    beam_effect(source, target, min, count)
 
 end
 

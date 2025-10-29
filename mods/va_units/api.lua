@@ -396,6 +396,7 @@ function va_units.register_unit(name, def)
         _target_pos = nil,
         _timer = 0,
         _marked_for_removal = false,
+        _is_constructed = false,
         _jumping = 0,
         _animation = def.animations.stand,
         _animations = def.animations or {},

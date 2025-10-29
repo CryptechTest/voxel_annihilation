@@ -296,7 +296,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             s_obj:build_unit_enqueue()
             if #s_obj.process_queue > 0 and meta:get_int("build_pause") == 0 then
                 local build_power = s_obj:get_data():get_build_power()
-                s_obj:build_unit_with_power(net, build_power)
+                s_obj:build_unit_with_power(net, nil, build_power)
             end
         end
     end
