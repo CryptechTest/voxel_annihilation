@@ -73,9 +73,12 @@ local function register_structure_node(def)
             local inv = meta:get_inventory()
             if def.ui.formspec then
                 inv:set_size("build_unit", 1)
-                inv:set_size("build_queue", 14)
+                inv:set_size("build_queue", 7 * 10)
+                meta:set_int("build_pause", 0)
+                meta:set_int("build_repeat", 0)
+                meta:set_int("build_page", 0)
+                meta:set_int("queue_page", 0)
             end
-
             meta:set_int("active", 1)
             meta:set_int("is_constructed", 0)
             meta:set_int("health", def.meta.max_health)
@@ -86,7 +89,39 @@ local function register_structure_node(def)
         va_structure_run = def.vas_run,
         -- va_structure_run_stop = def.run_stop,
 
-        on_timer = on_timer
+        on_timer = on_timer,
+
+        allow_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+            local meta = core.get_meta(pos)
+            if from_list == "build_unit" or to_list == "build_unit" then
+                return 0
+            end
+            return count
+        end,
+        allow_metadata_inventory_put = function(pos, listname, index, stack, player)
+            local meta = core.get_meta(pos)
+            local stackname = stack:get_name()
+            local is_unit = minetest.get_item_group(stackname, "va_unit") or 0
+            if is_unit == 0 then
+                return 0
+            end
+            if listname == "build_unit" then
+                return 0
+            end
+            return stack:get_count()
+        end,
+        allow_metadata_inventory_take = function(pos, listname, index, stack, player)
+            local meta = core.get_meta(pos)
+            if listname == "build_unit" then
+                return 0
+            end
+            local stackname = stack:get_name()
+            local is_unit = minetest.get_item_group(stackname, "va_unit") or 0
+            if is_unit > 0 then
+                return 0
+            end
+            return stack:get_count()
+        end
     })
 
     if def.ui.formspec then

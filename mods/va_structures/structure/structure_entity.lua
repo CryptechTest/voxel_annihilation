@@ -153,6 +153,13 @@ local function register_structure_entity(def)
             va_structures.keep_loaded(self)
             -- process_queue(self)
             update_visibility(self)
+            local structure = va_structures.get_active_structure(self.object:get_pos())
+            if structure then
+                if structure:get_hp() <= 0 then
+                    structure:destroy()
+                    return false
+                end
+            end
         end,
 
         get_staticdata = function(self)

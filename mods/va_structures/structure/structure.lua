@@ -113,6 +113,7 @@ function Structure.new(pos, name, def, do_def_check)
     self._active = false
     self._defined = false
     self._disposed = false
+    self._disposing = false
     self._out_index = 0
     if do_def_check then
         self._defined = va_structures.is_registered_structure(self.fqnn)
@@ -398,6 +399,10 @@ function Structure:place(pos, param2)
 end
 
 function Structure:dispose()
+    if self._disposed then
+        core.log("[WARN] Structure is already disposed but dispose() was called at " .. minetest.pos_to_string(self.pos))
+    end
+    self._disposing = true
     va_structures.remove_active_structure(self.pos)
     self._disposed = true
     if self.entity_obj then
@@ -568,6 +573,10 @@ end
 
 -- destroy structure
 function Structure:destroy()
+    if self._disposing or self._disposed then
+        return
+    end
+    self._disposing = true
     if self.entity_obj then
         self.entity_obj:set_properties({
             is_visible = false
@@ -578,10 +587,14 @@ function Structure:destroy()
         self:dispose()
     end)
     if self.is_constructed then
-        self:explode()
-        if self.destroy_post_effects then
-            self.destroy_post_effects(self)
-        end
+        core.after(0, function()
+            self:explode()
+        end)
+        core.after(0, function()
+            if self.destroy_post_effects then
+                self.destroy_post_effects(self)
+            end
+        end)
     else
         va_structures.particle_build_effect_cancel(self.pos, 3)
     end
@@ -690,14 +703,14 @@ function Structure:find_free_pos()
     return pos
 end
 
-function Structure:force_detach_unit(unit)
+function Structure:force_detach_child(unit)
     if not unit then
         return
     end
     unit:set_detach()
 end
 
-function Structure:attach_unit(unit)
+function Structure:attach_child(unit)
     local rot_view = 0
     local yawRad, rotation = self:get_yaw()
     local attach_at = {
@@ -710,15 +723,20 @@ function Structure:attach_unit(unit)
         y = yawRad,
         z = 0
     }
-    self:force_detach_unit(unit)
+    self:force_detach_child(unit)
     unit:set_attach(self.entity_obj, "build_plate", attach_at, unit_rotation)
 end
 
-function Structure:detach_unit(unit)
-    self:force_detach_unit(unit)
+function Structure:detach_child(unit)
+    self:force_detach_child(unit)
+    self:order_child_to_rally(unit)
+end
+
+function Structure:order_child_to_rally(unit, rad)
+
     local index = self._out_index
     local pos = vector.new(self.pos)
-
+    local r = rad ~= nil and rad or math.random(10, 12)
     local count = 25
 
     if index > count * 2 then
@@ -754,10 +772,8 @@ function Structure:detach_unit(unit)
         return targetPos
     end
 
-
-    local radius = math.random(9,10)
     -- spread pos over a half circle in direction the factory faces
-    local targetPos = calculate_rally_position(pos, radius)
+    local targetPos = calculate_rally_position(pos, r)
 
     local ent = unit:get_luaentity()
     if ent then
@@ -794,7 +810,7 @@ function Structure:build_unit_with_power(actor, b_power)
         })
 
         local unit = va_units.spawn_unit(unit_name, owner, pos)
-        self:attach_unit(unit)
+        self:attach_child(unit)
         add_construction_gauge(self, unit)
     end
 
@@ -843,7 +859,7 @@ function Structure:build_unit_with_power(actor, b_power)
         }
         local build_plate = {
             x = 0 * 1 / 16,
-            y = 0 * 1 / 16,
+            y = (q.height / 2) - 0.25,
             z = 13 * 1 / 16
         }
 
@@ -882,15 +898,63 @@ function Structure:build_unit_with_power(actor, b_power)
 
     local meta = core.get_meta(self.pos)
     local inv = meta:get_inventory()
-    inv:set_list("build_unit", {})
-
-    table.remove(self.process_queue, 1)
 
     -- detach
-    local attach = self.entity_obj:get_children()
-    if #attach > 0 then
-        self:detach_unit(attach[1])
+    local attached = self.entity_obj:get_children()
+    if #attached > 0 then
+        for _, child in pairs(attached) do
+            if child and child:get_luaentity()._is_va_unit then
+                self:detach_child(child)
+            end
+        end
     end
+
+    local function enqueue_unit(inv, stack)
+        if not stack then
+            return
+        end
+        local inv_name = "build_queue"
+        local inv_list = inv:get_list(inv_name)
+        local index = 1
+        local found_index = -1
+        local found_stack = nil
+        for i, stack in ipairs(inv_list) do
+            if stack:is_empty() then
+                index = i
+                break
+            else
+                found_index = i
+                found_stack = stack
+            end
+        end
+        if index > #inv_list then
+            return
+        end
+        if found_stack and not found_stack:is_empty() then
+            if found_stack:get_name() == stack:get_name() then
+                found_stack:set_count(found_stack:get_count() + stack:get_count())
+                inv_list[found_index] = found_stack
+                inv:set_list(inv_name, inv_list)
+                return
+            end
+        end
+        inv:set_stack(inv_name, index, stack)
+    end
+
+    if meta:get_int("build_repeat") == 1 then
+        -- remove from front of list, then add to end
+        table.remove(self.process_queue, 1)
+        local stack = inv:get_list("build_unit")[1]
+        if not stack:is_empty() then
+            -- reset into queue
+            enqueue_unit(inv, ItemStack(stack))
+        end
+        inv:set_list("build_unit", {})
+    else
+        table.remove(self.process_queue, 1)
+        inv:set_list("build_unit", {})
+    end
+
 end
 
 function Structure:build_unit_enqueue()
@@ -937,10 +1001,37 @@ function Structure:build_unit_enqueue()
                 energy_cost = unit_def.energy_cost,
                 build_time_max = unit_def.build_time,
                 build_time = 0,
-                started = false
+                started = false,
+                height = unit_def.collisionbox[5] - unit_def.collisionbox[2]
             })
             self:show_menu_update()
         end
+    end
+end
+
+function Structure:build_unit_cancel()
+    if #self.process_queue > 0 then
+        table.remove(self.process_queue)
+    end
+    local build = inv:get_list("build_unit")
+    if build then
+        inv:set_list("build_unit", {})
+    end
+end
+
+function Structure:build_queue_clear()
+    local meta = core.get_meta(self.pos)
+    local inv = meta:get_inventory()
+    local build = inv:get_list("build_unit")
+    local queue = inv:get_list("build_queue")
+    if build then
+        inv:set_list("build_unit", {})
+    end
+    if queue then
+        inv:set_list("build_queue", {})
+    end
+    if #self.process_queue > 0 then
+        table.remove(self.process_queue)
     end
 end
 
