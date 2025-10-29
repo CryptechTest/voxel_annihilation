@@ -8,6 +8,7 @@ local function register_structure_entity(def)
     core.register_entity(def.entity_name, {
         initial_properties = {
             physical = true,
+            collide_with_objects = true,
             collisionbox = def.collisionbox,
             hp = def.max_health,
             hp_max = def.max_health,

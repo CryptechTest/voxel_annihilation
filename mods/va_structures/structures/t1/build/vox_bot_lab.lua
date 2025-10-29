@@ -137,7 +137,7 @@ end
 local def = {
     mesh = "va_vox_bot_lab_1.gltf",
     textures = {"va_vox_bot_lab_1.png"},
-    collisionbox = {-2.0, -0.75, -2.0, 2.0, 1.05, 2.0},
+    collisionbox = {-1.5, -0.75, -1.5, 1.5, 1.05, 1.5},
     max_health = 30,
     mass_cost = 25.0,
     energy_cost = 100,
