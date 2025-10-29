@@ -9,13 +9,12 @@ local vector_distance = vector.distance
 local texture_base = "construction_bar_0b.png"
 local texture_build = "construction_bar_fullb.png"
 
-local function add_construction_gauge(unit)
-    if unit and unit.entity_obj then
-        local s_ent = unit.entity_obj
-        local entity = minetest.add_entity(unit.pos, "va_structures:unit_build_bar")
-        local s_h = math.max(unit.size.y, 0.25)
-        local height = 10.0 + (s_h * 10)
-        entity:set_attach(s_ent, "", {
+local function add_construction_gauge(structure, unit)
+    if structure and unit and unit:get_luaentity()._is_va_unit then
+        local entity = minetest.add_entity(unit:get_pos(), "va_structures:unit_build_bar")
+        local s_h = math.max(unit:get_properties().collisionbox[5], 0.25)
+        local height = 7.0 + (s_h * 10)
+        entity:set_attach(unit, "", {
             x = 0,
             y = height,
             z = 0
@@ -24,8 +23,8 @@ local function add_construction_gauge(unit)
             y = 0,
             z = 0
         })
-        entity:get_luaentity().wielder = s_ent
-        entity:get_luaentity():_set_structure(unit)
+        entity:get_luaentity().wielder = unit
+        entity:get_luaentity():_set_structure(structure)
     end
 end
 

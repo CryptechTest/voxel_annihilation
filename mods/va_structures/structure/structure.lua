@@ -113,6 +113,7 @@ function Structure.new(pos, name, def, do_def_check)
     self._active = false
     self._defined = false
     self._disposed = false
+    self._out_index = 0
     if do_def_check then
         self._defined = va_structures.is_registered_structure(self.fqnn)
     end
@@ -532,7 +533,17 @@ function Structure:construct_with_power(actor, build_power, constructor)
     -- va_structures.particle_build_effect(pos, dist)
     if constructor then
         local pos2 = constructor.pos
-        va_structures.particle_build_effects(pos, pos2)
+        local source = vector.add(pos2, {
+            x = 0,
+            y = 0.7,
+            z = 0
+        })
+        local target = vector.add(pos, {
+            x = 0,
+            y = 0.5,
+            z = 0
+        })
+        va_structures.particle_build_effects(target, source, 5)
     end
     return true
 end
@@ -550,7 +561,7 @@ function Structure:repair_with_power(actor, build_power, constructor)
     if constructor then
         local pos = self.pos
         local pos2 = constructor.pos
-        va_structures.particle_build_effects(pos, pos2)
+        va_structures.particle_build_effects(pos, pos2, 5)
     end
     return true
 end
@@ -647,10 +658,13 @@ end
 
 function Structure:find_free_pos()
     local pos = self.pos
-    local collisionbox = self.entity_obj:get_properties().collisionbox or {-0.5,-0.5,-0.5, 0.5,0.5,0.5}
+    local collisionbox = self.entity_obj:get_properties().collisionbox or {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
     local yawRad = self:get_yaw()
     -- Facing vector (unit length)
-    local dir = {x = 0, z = 1}
+    local dir = {
+        x = 0,
+        z = 1
+    }
     if yawRad then
         dir.x = math.sin(yawRad)
         dir.z = math.cos(yawRad)
@@ -702,11 +716,64 @@ end
 
 function Structure:detach_unit(unit)
     self:force_detach_unit(unit)
+    local index = self._out_index
+    local pos = vector.new(self.pos)
 
-    core.after(0.1, function()
-        local pos = self:find_free_pos()
-        pos.y = pos.y + 0.5
-        unit:set_pos(pos)
+    local count = 25
+
+    if index > count * 2 then
+        index = 0
+    end
+
+    self._out_index = index + 1
+
+    local function calculate_rally_position(pos, radius)
+        local yaw, _ = self:get_yaw()
+        local yaw_deg = math.deg(yaw)
+        local scaler = 5.625
+
+        if index <= count then
+            scaler = index * (5.625)
+            yaw_deg = ((yaw_deg - 90) - (scaler))
+        else
+            scaler = (index - count) * (5.625)
+            yaw_deg = ((yaw_deg - 90) + (scaler))
+        end
+
+        local yaw_rad = math.rad(yaw_deg)
+        local offsetX = radius * math.cos(yaw_rad)
+        local offsetZ = radius * math.sin(yaw_rad)
+
+        -- Calculate the target position with added half-circle offset
+        local targetPos = {
+            x = pos.x + offsetX,
+            y = pos.y + 0.25,
+            z = pos.z + offsetZ
+        }
+
+        return targetPos
+    end
+
+
+    local radius = math.random(9,10)
+    -- spread pos over a half circle in direction the factory faces
+    local targetPos = calculate_rally_position(pos, radius)
+
+    local ent = unit:get_luaentity()
+    if ent then
+        ent._target_pos = targetPos
+    end
+
+    core.after(0.5, function()
+        if not unit then
+            return
+        end
+        local ent = unit:get_luaentity()
+        if ent then
+            ent._target_pos = targetPos
+        else
+            unit:set_pos(targetPos)
+        end
     end)
 end
 
@@ -718,7 +785,6 @@ function Structure:build_unit_with_power(actor, b_power)
 
     if not q.started then
         q.started = true
-        add_construction_gauge(self)
         local unit_name = q.unit
         local owner = self.owner
         local pos = vector.add(self.pos, {
@@ -729,6 +795,7 @@ function Structure:build_unit_with_power(actor, b_power)
 
         local unit = va_units.spawn_unit(unit_name, owner, pos)
         self:attach_unit(unit)
+        add_construction_gauge(self, unit)
     end
 
     local build_power = b_power or 10
@@ -761,8 +828,52 @@ function Structure:build_unit_with_power(actor, b_power)
 
     if has_resources then
         q.build_time = q.build_time + b_power
-        va_structures.particle_build_effect(self.pos, 1)
+        -- va_structures.particle_build_effect(self.pos, 1)
         -- self:show_menu_update()
+
+        local l_turret = {
+            x = -22 * 1 / 16,
+            y = 7.5 * 1 / 16,
+            z = 13 * 1 / 16
+        }
+        local r_turret = {
+            x = 22 * 1 / 16,
+            y = 7.5 * 1 / 16,
+            z = 13 * 1 / 16
+        }
+        local build_plate = {
+            x = 0 * 1 / 16,
+            y = 0 * 1 / 16,
+            z = 13 * 1 / 16
+        }
+
+        local function rotate_turrets(yaw)
+            local cosYaw = math.cos(yaw)
+            local sinYaw = math.sin(yaw)
+            -- Rotate l_turret
+            local tempX = l_turret.x * cosYaw - l_turret.z * sinYaw
+            local tempZ = l_turret.x * sinYaw + l_turret.z * cosYaw
+            l_turret.x = -tempX
+            l_turret.z = -tempZ
+            -- Rotate r_turret
+            tempX = r_turret.x * cosYaw - r_turret.z * sinYaw
+            tempZ = r_turret.x * sinYaw + r_turret.z * cosYaw
+            r_turret.x = -tempX
+            r_turret.z = -tempZ
+            -- Rotate build_plate
+            tempX = build_plate.x * cosYaw - build_plate.z * sinYaw
+            tempZ = build_plate.x * sinYaw + build_plate.z * cosYaw
+            build_plate.x = -tempX
+            build_plate.z = -tempZ
+        end
+
+        local yaw, _ = self:get_yaw()
+        rotate_turrets(yaw)
+        local b_pos = vector.add(self.pos, build_plate)
+        local e_l_pos = vector.add(self.pos, l_turret)
+        local e_r_pos = vector.add(self.pos, r_turret)
+        va_structures.particle_build_effects(b_pos, e_l_pos, 0.7)
+        va_structures.particle_build_effects(b_pos, e_r_pos, 0.7)
     end
 
     if q.build_time < q.build_time_max then
