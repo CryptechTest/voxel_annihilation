@@ -734,7 +734,7 @@ end
 function Structure:build_unit_with_power(actor, unit, b_power, constructor)
     if unit and not unit.object:get_attach() then
         unit.object:get_luaentity()._is_constructed = true
-        core.log("build_unit_with_power is_constructred")
+        --core.log("build_unit_with_power is_constructred")
         return
     end
     local q = constructor and constructor.process_queue[1] or self.process_queue[1]

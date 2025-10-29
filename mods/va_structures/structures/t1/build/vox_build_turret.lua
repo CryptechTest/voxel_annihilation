@@ -68,7 +68,8 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 s_obj._target_locked = false
                 return
             elseif s_obj._build_target.unit and s_obj._build_target.unit.object then
-                if s_obj._build_target.unit.object:get_luaentity()._marked_for_removal then
+                local t_obj = s_obj._build_target.unit.object
+                if not t_obj or not t_obj:get_luaentity() or t_obj:get_luaentity()._marked_for_removal then
                     s_obj._build_target = nil
                     s_obj._last_dir = nil
                     s_obj._target_locked = false
@@ -81,8 +82,10 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             local t_structure = s_obj._build_target.structure
             local t_unit = s_obj._build_target.unit
 
-            local s_attach = t_unit and t_unit.object:get_attach() or nil
+            -- structure building unit is attached to
             local s_building = nil
+            local s_attach = t_unit and t_unit.object:get_attach() or nil
+
             if s_attach then
                 -- get the attached structure for the target unit
                 t_structure = va_structures.get_active_structure(s_attach:get_pos())
@@ -108,7 +111,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     elseif t_unit and not t_unit.object:get_luaentity()._is_constructed then
                         s_obj:build_unit_with_power(net, t_unit, b_power, t_structure)
                     end
-                    --core.log("turret assisting build...")
+                    -- core.log("turret assisting build...")
                 end
                 net.energy_demand = net.energy_demand + e_use
             end
@@ -140,7 +143,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 target = t_structure.pos
             elseif t_unit then
                 target = t_unit.object:get_pos()
-            else 
+            else
                 return
             end
             -- building effect turret rotation
