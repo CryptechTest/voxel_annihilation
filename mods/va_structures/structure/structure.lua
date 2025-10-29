@@ -847,13 +847,13 @@ function Structure:get_yaw()
         rotation = rotation % 4 -- Mask colorfacedir values
     end
     if rotation == 1 then
-        return pi / 2, rotation
-    elseif rotation == 3 then
         return -pi / 2, rotation
+    elseif rotation == 3 then
+        return pi / 2, rotation
     elseif rotation == 0 then
-        return pi, rotation
-    else
         return 0, rotation
+    else
+        return pi, rotation
     end
 end
 
