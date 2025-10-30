@@ -180,10 +180,10 @@ local deposit_overlaps = {{
     check = "default:silver_sand",
     replace = "silver_sand"
 }, {
-    check = "default:permafrost",
+    check = "default:permafrost_with_stones",
     replace = "permafrost"
 }, {
-    check = "default:moss",
+    check = "default:permafrost_with_moss",
     replace = "moss"
 }, {
     check = "default:dirt_with_coniferous_litter",
@@ -258,7 +258,7 @@ local mass_deposits = {{
 }, {
     base_name = "permafrost",
     node_desc = "Permaforst",
-    base_texture = "default_permafrost"
+    base_texture = "default_permafrost.png^default_stones"
 }, {
     base_name = "moss",
     node_desc = "Moss",

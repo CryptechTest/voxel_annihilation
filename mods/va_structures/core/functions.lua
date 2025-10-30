@@ -381,11 +381,149 @@ end
 
 local function particle_build_effects(target, source, min, count)
 
-    beam_effect(source, target, min, count)
+    --beam_effect(source, target, min, count)
+    va_structures.show_build_beam_effect(source, target, min, count)
 
 end
 
 va_structures.particle_build_effects = particle_build_effects
+
+
+local function spawn_build_beam_particles(pos, texture, _dir, dist, count)
+    local grav = 1;
+    if (pos.y > 4000) then
+        grav = 0.4;
+    end
+    local count = count * 3
+    if dist < 3 then
+        count = count * 0.5
+    end
+    local size = 0.67
+    local vel = vector.multiply(_dir, math.max(1.2, dist * 0.227))
+    local t = 1.0 + math.min(dist * 0.333, 3.92)
+    if dist <= 3 then
+        t = t - 0.65
+        vel = vector.multiply(vel, 0.9)
+    elseif dist <= 5 then
+        t = t + 0.5
+    end
+    if dist <= 8 then
+        t = t + 0.45
+        vel = vector.multiply(vel, 1.05)
+    end
+    if dist >= 13 then
+        t = t - 0.55
+    end
+    local texture = texture
+    if math.random(0, 1) == 0 then
+        texture = texture .. "^[transformR90"
+    end
+    local r = 0.02
+    local minpos = {
+        x = pos.x - r,
+        y = pos.y - r,
+        z = pos.z - r
+    }
+    local maxpos = {
+        x = pos.x + r,
+        y = pos.y + r,
+        z = pos.z + r
+    }
+    local def = {
+        amount = count,
+        minpos = minpos,
+        maxpos = maxpos,
+        minvel = {
+            x = vel.x,
+            y = vel.y,
+            z = vel.z
+        },
+        maxvel = {
+            x = vel.x,
+            y = vel.y,
+            z = vel.z
+        },
+        minacc = {
+            x = -vel.x * 0.05,
+            y = randFloat(-0.01, -0.001) * grav,
+            z = -vel.z * 0.05
+        },
+        maxacc = {
+            x = vel.x * 0.05,
+            y = randFloat(0.001, 0.01) * grav,
+            z = vel.z * 0.05
+        },
+        time = math.max(1, t * 0.5),
+        minexptime = t - 0.21,
+        maxexptime = t,
+        minsize = randFloat(1.02, 1.42) * ((size + 0.5) / 2),
+        maxsize = randFloat(1.05, 1.44) * ((size + 0.81) / 2),
+        collisiondetection = false,
+        collision_removal = false,
+        object_collision = false,
+        vertical = false,
+
+        texture = {
+            name = texture,
+            alpha = 1,
+            alpha_tween = {1, 0.7},
+            scale_tween = {{
+                x = 1.0,
+                y = 1.0
+            }, {
+                x = 2.8,
+                y = 2.8
+            }},
+            blend = "alpha"
+        },
+        glow = 13
+    }
+
+    core.add_particlespawner(def);
+end
+
+
+local function show_build_beam_effect(pos1, pos2, min, count)
+    local dir = vector.direction(pos1, pos2)
+    local step_min = 0.5
+    local step = vector.multiply(dir, {
+        x = step_min,
+        y = step_min,
+        z = step_min
+    })
+    local min = min or 5
+
+    minetest.after(0, function()
+        local i = 1
+        local cur_pos = vector.add(pos1, vector.multiply(dir, {
+            x = 0.2,
+            y = 0.2,
+            z = 0.2
+        }))
+        local dist = vector.distance(cur_pos, pos2)
+        spawn_build_beam_particles(cur_pos, "va_structure_energy_particle.png", dir, dist, count)
+
+        --[[while (vector.distance(cur_pos, pos2) > step_min * min) do
+            if true then
+                -- spawn_particle(cur_pos, dir, i, vector.distance(cur_pos, pos2))
+                local dist = vector.distance(cur_pos, pos2)
+                local size = 0.2
+                local dist2 = vector.distance(cur_pos, pos1)
+                local r = 0.025 * dist2
+                spawn_build_effect_particle(cur_pos, "va_structure_energy_particle.png", dir, dist, size, count, r)
+            end
+            cur_pos = vector.add(cur_pos, step)
+            i = i + 1
+            if i > 256 then
+                break
+            end
+        end]]
+    end)
+
+    return true
+end
+
+va_structures.show_build_beam_effect = show_build_beam_effect
 
 -----------------------------------------------------------------
 

@@ -19,7 +19,7 @@ local registrations = {{
     deco = "va_structures:stone_with_metal",
     replace = "stone"
 }, {
-    place_on = "default:moss",
+    place_on = "default:permafrost_with_moss",
     deco = "va_structures:moss_with_metal",
     replace = "moss"
 }, {
@@ -31,7 +31,7 @@ local registrations = {{
     deco = "va_structures:dirt_snow_with_metal",
     replace = "dirt_snow"
 }, {
-    place_on = "default:permafrost",
+    place_on = "default:permafrost_with_stones",
     deco = "va_structures:permafrost_with_metal",
     replace = "permafrost"
 }, {

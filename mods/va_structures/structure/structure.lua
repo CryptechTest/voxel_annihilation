@@ -548,7 +548,7 @@ function Structure:construct_with_power(actor, build_power, constructor)
             y = 0.5,
             z = 0
         })
-        va_structures.particle_build_effects(target, source, 2, build_power / 3)
+        va_structures.particle_build_effects(target, source, 2, build_power)
     end
     return true
 end
@@ -563,10 +563,13 @@ function Structure:repair_with_power(actor, build_power, constructor)
     end
     local amount = math.floor(build_power) * 0.1
     self:set_hp(hp + amount)
+    if self:get_hp() >= self:get_hp_max() then
+        self.last_hit = 0
+    end
     if constructor then
         local pos = self.pos
-        local pos2 = constructor.pos
-        va_structures.particle_build_effects(pos, pos2, 5, build_power / 3)
+        local pos2 = vector.add(constructor.pos, {x=0,y=0.71,z=0})
+        va_structures.particle_build_effects(pos, pos2, 5, build_power)
     end
     return true
 end
@@ -723,11 +726,11 @@ function Structure:repair_unit_with_power(actor, unit, b_power)
     if hp >= unit_obj:get_hp_max() then
         return false
     end
-    local amount = math.floor(b_power) * 0.1
+    local amount = math.floor(b_power)
     self:set_hp(hp + amount)
     local pos = unit_obj:get_pos()
     local pos2 = self.pos
-    va_structures.particle_build_effects(pos, pos2, 2, b_power / 3)
+    va_structures.particle_build_effects(pos, pos2, 2, b_power)
     return true
 end
 
@@ -798,9 +801,30 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             y = 0.7,
             z = 0
         })
-        local target = vector.add(pos, {
+
+        local build_plate = {
+            x = 0 * 1 / 16,
+            y = (q.height / 2) - 0.25,
+            z = 13 * 1 / 16
+        }
+
+        local function rotate_turrets(yaw)
+            local cosYaw = math.cos(yaw)
+            local sinYaw = math.sin(yaw)
+            -- Rotate build_plate
+            local tempX = build_plate.x * cosYaw - build_plate.z * sinYaw
+            local tempZ = build_plate.x * sinYaw + build_plate.z * cosYaw
+            build_plate.x = -tempX
+            build_plate.z = -tempZ
+        end
+        
+        local yaw, _ = self:get_yaw()
+        rotate_turrets(yaw)
+        local t_pos = vector.add(pos, build_plate)
+        
+        local target = vector.add(t_pos, {
             x = 0,
-            y = 0.45,
+            y = 0.25,
             z = 0
         })
         va_structures.particle_build_effects(target, source, 0.5, build_power / 2)
@@ -850,8 +874,8 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
         local b_pos = vector.add(self.pos, build_plate)
         local e_l_pos = vector.add(self.pos, l_turret)
         local e_r_pos = vector.add(self.pos, r_turret)
-        va_structures.particle_build_effects(b_pos, e_l_pos, 0.7, build_power / 3)
-        va_structures.particle_build_effects(b_pos, e_r_pos, 0.7, build_power / 3)
+        va_structures.particle_build_effects(b_pos, e_l_pos, 0.7, build_power)
+        va_structures.particle_build_effects(b_pos, e_r_pos, 0.7, build_power)
     end
 
     if q.build_time < q.build_time_max then
