@@ -44,8 +44,8 @@ local registrations = {{
     replace = "rainforest_litter"
 }, {
     place_on = "default:dry_dirt_with_dry_grass",
-    deco = "va_structures:dry_grass_with_metal",
-    replace = "dry_grass"
+    deco = "va_structures:dry_dirt_with_grass_with_metal",
+    replace = "dry_dirt_with_grass"
 }, {
     place_on = "default:desert_sandstone",
     deco = "va_structures:desert_sandstone_with_metal",
