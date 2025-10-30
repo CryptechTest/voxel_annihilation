@@ -42,8 +42,8 @@ local function register_resource_indicator()
             textures = {"va_resource_mass_2.png"},
             collisionbox = {0},
             visual_size = {
-                x = 1.88,
-                y = 1.88
+                x = 1.75,
+                y = 1.75
             },
             type = "va_indicator",
             glow = 5,

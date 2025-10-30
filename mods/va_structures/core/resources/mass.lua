@@ -394,6 +394,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
         end
     end
     if found or near_air then
+        core.remove_node(pos)
         return false
     end
 
@@ -461,7 +462,7 @@ local function show_indicator(pos)
     end
     local i_pos = vector.add(pos, {
         x = 0,
-        y = 0.55,
+        y = 0.505,
         z = 0
     })
     local found = false
