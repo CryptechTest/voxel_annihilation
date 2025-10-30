@@ -12,14 +12,14 @@ local va_wind = {
     velocity_max = 3
 }
 
-va_structures.get_env_wind_vel = function()
+va_resources.get_env_wind_vel = function()
     return {
         velocity = va_wind.velocity,
         direction = va_wind.direction.degree
     }
 end
 
-va_structures.set_env_wind_max = function(value)
+va_resources.set_env_wind_max = function(value)
     va_wind.velocity_max = value
 end
 
@@ -101,7 +101,7 @@ end
 -----------------------------------------------------------------
 
 local timer = 0
-minetest.register_globalstep(function(dtime)
+core.register_globalstep(function(dtime)
     timer = timer + dtime
     if timer < vas_run_interval then
         return

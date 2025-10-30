@@ -8,10 +8,10 @@ local gauge_max = {
     health = 20
 }
 
-local ent_name = "va_structures:resource_mass_indicator"
+local ent_name = "va_resources:resource_mass_indicator"
 
 local function add_resource_indicator(pos)
-    local objs = minetest.get_objects_inside_radius(pos, 0.05)
+    local objs = core.get_objects_inside_radius(pos, 0.05)
     for _, obj in pairs(objs) do
         if obj:get_luaentity() then
             local ent = obj:get_luaentity()
@@ -20,7 +20,7 @@ local function add_resource_indicator(pos)
             end
         end
     end
-    local entity = minetest.add_entity(pos, ent_name)
+    local entity = core.add_entity(pos, ent_name)
 end
 
 local is_player_near = function(pos)
@@ -91,4 +91,6 @@ local function register_resource_indicator()
     })
 end
 
-return register_resource_indicator, add_resource_indicator
+register_resource_indicator()
+
+va_resources.add_resource_indicator = add_resource_indicator

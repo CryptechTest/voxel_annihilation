@@ -41,8 +41,8 @@ local function register_mass_deposit(def)
     local base_texture = def.base_texture or "default_grass"
     local mass_texture = def.mass_texture or "va_mineral"
 
-    local t_name_b = "va_structures:" .. base_name .. "_with_metal"
-    local t_name = "va_structures:" .. base_name .. "_near_metal"
+    local t_name_b = "va_resources:" .. base_name .. "_with_metal"
+    local t_name = "va_resources:" .. base_name .. "_near_metal"
 
     local tiles = def.tiles or {}
 
@@ -70,7 +70,7 @@ local function register_mass_deposit(def)
                 z = 0
             })
 
-            if va_structures.add_mass_deposit(pos, base_name) then
+            if va_resources.add_mass_deposit(pos, base_name) then
                 itemstack:take_item(1)
             end
 
@@ -359,7 +359,7 @@ local mass_deposits = {{
 
 local groups = {"cracky", "crumbly", "choppy", "soil", "sand"}
 
-function va_structures.add_mass_deposit(pos, b_name, value)
+function va_resources.add_mass_deposit(pos, b_name, value)
     if b_name == nil then
         b_name = "grass"
     end
@@ -410,7 +410,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
     end
 
     core.add_node(pos, {
-        name = "va_structures:" .. b_name .. "_with_metal"
+        name = "va_resources:" .. b_name .. "_with_metal"
     })
     local meta = core.get_meta(pos)
     meta:set_int("va_mass_amount", value * 100)
@@ -445,7 +445,7 @@ function va_structures.add_mass_deposit(pos, b_name, value)
             end
 
             core.add_node(d_pos, {
-                name = "va_structures:" .. b_name .. "_near_metal" .. side
+                name = "va_resources:" .. b_name .. "_near_metal" .. side
             })
             local meta = core.get_meta(d_pos)
             meta:set_int("va_mass_amount", value * 100)
@@ -466,17 +466,17 @@ local function show_indicator(pos)
         z = 0
     })
     local found = false
-    local objs = minetest.get_objects_inside_radius(i_pos, 0.1)
+    local objs = core.get_objects_inside_radius(i_pos, 0.1)
     for _, obj in pairs(objs) do
         if obj:get_luaentity() then
             local ent = obj:get_luaentity()
-            if ent.name == "va_structures:resource_mass_indicator" then
+            if ent.name == "va_resources:resource_mass_indicator" then
                 found = true
             end
         end
     end
     if not found then
-        va_structures.add_resource_indicator(i_pos)
+        va_resources.add_resource_indicator(i_pos)
     end
 end
 
@@ -500,4 +500,4 @@ local function register_resource_mass()
 
 end
 
-return register_resource_mass
+register_resource_mass()

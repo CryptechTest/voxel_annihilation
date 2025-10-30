@@ -22,7 +22,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             y = 1,
             z = 0
         })
-        local wind = va_structures.get_env_wind_vel()
+        local wind = va_resources.get_env_wind_vel()
         local wind_vel = wind.velocity
         local wind_dir = wind.direction
 
