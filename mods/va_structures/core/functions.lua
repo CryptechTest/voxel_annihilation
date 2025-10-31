@@ -672,10 +672,10 @@ va_structures.destroy_effect_particle = destroy_effect_particle
 -- Sounds
 
 local function explode_effect_sound(pos, r)
-    core.sound_play("va_explode", {
+    core.sound_play("va_weapons_explosion", {
         pos = pos,
-        gain = 1.5,
-        pitch = 1.2,
+        gain = 1.25,
+        pitch = 1.0,
         max_hear_distance = math.min(r * 20, 64)
     }, true)
 end
