@@ -37,7 +37,6 @@ local mass_deposits = {{
         tileable_vertical = false
     }}
 }, {
-}, {
     check = "default:dirt_with_snow",
     base_name = "dirt_snow",
     node_desc = "Snow",
