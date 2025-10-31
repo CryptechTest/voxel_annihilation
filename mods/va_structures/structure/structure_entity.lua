@@ -66,7 +66,7 @@ local function register_structure_entity(def)
                 self.object:remove()
             end
             local node = core.get_node(pos)
-            if node and node.name == def.fqnn then
+            if node and (node.name == def.fqnn or node.name == def.fqnn .. "_water") then
                 core.remove_node(pos)
             end
             return true
@@ -81,7 +81,7 @@ local function register_structure_entity(def)
         _check_valid = function(self)
             local pos = self.object:get_pos()
             local node = core.get_node(pos)
-            if node and node.name ~= def.fqnn then
+            if node and node.name ~= def.fqnn and node.name ~= def.fqnn .. "_water" then
                 self._marked_for_removal = true
             elseif not self:_is_valid() then
                 self._marked_for_removal = true

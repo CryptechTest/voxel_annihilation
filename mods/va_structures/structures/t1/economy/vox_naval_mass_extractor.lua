@@ -73,6 +73,16 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     interpolation = 1.0
                 }
             })
+
+            local pos_above = vector.add(pos, {
+                x = 0,
+                y = 1,
+                z = 0
+            })
+            if core.get_node(pos_above).name == "default:water_source" then
+                va_structures.water_effect_particle(s_obj.entity_obj, 7)
+            end
+            
         end
     end
 end
@@ -106,4 +116,8 @@ def.faction = "vox"
 def.under_water_type = true
 
 -- Register a new Mass Extractor
+Structure.register(def)
+
+local w_def = va_structures.util.deepcopy(def)
+w_def.name = w_def.name .. "_water"
 Structure.register(def)

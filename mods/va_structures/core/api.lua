@@ -89,6 +89,7 @@ function va_structures.register_structure(def)
             size = def.size,
             category = def.category,
             water_type = def.water_type,
+            under_water_type = def.under_water_type,
             factory_type = def.factory_type,
             entity_name = def.entity_name,
             tier = def.tier,

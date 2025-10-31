@@ -681,3 +681,67 @@ local function explode_effect_sound(pos, r)
 end
 
 va_structures.explode_effect_sound = explode_effect_sound
+
+
+function va_structures.water_effect_particle(parent, count)
+    local grav = 1;
+    local dist = 10
+    local t = 1 + (dist * 0.2) - randFloat(0.2, 0.4)
+    local texture = "bubble.png"
+    local size = 0.4
+    local radius = 0.6
+    local minpos = {x=-radius, y=0.6, z=-radius}
+    local maxpos = {x=radius, y=0.6, z=radius}
+    local def = {
+        attached = parent,
+        amount = count,
+        minpos = minpos,
+        maxpos = maxpos,
+        minvel = {
+            x = -0.1,
+            y = 0.2,
+            z = -0.1
+        },
+        maxvel = {
+            x = 0.1,
+            y = 0.4,
+            z = 0.1
+        },
+        minacc = {
+            x = -1 * 0.25,
+            y = randFloat(0.01, 0.02) * grav,
+            z = -1 * 0.25
+        },
+        maxacc = {
+            x = 1 * 0.25,
+            y = randFloat(0.025, 0.05) * grav,
+            z = 1 * 0.25
+        },
+        time = t * 0.1,
+        minexptime = t - 0.28,
+        maxexptime = t,
+        minsize = randFloat(1.02, 1.42) * ((size + 0.5) / 2),
+        maxsize = randFloat(1.05, 1.44) * ((size + 0.81) / 2),
+        collisiondetection = false,
+        collision_removal = false,
+        object_collision = false,
+        vertical = false,
+
+        texture = {
+            name = texture,
+            alpha = 1,
+            alpha_tween = {1, 0.1},
+            scale_tween = {{
+                x = 1.0,
+                y = 1.0
+            }, {
+                x = 1.5,
+                y = 1.5
+            }},
+            blend = "alpha"
+        },
+        glow = 5
+    }
+
+    core.add_particlespawner(def);
+end

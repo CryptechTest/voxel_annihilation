@@ -40,22 +40,24 @@ local function register_structure_node(def)
         end
     end
 
-    core.register_node(node_name .. "", {
+    local node_def = {
         description = node_desc,
         paramtype2 = "facedir",
         drop = "",
         groups = groups,
-        tiles = {"va_structure_base.png"},
+        tiles = {"water_thin.png"},
+        use_texture_alpha = "blend",
         drawtype = "nodebox",
         paramtype = "light",
         node_box = {
             type = "fixed",
             fixed = {{-0.3125, -0.5, -0.3125, 0.3125, -0.4375, 0.3125}}
         },
+        inventory_image = def.inventory_image or "base_structure_item.png",
+        wield_image = def.wield_image or "base_structure_item.png",
 
         on_place = def.check_placement,
         after_place_node = function(pos, placer, itemstack, pointed_thing)
-            -- core.add_entity(pos, def.entity_name)
             local meta = core.get_meta(pos)
             if placer:is_player() then
                 meta:set_string("owner", placer:get_player_name())
@@ -122,7 +124,46 @@ local function register_structure_node(def)
             end
             return stack:get_count()
         end
-    })
+    }
+
+    if def.under_water_type then
+        node_def.drawtype = "liquid"
+        node_def.waving = 3
+        node_def.tiles = {{
+            name = "default_water_source_animated.png",
+            backface_culling = false,
+            animation = {
+                type = "vertical_frames",
+                aspect_w = 16,
+                aspect_h = 16,
+                length = 2.0
+            }
+        }, {
+            name = "water_thin.png",
+            backface_culling = true
+        }}
+        node_def.use_texture_alpha = "blend"
+        node_def.paramtype = "light"
+        node_def.walkable = false
+        node_def.pointable = false
+        node_def.diggable = false
+        node_def.buildable_to = true
+        node_def.is_ground_content = false
+        node_def.drop = ""
+        node_def.drowning = 1
+        node_def.post_effect_color = {
+            a = 103,
+            r = 30,
+            g = 60,
+            b = 90
+        }
+        node_def.groups['water'] = 3
+        node_def.groups['liquid'] = 3
+        node_def.groups['cools_lava'] = 1
+    end
+
+    -- regsiter node def
+    core.register_node(node_name, node_def)
 
     if def.ui.formspec then
         -- register formspec control listener
