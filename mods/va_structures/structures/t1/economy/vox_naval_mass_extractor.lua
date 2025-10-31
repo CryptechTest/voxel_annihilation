@@ -117,7 +117,3 @@ def.under_water_type = true
 
 -- Register a new Mass Extractor
 Structure.register(def)
-
-local w_def = va_structures.util.deepcopy(def)
-w_def.name = w_def.name .. "_water"
-Structure.register(def)
