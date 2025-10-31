@@ -56,7 +56,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         end
 
         if has_power then
-            local speed = 70 * base_rate  * (value)
+            local speed = 90 * base_rate  * (value)
             local overrides = s_obj.entity_obj:get_bone_override('top')
             local yawRad = overrides.rotation and overrides.rotation.vec.y or 0
             local yawDeg = math.deg(yawRad)

@@ -50,7 +50,7 @@ local function spawn_particles(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, lv
         vel = 0.28,
         time = (time or 6),
         size = 0.75 + (lvl or 1),
-        glow = 1,
+        glow = 3,
         cols = false
     }
 
@@ -190,11 +190,11 @@ local def = {
     textures = {"va_vox_geo_plant_1.png"},
     collisionbox = {-1.25, -0.75, -1.25, 1.25, 1.5, 1.25},
     max_health = 30,
-    mass_cost = 35,
-    energy_cost = 300,
+    mass_cost = 56,
+    energy_cost = 1300,
     energy_generate = 30,
     energy_storage = 20,
-    build_time = 800,
+    build_time = 1310,
     self_explosion_radius = 6.20,
     death_explosion_radius = 5.05,
     vas_run = vas_run
@@ -209,7 +209,7 @@ def.size = {
     z = 1
 }
 def.category = "economy"
-def.tier = 1
+def.tier = 2
 def.faction = "vox"
 
 -- Register a new Geothermal Plant
