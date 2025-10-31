@@ -287,16 +287,20 @@ local function register_geo_vent(def)
     tiles_0[1] = base_texture .. ".png^default_stones.png^(" .. geo_texture .. "_" .. t_m .. "_1.png)"
 
     local tiles_1 = deepcopy(tiles)
-    tiles_1[1] = base_texture .. ".png^((default_stones_side.png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformFYR90])"
+    tiles_1[1] = base_texture .. ".png^((default_stones_side.png^[transformFY])^(" .. geo_texture .. "_" .. t_m ..
+                     "_2.png)^[transformFYR90])"
 
     local tiles_2 = deepcopy(tiles)
-    tiles_2[1] = base_texture .. ".png^((default_stones_side.png^[transformR180])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformR90])"
+    tiles_2[1] = base_texture .. ".png^((default_stones_side.png^[transformR180])^(" .. geo_texture .. "_" .. t_m ..
+                     "_2.png)^[transformR90])"
 
     local tiles_3 = deepcopy(tiles)
-    tiles_3[1] = base_texture .. ".png^((default_stones_side.png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformFX])"
+    tiles_3[1] = base_texture .. ".png^((default_stones_side.png^[transformFY])^(" .. geo_texture .. "_" .. t_m ..
+                     "_2.png)^[transformFX])"
 
     local tiles_4 = deepcopy(tiles)
-    tiles_4[1] = base_texture .. ".png^((default_stones_side.png^[transformR180])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformR180])"
+    tiles_4[1] = base_texture .. ".png^((default_stones_side.png^[transformR180])^(" .. geo_texture .. "_" .. t_m ..
+                     "_2.png)^[transformR180])"
 
     local tiles_5 = deepcopy(tiles)
     tiles_5[1] = base_texture .. ".png^((" .. geo_texture .. "_" .. t_m .. "_3.png))"
@@ -320,7 +324,7 @@ local function register_geo_vent(def)
         },
         drop = "",
         paramtype = "light",
-        light_source = 1,
+        light_source = 2,
 
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then
@@ -586,12 +590,18 @@ core.register_abm({
         local g = core.get_item_group(node.name, "va_geo_vent")
         if g == 3 then
             show_indicator(pos)
-            local p_pos = vector.add(pos, {x=0,y=0.55,z=0})
-            local vel = va_resources.get_env_wind_vel().velocity
-            local dir = math.rad(va_resources.get_env_wind_vel().direction)
-            local dir_x = math.sin(dir) * vel
-            local dir_z = math.cos(dir) * vel
-            spawn_particles(p_pos, dir_x, -1, dir_z, 0.88 * dir_x, -0.167, 0.88 * dir_z, 1, 6, 57)
+            local p_pos = vector.add(pos, {
+                x = 0,
+                y = 0.55,
+                z = 0
+            })
+            if core.get_node(p_pos).name == "air" then
+                local vel = va_resources.get_env_wind_vel().velocity
+                local dir = math.rad(va_resources.get_env_wind_vel().direction)
+                local dir_x = math.sin(dir) * vel
+                local dir_z = math.cos(dir) * vel
+                spawn_particles(p_pos, dir_x, -1, dir_z, 0.88 * dir_x, -0.167, 0.88 * dir_z, 1, 6, 57)
+            end
         end
     end
 })

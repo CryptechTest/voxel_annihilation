@@ -45,7 +45,11 @@ local structure_files = {
             "vox_wall"
         }
     },
-    ['t2'] = {},
+    ['t2'] = {
+        ['economy'] = {
+            "vox_geothermal_plant",
+        },
+    },
     ['t3'] = {}
 }
 
