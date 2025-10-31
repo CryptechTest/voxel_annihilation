@@ -114,6 +114,8 @@ core.set_gen_notify({
 core.register_on_generated(function(minp, maxp, blockseed)
     local gennotify = core.get_mapgen_object("gennotify")
 
+    math.randomseed(blockseed)
+
     for id, replace in pairs(metals) do
         local poslist = {}
         for _, pos in ipairs(gennotify["decoration#" .. id] or {}) do
@@ -132,7 +134,8 @@ core.register_on_generated(function(minp, maxp, blockseed)
             for i = 1, #poslist do
                 local p = poslist[i]
                 local t_m = nil
-                if math.random(0,5) == 0 then
+                
+                if math.random(0,11) == 0 then
                     t_m = "gold"
                 end
                 va_resources.add_mass_deposit(p.pos, p.replace, nil, t_m)
