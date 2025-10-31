@@ -66,17 +66,17 @@ local function register_mass(def)
         name = def.deco,
         deco_type = "simple",
         place_on = {def.place_on},
-        sidelen = 16,
+        sidelen = 8,
         noise_params = {
-			offset = 0.0012,
-			scale = 0.0007,
-			spread = {x = 250, y = 250, z = 250},
-			seed = 21,
-			octaves = 3,
-			persist = 0.64
+			offset = 0.000331,
+			scale = 0.001,
+			spread = {x = 200, y = 200, z = 200},
+			seed = 88,
+			octaves = 1,
+			persist = 0.37
         },
-        y_max = 128,
-        y_min = -32,
+        y_max = 256,
+        y_min = -3,
         decoration = def.deco,
         place_offset_y = -1,
         flags = "force_placement"
