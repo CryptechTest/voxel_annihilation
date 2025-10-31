@@ -293,7 +293,9 @@ end
 function Structure:run_pre(run_stage, net)
     -- core.log("structure run_internal() ticked... " .. self.name)
     if self.vas_run_pre then
-        self.vas_run_pre(self)
+        if not self.vas_run_pre(self) then
+            return false
+        end
     end
     if self:get_hp() <= 0 then
         self:destroy()
@@ -462,6 +464,122 @@ function Structure:activate(visible)
     end
 end
 
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+
+function Structure:show_menu_update()
+    if self.ui.formspec then
+        local name = self.owner
+        if va_structures.get_selected_pos(name) then
+            core.show_formspec(name, self.ui.form_name, self.ui.formspec(self))
+        end
+    end
+end
+
+function Structure:show_menu(name)
+    if self.owner ~= name then
+        return
+    end
+    if self.ui.formspec then
+        va_structures.set_selected_pos(name, self.pos)
+        core.show_formspec(name, self.ui.form_name, self.ui.formspec(self))
+    end
+end
+
+-----------------------------------------------------------------
+
+function Structure:force_detach_child(unit)
+    if not unit then
+        return
+    end
+    unit:set_detach()
+end
+
+function Structure:attach_child(unit)
+    local rot_view = 0
+    local yawRad, rotation = self:get_yaw()
+    local attach_at = {
+        x = 0,
+        y = 0.3,
+        z = 0
+    }
+    local unit_rotation = {
+        x = 0,
+        y = yawRad,
+        z = 0
+    }
+    self:force_detach_child(unit)
+    unit:set_attach(self.entity_obj, "build_plate", attach_at, unit_rotation)
+end
+
+function Structure:detach_child(unit)
+    self:force_detach_child(unit)
+    self:order_child_to_rally(unit)
+end
+
+function Structure:order_child_to_rally(unit, rad)
+
+    local index = self._out_index
+    local pos = vector.new(self.pos)
+    local r = rad ~= nil and rad or math.random(10, 12)
+    local count = 25
+
+    if index > count * 2 then
+        index = 0
+    end
+
+    self._out_index = index + 1
+
+    local function calculate_rally_position(pos, radius)
+        local yaw, _ = self:get_yaw()
+        local yaw_deg = math.deg(yaw)
+        local scaler = 5.625
+
+        if index <= count then
+            scaler = index * (5.625)
+            yaw_deg = ((yaw_deg - 90) - (scaler))
+        else
+            scaler = (index - count) * (5.625)
+            yaw_deg = ((yaw_deg - 90) + (scaler))
+        end
+
+        local yaw_rad = math.rad(yaw_deg)
+        local offsetX = radius * math.cos(yaw_rad)
+        local offsetZ = radius * math.sin(yaw_rad)
+
+        -- Calculate the target position with added half-circle offset
+        local targetPos = {
+            x = pos.x + offsetX,
+            y = pos.y + 0.25,
+            z = pos.z + offsetZ
+        }
+
+        return targetPos
+    end
+
+    -- spread pos over a half circle in direction the factory faces
+    local targetPos = calculate_rally_position(pos, r)
+
+    local ent = unit:get_luaentity()
+    if ent then
+        ent._target_pos = targetPos
+    end
+
+    core.after(0.5, function()
+        if not unit then
+            return
+        end
+        local ent = unit:get_luaentity()
+        if ent then
+            ent._target_pos = targetPos
+        else
+            unit:set_pos(targetPos)
+        end
+    end)
+end
+
+-----------------------------------------------------------------
+
 function Structure:construct(actor)
     if self.is_constructed then
         return false
@@ -572,149 +690,6 @@ function Structure:repair_with_power(actor, build_power, constructor)
         va_structures.particle_build_effects(pos, pos2, 5, build_power)
     end
     return true
-end
-
-function Structure:show_menu_update()
-    if self.ui.formspec then
-        local name = self.owner
-        if va_structures.get_selected_pos(name) then
-            core.show_formspec(name, self.ui.form_name, self.ui.formspec(self))
-        end
-    end
-end
-
-function Structure:show_menu(name)
-    if self.owner ~= name then
-        return
-    end
-    if self.ui.formspec then
-        va_structures.set_selected_pos(name, self.pos)
-        core.show_formspec(name, self.ui.form_name, self.ui.formspec(self))
-    end
-end
-
-function Structure:find_free_pos()
-    local pos = self.pos
-    local collisionbox = self.entity_obj:get_properties().collisionbox or {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
-    local yawRad = self:get_yaw()
-    -- Facing vector (unit length)
-    local dir = {
-        x = 0,
-        z = 1
-    }
-    if yawRad then
-        dir.x = math.sin(yawRad)
-        dir.z = math.cos(yawRad)
-    end
-    -- Offset in front by collisionbox size
-    local offset = {
-        x = dir.x * collisionbox[6] * 2,
-        y = 0,
-        z = dir.z * collisionbox[6] * 2
-    }
-    local npos = {
-        x = pos.x + offset.x,
-        y = pos.y + offset.y,
-        z = pos.z + offset.z
-    }
-    local node = core.get_node_or_nil(npos)
-    if node and node.name then
-        local def = core.registered_nodes[node.name]
-        if def and not def.walkable and def.liquidtype == "none" then
-            return npos
-        end
-    end
-    return pos
-end
-
-function Structure:force_detach_child(unit)
-    if not unit then
-        return
-    end
-    unit:set_detach()
-end
-
-function Structure:attach_child(unit)
-    local rot_view = 0
-    local yawRad, rotation = self:get_yaw()
-    local attach_at = {
-        x = 0,
-        y = 0.3,
-        z = 0
-    }
-    local unit_rotation = {
-        x = 0,
-        y = yawRad,
-        z = 0
-    }
-    self:force_detach_child(unit)
-    unit:set_attach(self.entity_obj, "build_plate", attach_at, unit_rotation)
-end
-
-function Structure:detach_child(unit)
-    self:force_detach_child(unit)
-    self:order_child_to_rally(unit)
-end
-
-function Structure:order_child_to_rally(unit, rad)
-
-    local index = self._out_index
-    local pos = vector.new(self.pos)
-    local r = rad ~= nil and rad or math.random(10, 12)
-    local count = 25
-
-    if index > count * 2 then
-        index = 0
-    end
-
-    self._out_index = index + 1
-
-    local function calculate_rally_position(pos, radius)
-        local yaw, _ = self:get_yaw()
-        local yaw_deg = math.deg(yaw)
-        local scaler = 5.625
-
-        if index <= count then
-            scaler = index * (5.625)
-            yaw_deg = ((yaw_deg - 90) - (scaler))
-        else
-            scaler = (index - count) * (5.625)
-            yaw_deg = ((yaw_deg - 90) + (scaler))
-        end
-
-        local yaw_rad = math.rad(yaw_deg)
-        local offsetX = radius * math.cos(yaw_rad)
-        local offsetZ = radius * math.sin(yaw_rad)
-
-        -- Calculate the target position with added half-circle offset
-        local targetPos = {
-            x = pos.x + offsetX,
-            y = pos.y + 0.25,
-            z = pos.z + offsetZ
-        }
-
-        return targetPos
-    end
-
-    -- spread pos over a half circle in direction the factory faces
-    local targetPos = calculate_rally_position(pos, r)
-
-    local ent = unit:get_luaentity()
-    if ent then
-        ent._target_pos = targetPos
-    end
-
-    core.after(0.5, function()
-        if not unit then
-            return
-        end
-        local ent = unit:get_luaentity()
-        if ent then
-            ent._target_pos = targetPos
-        else
-            unit:set_pos(targetPos)
-        end
-    end)
 end
 
 function Structure:repair_unit_with_power(actor, unit, b_power)
@@ -944,7 +919,12 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
 
 end
 
+-----------------------------------------------------------------
+
 function Structure:build_unit_enqueue()
+    if not self.factory_type then
+        return
+    end
     local q = self.process_queue[1]
     if q then
         return
@@ -998,6 +978,9 @@ function Structure:build_unit_enqueue()
 end
 
 function Structure:build_unit_cancel()
+    if not self.factory_type then
+        return
+    end
     if #self.process_queue > 0 then
         local unit_id = self.process_queue[1].unit_id
         table.remove(self.process_queue)
@@ -1015,6 +998,9 @@ function Structure:build_unit_cancel()
 end
 
 function Structure:build_queue_clear()
+    if not self.factory_type then
+        return
+    end
     local meta = core.get_meta(self.pos)
     local inv = meta:get_inventory()
     local build = inv:get_list("build_unit")
@@ -1034,6 +1020,8 @@ function Structure:build_queue_clear()
         end
     end
 end
+
+-----------------------------------------------------------------
 
 -- destroy structure
 function Structure:destroy()
