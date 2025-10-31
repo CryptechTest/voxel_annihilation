@@ -140,7 +140,7 @@ function Structure.new(pos, name, def, do_def_check)
             minetest.chat_send_player(name, "Structure must be built on water.")
             return itemstack
         elseif self.under_water_type and self.under_water_type and not self:collides_has_water(pos) then
-            minetest.chat_send_player(name, "Structure must be built on water.")
+            minetest.chat_send_player(name, "Structure must be built in water.")
             return itemstack
         elseif self:collides_other(pos, self.size) then
             -- make sure structure doesn't overlap any other structure area
