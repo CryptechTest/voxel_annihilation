@@ -139,10 +139,14 @@ core.register_on_generated(function(minp, maxp, blockseed)
                 local p = poslist[i]
                 local t_m = nil
                 
-                if math.random(0,11) == 0 then
+                if math.random(0,31) == 0 then
                     t_m = "gold"
                 end
-                va_resources.add_mass_deposit(p.pos, p.replace, nil, t_m)
+                if math.random(0,31) <= 1 then
+                    va_resources.add_mass_deposit(p.pos, p.replace, 0.07, 's') 
+                else
+                    va_resources.add_mass_deposit(p.pos, p.replace, nil, t_m) 
+                end
             end
         end
     end

@@ -1,5 +1,5 @@
 -- the interval between run calls
-local vas_run_interval = 2.0
+local vas_run_interval = 3.0
 
 local va_wind = {
     velocity = 1,

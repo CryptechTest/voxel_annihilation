@@ -8,7 +8,7 @@ local gauge_max = {
     health = 20
 }
 
-local ent_name = "va_resources:resource_mass_indicator"
+local ent_name = "va_resources:resource_geo_indicator"
 
 local function add_resource_indicator(pos)
     local objs = core.get_objects_inside_radius(pos, 0.05)
@@ -33,20 +33,21 @@ local is_player_near = function(pos)
     return false;
 end
 
-local function register_resource_indicator()
+local function register_geo_indicator()
     core.register_entity(ent_name, {
 
         initial_properties = {
             visual = "mesh",
             mesh = "va_resource_circle_1.gltf",
-            textures = {"va_resource_mass_ring_2.png"},
+            textures = {"va_resource_geo_ring_1.png"},
+            use_texture_alpha = true,
             collisionbox = {0},
             visual_size = {
                 x = 1.75,
                 y = 1.75
             },
             type = "va_indicator",
-            glow = 5,
+            glow = 7,
             physical = false,
             static_save = false            
         },
@@ -56,12 +57,6 @@ local function register_resource_indicator()
         -- activation
         on_activate = function(self, staticdata, dtime_s)
             local pos = self.object:get_pos()
-            if is_player_near(pos) then
-                local n_pos = vector.subtract(pos, {x=0,y=0.6,z=0})
-                local meta = core.get_meta(n_pos)
-                local value = meta:get_int("va_mass_amount") * 0.01
-                self.object:set_nametag_attributes({text = tostring(value), color = "#ffffff"})
-            end
         end,
 
         on_step = function(self)
@@ -73,24 +68,15 @@ local function register_resource_indicator()
             local obj = self.object
             local pos = self.object:get_pos()
             local node = core.get_node(pos)
-            local g = core.get_item_group(node.name, "va_mass")
+            local g = core.get_item_group(node.name, "va_geo_vent")
             if not g then
                 obj:remove();
                 return
-            end
-
-            if is_player_near(pos) then
-                local n_pos = vector.subtract(pos, {x=0,y=0.6,z=0})
-                local meta = core.get_meta(n_pos)
-                local value = meta:get_int("va_mass_amount") * 0.01
-                self.object:set_nametag_attributes({text = tostring(value), color = "#d9d9ffff"})
-            else
-                self.object:set_nametag_attributes({text = ""})
             end
         end
     })
 end
 
-register_resource_indicator()
+register_geo_indicator()
 
-va_resources.add_resource_indicator = add_resource_indicator
+va_resources.add_geo_indicator = add_resource_indicator

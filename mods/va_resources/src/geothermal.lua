@@ -1,6 +1,6 @@
 local deepcopy = va_structures.util.deepcopy
 
-local mass_deposits = {{
+local geo_vents = {{
     check = "default:dirt_with_grass",
     base_name = "grass",
     node_desc = "Grass",
@@ -76,7 +76,7 @@ local mass_deposits = {{
     base_texture = "default_desert_stone",
     tiles = {"default_desert_stone.png", "default_desert_stone.png"}
 }, {
-    check = "default:desert_sandstone",   
+    check = "default:desert_sandstone",
     base_name = "desert_sandstone",
     node_desc = "Desert Sandstone",
     base_texture = "default_desert_sandstone",
@@ -169,55 +169,154 @@ local dirs = {{ -- along x beside
     z = -1
 }}
 
-local function register_mass_deposit(def)
+local is_player_near = function(pos)
+    local objs = core.get_objects_inside_radius(pos, 64)
+    for _, obj in pairs(objs) do
+        if obj:is_player() then
+            return true;
+        end
+    end
+    return false;
+end
+
+local function spawn_particles(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, lvl, time, amount)
+    if (not is_player_near(pos)) then
+        return;
+    end
+    local animation = {
+        type = "vertical_frames",
+        aspect_w = 16,
+        aspect_h = 16,
+        length = (time or 6) + 1
+    }
+    local texture = {
+        name = "va_vapor_anim.png",
+        blend = "alpha",
+        scale = 1,
+        alpha = 1.0,
+        alpha_tween = {1, 0.1},
+        scale_tween = {{
+            x = 0.5,
+            y = 1.0
+        }, {
+            x = 8.8,
+            y = 7.1
+        }}
+    }
+
+    local prt = {
+        texture = texture,
+        vel = 0.28,
+        time = (time or 6),
+        size = 0.75 + (lvl or 1),
+        glow = 1,
+        cols = false
+    }
+
+    local v = vector.new()
+    v.x = 0.0001
+    v.y = 0.001
+    v.z = 0.0001
+    if math.random(0, 10) > 1 then
+        local rx = dir_x * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
+        local ry = dir_y * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
+        local rz = dir_z * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
+        minetest.add_particlespawner({
+            amount = amount,
+            pos = pos,
+            minpos = {
+                x = -0.1,
+                y = 0.1,
+                z = -0.1
+            },
+            maxpos = {
+                x = 0.1,
+                y = 0.25,
+                z = 0.1
+            },
+            minvel = {
+                x = rx * 0.8,
+                y = (ry * 0.8) + 1.37,
+                z = rz * 0.8
+            },
+            maxvel = {
+                x = rx,
+                y = ry + 1.25,
+                z = rz
+            },
+            minacc = {
+                x = acl_x * 0.7,
+                y = acl_y * 0.8,
+                z = acl_z * 0.7
+            },
+            maxacc = {
+                x = acl_x,
+                y = acl_y + math.random(-0.008, 0),
+                z = acl_z
+            },
+            time = (prt.time + 3) * 0.75,
+            minexptime = prt.time - math.random(0, 2),
+            maxexptime = prt.time + math.random(0, 1),
+            minsize = ((math.random(0.77, 0.93)) * 2 + 1.6) * prt.size,
+            maxsize = ((math.random(0.77, 0.93)) * 2 + 1.6) * prt.size,
+            collisiondetection = prt.cols,
+            vertical = false,
+            texture = texture,
+            animation = animation,
+            glow = prt.glow
+        })
+    end
+end
+
+local function register_geo_vent(def)
 
     local base_name = def.base_name or "grass"
     local node_desc = " on " .. (def.node_desc or "Grass")
     local base_texture = def.base_texture or "default_grass"
-    local mass_texture = def.mass_texture or "va_mineral"
+    local geo_texture = def.geo_texture or "va_geo_vent"
 
-    local t_m = def.mass_type or "a"
-    local tt_name = def.mass_type and "_" .. t_m or ""
+    local t_m = def.geo_type or "a"
+    local tt_name = def.geo_type and "_" .. t_m or ""
 
-    local t_name_b = "va_resources:" .. base_name .. "_with_metal" .. tt_name
-    local t_name = "va_resources:" .. base_name .. "_near_metal" .. tt_name
+    local t_name_b = "va_resources:" .. base_name .. "_with_geo" .. tt_name
+    local t_name = "va_resources:" .. base_name .. "_near_geo" .. tt_name
 
     local tiles = def.tiles or {}
 
     local tiles_0 = deepcopy(tiles)
-    tiles_0[1] = base_texture .. ".png^(" .. mass_texture .. "_" .. t_m .. "_1.png)"
+    tiles_0[1] = base_texture .. ".png^default_stones.png^(" .. geo_texture .. "_" .. t_m .. "_1.png)"
 
     local tiles_1 = deepcopy(tiles)
-    tiles_1[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformFYR90])"
+    tiles_1[1] = base_texture .. ".png^((default_stones_side.png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformFYR90])"
 
     local tiles_2 = deepcopy(tiles)
-    tiles_2[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformR90])"
+    tiles_2[1] = base_texture .. ".png^((default_stones_side.png^[transformR180])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformR90])"
 
     local tiles_3 = deepcopy(tiles)
-    tiles_3[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformFX])"
+    tiles_3[1] = base_texture .. ".png^((default_stones_side.png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformFX])"
 
     local tiles_4 = deepcopy(tiles)
-    tiles_4[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformR180])"
+    tiles_4[1] = base_texture .. ".png^((default_stones_side.png^[transformR180])^(" .. geo_texture .. "_" .. t_m .. "_2.png)^[transformR180])"
 
     local tiles_5 = deepcopy(tiles)
-    tiles_5[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3.png))"
+    tiles_5[1] = base_texture .. ".png^((" .. geo_texture .. "_" .. t_m .. "_3.png))"
 
     local tiles_6 = deepcopy(tiles)
-    tiles_6[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3.png)^[transformR180])"
+    tiles_6[1] = base_texture .. ".png^((" .. geo_texture .. "_" .. t_m .. "_3.png)^[transformR180])"
 
     local tiles_7 = deepcopy(tiles)
-    tiles_7[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4.png)^[transformFY])"
+    tiles_7[1] = base_texture .. ".png^((" .. geo_texture .. "_" .. t_m .. "_3.png)^[transformFY])"
 
     local tiles_8 = deepcopy(tiles)
-    tiles_8[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4.png)^[transformR90])"
+    tiles_8[1] = base_texture .. ".png^((" .. geo_texture .. "_" .. t_m .. "_3.png)^[transformR90])"
 
     -- center node
     core.register_node(t_name_b, {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_0,
         groups = {
             cracky = 2,
-            va_mass = 3
+            va_geo_vent = 3
         },
         drop = "",
 
@@ -233,12 +332,12 @@ local function register_mass_deposit(def)
                 z = 0
             })
 
-            if def.mass_type then
-                if va_resources.add_mass_deposit(pos, base_name, nil, def.mass_type) then
+            if def.geo_type then
+                if va_resources.add_geo_vent(pos, base_name, nil, def.geo_type) then
                     itemstack:take_item(1)
                 end
             else
-                if va_resources.add_mass_deposit(pos, base_name) then
+                if va_resources.add_geo_vent(pos, base_name) then
                     itemstack:take_item(1)
                 end
             end
@@ -249,82 +348,82 @@ local function register_mass_deposit(def)
 
     -- edge/side nodes
     core.register_node(t_name .. "_1", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_1,
         groups = {
             cracky = 2,
-            va_mass = 2
+            va_geo_vent = 2
         },
         drop = ""
     })
     core.register_node(t_name .. "_2", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_2,
         groups = {
             cracky = 2,
-            va_mass = 2
+            va_geo_vent = 2
         },
         drop = ""
     })
     core.register_node(t_name .. "_3", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_3,
         groups = {
             cracky = 2,
-            va_mass = 2
+            va_geo_vent = 2
         },
         drop = ""
     })
     core.register_node(t_name .. "_4", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_4,
         groups = {
             cracky = 2,
-            va_mass = 2
+            va_geo_vent = 2
         },
         drop = ""
     })
 
     core.register_node(t_name .. "_5", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_5,
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_geo_vent = 1
         },
         drop = ""
     })
     core.register_node(t_name .. "_6", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_6,
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_geo_vent = 1
         },
         drop = ""
     })
     core.register_node(t_name .. "_7", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_7,
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_geo_vent = 1
         },
         drop = ""
     })
     core.register_node(t_name .. "_8", {
-        description = ("Metal Ore" .. node_desc),
+        description = ("Geothermal Vent" .. node_desc),
         tiles = tiles_8,
         groups = {
             cracky = 2,
-            va_mass = 1
+            va_geo_vent = 1
         },
         drop = ""
     })
 end
 
 local function match_deposit_overlap(name)
-    for _, o in pairs(mass_deposits) do
+    for _, o in pairs(geo_vents) do
         if o.check == name then
             return o.base_name
         end
@@ -333,7 +432,7 @@ local function match_deposit_overlap(name)
 end
 
 local function match_deposit_check(name)
-    for _, o in pairs(mass_deposits) do
+    for _, o in pairs(geo_vents) do
         if o.base_name == name then
             return o.check
         end
@@ -343,22 +442,20 @@ end
 
 local groups = {"cracky", "crumbly", "choppy", "soil", "sand"}
 
-function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
+function va_resources.add_geo_vent(pos, b_name, value, geo_type)
     if b_name == nil then
         b_name = "grass"
     end
-    if value == nil and mass_type == nil then
-        value = va_structures.util.randFloat(0.10, 0.30)
-    elseif value == nil and mass_type == "gold" then
-        value = va_structures.util.randFloat(0.31, 1.00)
+    if value == nil then
+        value = va_structures.util.randFloat(0.90, 1.10)
     end
-    if mass_type == nil and value <= 0.14 then
-        mass_type = "s"
+    if geo_type == nil and value <= 0.14 then
+        geo_type = "s"
     end
-    if mass_type == nil then
-        mass_type = ""
+    if geo_type == nil then
+        geo_type = ""
     else
-        mass_type = "_" .. mass_type
+        geo_type = "_" .. geo_type
     end
 
     local found = false
@@ -371,7 +468,7 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
             node = core.get_node_or_nil(d_pos)
         end
         local n_name = node.name
-        local g = core.get_item_group(n_name, 'va_mass')
+        local g = core.get_item_group(n_name, 'va_geo_vent')
         if g > 0 and g < 3 then
             found = true
         end
@@ -404,10 +501,10 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
     end
 
     core.add_node(pos, {
-        name = "va_resources:" .. b_name .. "_with_metal" .. mass_type
+        name = "va_resources:" .. b_name .. "_with_geo" .. geo_type
     })
     local meta = core.get_meta(pos)
-    meta:set_int("va_mass_amount", value * 100)
+    meta:set_int("va_geo_vent_amount", value * 100)
 
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
@@ -439,10 +536,10 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
             end
 
             core.add_node(d_pos, {
-                name = "va_resources:" .. b_name .. "_near_metal" .. mass_type .. side
+                name = "va_resources:" .. b_name .. "_near_geo" .. geo_type .. side
             })
             local meta = core.get_meta(d_pos)
-            meta:set_int("va_mass_amount", value * 100)
+            meta:set_int("va_geo_vent_amount", value * 100)
         end
     end
     return true
@@ -450,7 +547,7 @@ end
 
 local function show_indicator(pos)
     local node = core.get_node(pos)
-    local g = core.get_item_group(node.name, "va_mass")
+    local g = core.get_item_group(node.name, "va_geo_vent")
     if g ~= 3 then
         return
     end
@@ -464,48 +561,46 @@ local function show_indicator(pos)
     for _, obj in pairs(objs) do
         if obj:get_luaentity() then
             local ent = obj:get_luaentity()
-            if ent.name == "va_resources:resource_mass_indicator" then
+            if ent.name == "va_resources:resource_geo_indicator" then
                 found = true
             end
         end
     end
     if not found then
-        va_resources.add_mass_indicator(i_pos)
+        va_resources.add_geo_indicator(i_pos)
     end
 end
 
 core.register_abm({
     label = "va mass indicator abm",
-    nodenames = {"group:va_mass"},
+    nodenames = {"group:va_geo_vent"},
     interval = 3,
     chance = 1,
     min_y = -1000,
     max_y = 1000,
     action = function(pos, node, active_object_count, active_object_count_wider)
-        show_indicator(pos)
+
+        local node = core.get_node(pos)
+        local g = core.get_item_group(node.name, "va_geo_vent")
+        if g == 3 then
+            show_indicator(pos)
+            local p_pos = vector.add(pos, {x=0,y=0.55,z=0})
+            local vel = va_resources.get_env_wind_vel().velocity
+            local dir = math.rad(va_resources.get_env_wind_vel().direction)
+            local dir_x = math.sin(dir) * vel
+            local dir_z = math.cos(dir) * vel
+            spawn_particles(p_pos, dir_x, -1, dir_z, 0.88 * dir_x, -0.167, 0.88 * dir_z, 1, 6, 57)
+        end
     end
 })
 
-local function register_resource_mass()
+local function register_resource_geothermal()
 
-    local mass_deposits_a = deepcopy(mass_deposits)
+    local mass_deposits_a = deepcopy(geo_vents)
     for _, d in pairs(mass_deposits_a) do
-        --d.mass_type = "a"
-        register_mass_deposit(d)
-    end
-
-    local mass_deposits_s = deepcopy(mass_deposits)
-    for _, d in pairs(mass_deposits_s) do
-        d.mass_type = "s"
-        register_mass_deposit(d)
-    end
-
-    local mass_deposits_gold = deepcopy(mass_deposits)
-    for _, d in pairs(mass_deposits_gold) do
-        d.mass_type = "gold"
-        register_mass_deposit(d)
+        register_geo_vent(d)
     end
 
 end
 
-register_resource_mass()
+register_resource_geothermal()
