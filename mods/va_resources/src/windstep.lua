@@ -9,7 +9,8 @@ local va_wind = {
     },
     vel_change_dir = 0,
     next_change = 0,
-    velocity_max = 3
+    velocity_max = 3,
+    velocity_min = 0.1
 }
 
 va_resources.get_env_wind_vel = function()
@@ -21,6 +22,10 @@ end
 
 va_resources.set_env_wind_max = function(value)
     va_wind.velocity_max = value
+end
+
+va_resources.set_env_wind_min = function(value)
+    va_wind.velocity_min = value
 end
 
 -----------------------------------------------------------------
@@ -84,8 +89,8 @@ local function do_env_wind()
 
     local new_vel = vel + r + d
 
-    if new_vel <= 0 then
-        new_vel = 0
+    if new_vel <= va_wind.velocity_min then
+        new_vel = va_wind.velocity_min
     elseif new_vel > va_wind.velocity_max then
         new_vel = va_wind.velocity_max
     end
