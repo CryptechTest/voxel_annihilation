@@ -319,6 +319,8 @@ local function register_geo_vent(def)
             va_geo_vent = 3
         },
         drop = "",
+        paramtype = "light",
+        light_source = 1,
 
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then
