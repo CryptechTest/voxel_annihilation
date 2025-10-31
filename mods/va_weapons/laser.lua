@@ -8,9 +8,12 @@ local function fire_light_laser(shooter, shooter_pos, target_pos, range, base_da
     return true
 end
 
-local function fire_heavy_laser(shooter, shooter_pos, target_pos, base_damage)
+local function fire_heavy_laser(shooter, shooter_pos, target_pos, range, base_damage)
     local distance = vector.distance(shooter_pos, target_pos)
-    local damage = base_damage
+    if distance > range then
+        return false
+    end
+    local damage = base_damage -- no falloff
     -- Fire the laser and deal damage
     return true
 end
