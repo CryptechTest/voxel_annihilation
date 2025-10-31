@@ -39,9 +39,8 @@ end
 
 local function find_path(unit, target_pos, ...)
     local start = unit.object:get_pos()
-    local step_height = unit.object:get_properties().stepheight or 0.6
     local path = core.find_path(start, target_pos, ...) or
-        core.find_path(vector.add(start, vector.new(0, step_height, 0)), target_pos, ...)
+        core.find_path(vector.add(start, vector.new(0, 1, 0)), target_pos, ...) 
     return path
 end
 
@@ -468,7 +467,7 @@ function va_units.register_unit(name, def)
 
                 local path = find_path(self,
                     self._target_pos,
-                    1024, stepheight + 0.18, stepheight * 2)
+                    128, stepheight + 0.7, stepheight + 0.7)
                 if path and #path > 1 then
                     -- Stuck detection: track last position and timer
                     self._last_pos = self._last_pos or self.object:get_pos()

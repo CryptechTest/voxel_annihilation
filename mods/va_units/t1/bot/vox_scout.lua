@@ -8,7 +8,7 @@ va_units.register_unit("vox_scout", {
     mesh = "va_units_vox_scout.gltf",
     texture ="va_units_vox_scout.png",
     visual_size = { x = 1, y = 1},
-    collisionbox = {-0.45, 0.01, -0.4, 0.45, 0.7, 0.5},
+    collisionbox = {-0.25, 0.01, -0.2, 0.25, 0.35, 0.25},
     selectionbox = { -0.45, 0.0, -0.4, 0.45, 0.55, 0.5 },
     driver_eye_offset = { x = 0, y = 2, z = -16 },
     stepheight = 1.0,
