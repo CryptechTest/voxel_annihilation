@@ -7,3 +7,9 @@
 [submodule "mods/schemlib"]
 	path = mods/schemlib
 	url = git@github.com:CryptechTest/schemlib.git
+[submodule "mods/poschangelib"]
+	path = mods/poschangelib
+	url = git@github.com:CryptechTest/poschangelib.git
+[submodule "mods/twmlib"]
+	path = mods/twmlib
+	url = git@github.com:CryptechTest/twmlib.git
