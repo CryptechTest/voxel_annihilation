@@ -349,9 +349,9 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
         b_name = "grass"
     end
     if value == nil and mass_type == nil then
-        value = va_structures.util.randFloat(0.15, 0.79)
+        value = va_structures.util.randFloat(0.10, 0.30)
     elseif value == nil and mass_type == "gold" then
-        value = va_structures.util.randFloat(0.80, 2.00)
+        value = va_structures.util.randFloat(0.31, 1.00)
     end
     if mass_type == nil then
         mass_type = ""
