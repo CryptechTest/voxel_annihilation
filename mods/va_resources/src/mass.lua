@@ -46,6 +46,12 @@ local mass_deposits = {{
         tileable_vertical = false
     }}
 }, {
+    check = "default:dry_dirt",
+    base_name = "dry_dirt",
+    node_desc = "Dry Dirt",
+    base_texture = "default_dry_dirt",
+    tiles = {"default_dry_dirt.png", "default_dry_dirt.png"}
+}, {
     check = "default:dirt",
     base_name = "dirt",
     node_desc = "Dirt",

@@ -11,6 +11,10 @@ local registrations = {{
     deco = "va_resources:dirt_with_metal",
     replace = "dirt"
 }, {
+    place_on = "default:dry_dirt",
+    deco = "va_resources:dry_dirt_with_metal",
+    replace = "dry_dirt"
+}, {
     place_on = "default:gravel",
     deco = "va_resources:gravel_with_metal",
     replace = "gravel"
