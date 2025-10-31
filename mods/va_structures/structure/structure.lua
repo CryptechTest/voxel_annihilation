@@ -65,6 +65,7 @@ function Structure.new(pos, name, def, do_def_check)
 
     self.category = def.category or "none" -- build, combat, economy, utility
     self.water_type = def.water_type or false -- flag for water structures
+    self.under_water_type = def.under_water_type or false -- flag for underwater structures
     self.factory_type = def.factory_type or false
 
     self.tier = def.tier -- tech tier of this structure
@@ -129,13 +130,16 @@ function Structure.new(pos, name, def, do_def_check)
         if self:collides_solid(pos) then
             minetest.chat_send_player(name, "Structure requires more room.")
             return itemstack
-        elseif not self.water_type and not self:collides_has_floor(pos) then
+        elseif not self.water_type and not self.under_water_type and not self:collides_has_floor(pos) then
             minetest.chat_send_player(name, "Structure requires more floor room.")
             return itemstack
-        elseif not self.water_type and self:collides_liquid(pos) then
+        elseif not self.water_type and not self.under_water_type and self:collides_liquid(pos) then
             minetest.chat_send_player(name, "Structure must be built on land.")
             return itemstack
-        elseif self.water_type and not self:collides_has_floor_water(pos) then
+        elseif self.water_type and not self.under_water_type and not self:collides_has_floor_water(pos) then
+            minetest.chat_send_player(name, "Structure must be built on water.")
+            return itemstack
+        elseif self.under_water_type and self.under_water_type and not self:collides_has_water(pos) then
             minetest.chat_send_player(name, "Structure must be built on water.")
             return itemstack
         elseif self:collides_other(pos, self.size) then
@@ -267,6 +271,16 @@ end
 function Structure:collides_has_floor_water(pos)
     local f_pos = vector.new(pos)
     f_pos.y = f_pos.y - 1
+    local size = vector.new(self.size.x, 0, self.size.z)
+    local pos1 = vector.add(f_pos, size)
+    local pos2 = vector.subtract(f_pos, size)
+    local nodes = core.find_nodes_in_area(pos1, pos2, {"group:liquid", "group:water"})
+    local vol = ((self.size.x * 2) + 1) * ((self.size.z * 2) + 1)
+    return #nodes >= vol
+end
+
+function Structure:collides_has_water(pos)
+    local f_pos = vector.new(pos)
     local size = vector.new(self.size.x, 0, self.size.z)
     local pos1 = vector.add(f_pos, size)
     local pos2 = vector.subtract(f_pos, size)

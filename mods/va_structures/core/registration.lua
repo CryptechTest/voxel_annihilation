@@ -32,6 +32,7 @@ local structure_files = {
             "vox_energy_converter",
             "vox_energy_storage",
             "vox_mass_extractor",
+            "vox_naval_mass_extractor",
             "vox_mass_storage",
             "vox_solar_collector",
             "vox_wind_turbine"
