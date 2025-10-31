@@ -39,7 +39,7 @@ local function register_resource_indicator()
         initial_properties = {
             visual = "mesh",
             mesh = "va_resource_circle_1.gltf",
-            textures = {"va_resource_mass_2.png"},
+            textures = {"va_resource_mass_ring_2.png"},
             collisionbox = {0},
             visual_size = {
                 x = 1.75,

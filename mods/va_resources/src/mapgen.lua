@@ -51,7 +51,7 @@ local registrations = {{
     deco = "va_resources:desert_sandstone_with_metal",
     replace = "desert_sandstone"
 }, {
-    place_on = "default:desert_sstone",
+    place_on = "default:desert_stone",
     deco = "va_resources:desert_stone_with_metal",
     replace = "desert_stone"
 }, {
@@ -131,7 +131,11 @@ core.register_on_generated(function(minp, maxp, blockseed)
         if #poslist ~= 0 then
             for i = 1, #poslist do
                 local p = poslist[i]
-                va_resources.add_mass_deposit(p.pos, p.replace)
+                local t_m = nil
+                if math.random(0,5) == 0 then
+                    t_m = "gold"
+                end
+                va_resources.add_mass_deposit(p.pos, p.replace, nil, t_m)
             end
         end
     end
