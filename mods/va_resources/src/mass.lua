@@ -349,10 +349,14 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
     end
     if value == nil and mass_type == nil then
         value = va_structures.util.randFloat(0.10, 0.30)
+    elseif value == nil and mass_type == "s" then
+        value = va_structures.util.randFloat(0.07, 0.08)
+    elseif value == nil and mass_type == "c" then
+        value = va_structures.util.randFloat(0.31, 0.56)
     elseif value == nil and mass_type == "gold" then
-        value = va_structures.util.randFloat(0.31, 1.00)
+        value = va_structures.util.randFloat(0.57, 0.80)
     end
-    if mass_type == nil and value <= 0.14 then
+    if mass_type == nil and value <= 0.18 then
         mass_type = "s"
     end
     if mass_type == nil then
@@ -497,6 +501,12 @@ local function register_resource_mass()
     local mass_deposits_s = deepcopy(mass_deposits)
     for _, d in pairs(mass_deposits_s) do
         d.mass_type = "s"
+        register_mass_deposit(d)
+    end
+
+    local mass_deposits_s = deepcopy(mass_deposits)
+    for _, d in pairs(mass_deposits_s) do
+        d.mass_type = "c"
         register_mass_deposit(d)
     end
 

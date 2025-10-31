@@ -70,13 +70,13 @@ local function register_mass(def)
         name = def.deco,
         deco_type = "simple",
         place_on = {def.place_on},
-        sidelen = 8,
+        sidelen = 16,
         noise_params = {
-			offset = 0.000331,
-			scale = 0.001,
+			offset = 0.000231,
+			scale = 0.0002,
 			spread = {x = 200, y = 200, z = 200},
 			seed = 88,
-			octaves = 1,
+			octaves = 2,
 			persist = 0.37
         },
         y_max = 256,
@@ -139,12 +139,15 @@ core.register_on_generated(function(minp, maxp, blockseed)
                 local p = poslist[i]
                 local t_m = nil
                 
-                if math.random(0,31) == 0 then
-                    t_m = "gold"
-                end
-                if math.random(0,31) <= 2 then
-                    va_resources.add_mass_deposit(p.pos, p.replace, 0.07, 's') 
+                local r = math.random(0,31)
+                if r <= 2 then
+                    va_resources.add_mass_deposit(p.pos, p.replace, nil, 'c') 
+                elseif r <= 5 then
+                    va_resources.add_mass_deposit(p.pos, p.replace, nil, 's') 
                 else
+                    if math.random(0,47) <= 1 then
+                        t_m = "gold"
+                    end
                     va_resources.add_mass_deposit(p.pos, p.replace, nil, t_m) 
                 end
             end

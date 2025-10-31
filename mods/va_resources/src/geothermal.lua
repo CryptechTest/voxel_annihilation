@@ -209,7 +209,7 @@ local function spawn_particles(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, lv
         vel = 0.28,
         time = (time or 6),
         size = 0.75 + (lvl or 1),
-        glow = 1,
+        glow = 3,
         cols = false
     }
 
