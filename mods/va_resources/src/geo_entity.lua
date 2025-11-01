@@ -43,8 +43,8 @@ local function register_geo_indicator()
             use_texture_alpha = true,
             collisionbox = {0},
             visual_size = {
-                x = 1.75,
-                y = 1.75
+                x = 1.9,
+                y = 1.9
             },
             type = "va_indicator",
             glow = 7,
