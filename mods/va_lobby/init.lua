@@ -293,3 +293,21 @@ core.register_on_player_hpchange(function(player, hp_change, reason, modifier)
     return hp_change
 end, true)
 
+local region_min = {x = -4608, y = -30912 , z = -4608}
+local region_max = {x = 4608, y = 30927, z = 4608}
+
+minetest.register_on_generated(function(minp, maxp, seed)
+    for x = minp.x, maxp.x do
+        for y = minp.y, maxp.y do
+            for z = minp.z, maxp.z do
+                if x < region_min.x or x > region_max.x or
+                   y < region_min.y or y > region_max.y or
+                   z < region_min.z or z > region_max.z then
+                    core.set_node({x=x, y=y, z=z}, {name="barrier:barrier"})
+                end
+            end
+        end
+    end
+
+
+end)

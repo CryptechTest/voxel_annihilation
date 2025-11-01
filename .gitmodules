@@ -13,3 +13,6 @@
 [submodule "mods/twmlib"]
 	path = mods/twmlib
 	url = git@github.com:CryptechTest/twmlib.git
+[submodule "mods/bedrock"]
+	path = mods/bedrock
+	url = git@github.com:CryptechTest/bedrock.git
