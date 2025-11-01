@@ -375,8 +375,12 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
             node = core.get_node_or_nil(d_pos)
         end
         local n_name = node.name
-        local g = core.get_item_group(n_name, 'va_mass')
-        if g > 0 and g < 3 then
+        local g_mass = core.get_item_group(n_name, 'va_mass')
+        if g_mass > 0 and g_mass <= 3 then
+            found = true
+        end
+        local g_geo = core.get_item_group(n_name, 'va_geo_vent')
+        if g_geo > 0 and g_geo <= 3 then
             found = true
         end
 
@@ -392,7 +396,30 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
         end
     end
     if found or near_air then
-        core.remove_node(pos)
+        local n = nil
+        local c = {}
+        for x = -1, 1 do
+            for z = -1, 1 do
+                local p = vector.add(pos, {
+                    x = x,
+                    y = 0,
+                    z = z
+                })
+                if core.get_node(p).name ~= "air" then
+                    n = core.get_node(p).name
+                    if not c[n] then
+                        c[n] = 0
+                    end
+                    if c[n] > 2 then
+                        break;
+                    end
+                    c[n] = c[n] + 1
+                end
+            end
+        end
+        core.set_node(pos, {
+            name = n
+        })
         return false
     end
 
