@@ -220,6 +220,8 @@ local function register_mass_deposit(def)
             va_mass = 3
         },
         drop = "",
+        paramtype = "light",
+        light_source = 1,
 
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then
@@ -406,7 +408,7 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
                     z = z
                 })
                 local node = core.get_node(p)
-                if node.name ~= "air" and node.name ~= "ignore" then
+                if node and node.name ~= "air" and node.name ~= "ignore" then
                     n = node.name
                     if not c[n] then
                         c[n] = 0
