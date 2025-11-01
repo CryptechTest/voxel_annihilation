@@ -504,8 +504,9 @@ function va_resources.add_geo_vent(pos, b_name, value, geo_type)
                     y = 0,
                     z = z
                 })
-                if core.get_node(p).name ~= "air" then
-                    n = core.get_node(p).name
+                local node = core.get_node(p)
+                if node.name ~= "air" and node.name ~= "ignore" then
+                    n = node.name
                     if not c[n] then
                         c[n] = 0
                     end
