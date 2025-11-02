@@ -76,7 +76,7 @@ local mass_deposits = {{
     base_texture = "default_desert_stone",
     tiles = {"default_desert_stone.png", "default_desert_stone.png"}
 }, {
-    check = "default:desert_sandstone",   
+    check = "default:desert_sandstone",
     base_name = "desert_sandstone",
     node_desc = "Desert Sandstone",
     base_texture = "default_desert_sandstone",
@@ -135,6 +135,62 @@ local mass_deposits = {{
     }}
 }}
 
+if minetest.get_modpath("badlands") then
+    table.insert(mass_deposits, {
+        check = "badlands:red_sand",
+        base_name = "red_sand",
+        node_desc = "Red Sand",
+        base_texture = "default_sand",
+        tiles = {"default_sand.png^[colorize:sienna:175^[colorize:red:40",
+                 "default_sand.png^[colorize:sienna:175^[colorize:red:40"}
+    })
+    table.insert(mass_deposits, {
+        check = "badlands:red_sandstone",
+        base_name = "red_sandstone",
+        node_desc = "Red Sandstone",
+        base_texture = "default_sandstone",
+        tiles = {"default_sandstone.png^[colorize:sienna:175^[colorize:red:40",
+                 "default_sandstone.png^[colorize:sienna:175^[colorize:red:40"}
+    })
+end
+
+if minetest.get_modpath("bakedclay") then
+    table.insert(mass_deposits, {
+        check = "bakedclay:natural",
+        base_name = "clay_natural",
+        node_desc = "Natural Clay",
+        base_texture = "baked_clay_natural",
+        tiles = {"baked_clay_natural.png", "baked_clay_natural.png"}
+    })
+end
+
+if minetest.get_modpath("saltd") then
+    table.insert(mass_deposits, {
+        check = "saltd:salt_sand",
+        base_name = "salt_sand",
+        node_desc = "Salt Sand",
+        use_hd_texture = true,
+        base_texture = "saltd_salt_sand",
+        tiles = {"saltd_salt_sand.png", "saltd_salt_sand.png"}
+    })
+    table.insert(mass_deposits, {
+        check = "saltd:humid_salt_sand",
+        base_name = "humid_salt_sand",
+        node_desc = "Humid Salt Sand",
+        use_hd_texture = true,
+        base_texture = "saltd_humid_salt_sand",
+        tiles = {"saltd_humid_salt_sand.png", "saltd_humid_salt_sand.png"}
+    })
+    table.insert(mass_deposits, {
+        check = "saltd:barren",
+        base_name = "barren",
+        node_desc = "Barren Land",
+        use_hd_texture = true,
+        base_texture = "saltd_barren",
+        tiles = {"saltd_barren.png", "saltd_barren.png"}
+    })
+end
+
 local dirs = {{ -- along x beside
     x = 1,
     y = 0,
@@ -182,34 +238,39 @@ local function register_mass_deposit(def)
     local t_name_b = "va_resources:" .. base_name .. "_with_metal" .. tt_name
     local t_name = "va_resources:" .. base_name .. "_near_metal" .. tt_name
 
+    local hd = ""
+    if def.use_hd_texture then
+        hd = "_hd"
+    end
+
     local tiles = def.tiles or {}
 
     local tiles_0 = deepcopy(tiles)
-    tiles_0[1] = base_texture .. ".png^(" .. mass_texture .. "_" .. t_m .. "_1.png)"
+    tiles_0[1] = base_texture .. ".png^(" .. mass_texture .. "_" .. t_m .. "_1" .. hd .. ".png)"
 
     local tiles_1 = deepcopy(tiles)
-    tiles_1[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformFYR90])"
+    tiles_1[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformFYR90])"
 
     local tiles_2 = deepcopy(tiles)
-    tiles_2[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformR90])"
+    tiles_2[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformR90])"
 
     local tiles_3 = deepcopy(tiles)
-    tiles_3[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformFX])"
+    tiles_3[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformFX])"
 
     local tiles_4 = deepcopy(tiles)
-    tiles_4[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2.png)^[transformR180])"
+    tiles_4[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformR180])"
 
     local tiles_5 = deepcopy(tiles)
-    tiles_5[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3.png))"
+    tiles_5[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3" .. hd .. ".png))"
 
     local tiles_6 = deepcopy(tiles)
-    tiles_6[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3.png)^[transformR180])"
+    tiles_6[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3" .. hd .. ".png)^[transformR180])"
 
     local tiles_7 = deepcopy(tiles)
-    tiles_7[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4.png)^[transformFY])"
+    tiles_7[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4" .. hd .. ".png)^[transformFY])"
 
     local tiles_8 = deepcopy(tiles)
-    tiles_8[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4.png)^[transformR90])"
+    tiles_8[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4" .. hd .. ".png)^[transformR90])"
 
     -- center node
     core.register_node(t_name_b, {
@@ -414,7 +475,7 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
                         c[n] = 0
                     end
                     if c[n] > 2 then
-                        break;
+                        break
                     end
                     c[n] = c[n] + 1
                 end
@@ -524,7 +585,7 @@ local function register_resource_mass()
 
     local mass_deposits_a = deepcopy(mass_deposits)
     for _, d in pairs(mass_deposits_a) do
-        --d.mass_type = "a"
+        -- d.mass_type = "a"
         register_mass_deposit(d)
     end
 
