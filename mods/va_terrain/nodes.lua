@@ -345,3 +345,78 @@ default.register_leafdecay({
 	leaves = naturalslopeslib.get_all_shapes("default:pine_bush_needles"),
 	radius = 1,
 })
+
+
+---
+--- Badlands slopes
+---
+
+naturalslopeslib.register_slope("badlands:red_sand", {
+	description = S("Red Sand Slope"),
+	},
+	5,
+	{mapgen = 0, place = 0, time = 0}
+)
+
+naturalslopeslib.register_slope("badlands:red_sandstone", {
+	description = S("Red Sandstone Slope"),
+	},
+	5,
+	{mapgen = 0, place = 0, time = 0}
+)
+
+local clay = {
+	{"natural", "Natural"},
+	{"white", "White"},
+	{"grey", "Grey"},
+	{"black", "Black"},
+	{"red", "Red"},
+	{"yellow", "Yellow"},
+	{"green", "Green"},
+	{"cyan", "Cyan"},
+	{"blue", "Blue"},
+	{"magenta", "Magenta"},
+	{"orange", "Orange"},
+	{"violet", "Violet"},
+	{"brown", "Brown"},
+	{"pink", "Pink"},
+	{"dark_grey", "Dark Grey"},
+	{"dark_green", "Dark Green"}
+}
+
+-- scroll through colours
+for _, clay in pairs(clay) do
+
+	naturalslopeslib.register_slope("bakedclay:" .. clay[1], {
+		description = S(clay[2] .. " Baked Clay"),
+		},
+		5,
+		{mapgen = 0, place = 0, time = 0}
+	)
+
+end
+
+---
+--- Saltd slopes
+---
+
+naturalslopeslib.register_slope("saltd:salt_sand", {
+	description = S("Salt Sand"),
+	},
+	5,
+	{mapgen = 0, place = 0, time = 0}
+)
+
+naturalslopeslib.register_slope("saltd:humid_salt_sand", {
+	description = S("Humid Salt Sand"),
+	},
+	5,
+	{mapgen = 0, place = 0, time = 0}
+)
+
+naturalslopeslib.register_slope("saltd:barren", {
+	description = S("Barren"),
+	},
+	5,
+	{mapgen = 0, place = 0, time = 0}
+)
