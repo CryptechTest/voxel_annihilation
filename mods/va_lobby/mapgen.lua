@@ -67,13 +67,6 @@ core.register_on_generated(function(vm, minp, maxp, chunkseed)
 
 	generate_chunk(vm, minp, maxp, chunkseed)
 
-    -- Only generate decorations/ores inside region
-    if minp.x >= region_min.x and maxp.x <= region_max.x and
-       minp.y >= region_min.y and maxp.y <= region_max.y and
-       minp.z >= region_min.z and maxp.z <= region_max.z then
-        core.generate_decorations(vm)
-        core.generate_ores(vm)
-    end
   
 	vm:update_liquids() -- so they start flowing
 
