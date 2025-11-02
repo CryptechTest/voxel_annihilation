@@ -2,7 +2,6 @@ local path = minetest.get_modpath("va_lobby")
 
 core.register_mapgen_script(path .. "/mapgen.lua")
 
-
 va_lobby = {}
 local formspecs = {}
 
