@@ -3,6 +3,7 @@ local region_max = {x = 4096, y = (16 * 136) + 1, z = 4096}
 
 local IN_MAPGEN_ENVIRONMENT = not core.after
 
+local c_air = core.CONTENT_AIR
 local c_barrier = core.get_content_id("barrier:barrier")
 local c_bedrock = core.get_content_id("bedrock2:bedrock")
 
@@ -35,6 +36,8 @@ local function generate_chunk(vm, minp, maxp, chunkseed)
                     node_data[node_index] = c_bedrock
                 elseif y == -17 then
                     node_data[node_index] = c_barrier
+                elseif y < -17 and y > -((16 * 128) + 1) then
+                    node_data[node_index] = c_air
                 elseif y == -((16 * 128) + 1) then
                     node_data[node_index] = c_bedrock
                 elseif y == -((16 * 136) + 2) then
