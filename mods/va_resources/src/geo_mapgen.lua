@@ -67,12 +67,12 @@ local registrations = {{
 if minetest.get_modpath("badlands") then
     table.insert(registrations, {
         place_on = "badlands:red_sand",
-        deco = "va_resources:red_sand_with_metal",
+        deco = "va_resources:red_sand_with_geo",
         replace = "red_sand"
     })
     table.insert(registrations, {
         place_on = "badlands:red_sandstone",
-        deco = "va_resources:red_sandstone_with_metal",
+        deco = "va_resources:red_sandstone_with_geo",
         replace = "red_sandstone"
     })
 end
@@ -80,7 +80,7 @@ end
 if minetest.get_modpath("bakedclay") then
     table.insert(registrations, {
         place_on = "bakedclay:orange",
-        deco = "va_resources:clay_orange_with_metal",
+        deco = "va_resources:clay_orange_with_geo",
         replace = "clay_orange"
     })
 end
@@ -88,17 +88,17 @@ end
 if minetest.get_modpath("saltd") then
     table.insert(registrations, {
         place_on = "saltd:salt_sand",
-        deco = "va_resources:salt_sand_with_metal",
+        deco = "va_resources:salt_sand_with_geo",
         replace = "saltd_salt_sand"
     })
     table.insert(registrations, {
         place_on = "saltd:humid_salt_sand",
-        deco = "va_resources:humid_salt_sand_with_metal",
+        deco = "va_resources:humid_salt_sand_with_geo",
         replace = "humid_salt_sand"
     })
     table.insert(registrations, {
         place_on = "saltd:barren",
-        deco = "va_resources:barren_with_metal",
+        deco = "va_resources:barren_with_geo",
         replace = "barren"
     })
 end
@@ -111,12 +111,16 @@ local function register_geo(def)
         place_on = {def.place_on},
         sidelen = 16,
         noise_params = {
-			offset = 0.0000173,
-			scale = 0.000001,
-			spread = {x = 300, y = 200, z = 300},
-			seed = 73,
-			octaves = 2,
-			persist = 0.28
+            offset = 0.0000173,
+            scale = 0.000001,
+            spread = {
+                x = 300,
+                y = 200,
+                z = 300
+            },
+            seed = 73,
+            octaves = 2,
+            persist = 0.28
         },
         y_max = 256,
         y_min = 1,
@@ -158,7 +162,7 @@ core.register_on_generated(function(minp, maxp, blockseed)
         return
     end
     if maxp.x > 4095 or minp.x < -4096 then
-        return  
+        return
     end
     if maxp.z > 4095 or minp.z < -4096 then
         return

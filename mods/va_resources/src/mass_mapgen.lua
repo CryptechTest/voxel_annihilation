@@ -111,12 +111,16 @@ local function register_mass(def)
         place_on = {def.place_on},
         sidelen = 16,
         noise_params = {
-			offset = 0.000231,
-			scale = 0.0002,
-			spread = {x = 200, y = 200, z = 200},
-			seed = 88,
-			octaves = 2,
-			persist = 0.37
+            offset = 0.000231,
+            scale = 0.0002,
+            spread = {
+                x = 200,
+                y = 200,
+                z = 200
+            },
+            seed = 88,
+            octaves = 2,
+            persist = 0.37
         },
         y_max = 256,
         y_min = -3,
@@ -159,7 +163,7 @@ core.register_on_generated(function(minp, maxp, blockseed)
         return
     end
     if maxp.x > 4095 or minp.x < -4096 then
-        return  
+        return
     end
     if maxp.z > 4095 or minp.z < -4096 then
         return
@@ -187,17 +191,17 @@ core.register_on_generated(function(minp, maxp, blockseed)
             for i = 1, #poslist do
                 local p = poslist[i]
                 local t_m = nil
-                
-                local r = math.random(0,31)
+
+                local r = math.random(0, 31)
                 if r <= 2 then
-                    va_resources.add_mass_deposit(p.pos, p.replace, nil, 'c') 
+                    va_resources.add_mass_deposit(p.pos, p.replace, nil, 'c')
                 elseif r <= 5 then
-                    va_resources.add_mass_deposit(p.pos, p.replace, nil, 's') 
+                    va_resources.add_mass_deposit(p.pos, p.replace, nil, 's')
                 else
-                    if math.random(0,47) <= 1 then
+                    if math.random(0, 47) <= 1 then
                         t_m = "gold"
                     end
-                    va_resources.add_mass_deposit(p.pos, p.replace, nil, t_m) 
+                    va_resources.add_mass_deposit(p.pos, p.replace, nil, t_m)
                 end
             end
         end
