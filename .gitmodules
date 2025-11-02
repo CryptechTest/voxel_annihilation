@@ -16,3 +16,12 @@
 [submodule "mods/bedrock"]
 	path = mods/bedrock
 	url = git@github.com:CryptechTest/bedrock.git
+[submodule "mods/saltd"]
+	path = mods/saltd
+	url = git@github.com:CryptechTest/saltd.git
+[submodule "mods/badlands"]
+	path = mods/badlands
+	url = git@github.com:CryptechTest/badlands.git
+[submodule "mods/bakedclay"]
+	path = mods/bakedclay
+	url = git@github.com:CryptechTest/bakedclay.git
