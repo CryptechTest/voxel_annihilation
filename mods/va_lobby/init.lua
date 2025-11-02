@@ -1,3 +1,8 @@
+local path = minetest.get_modpath("va_lobby")
+
+core.register_mapgen_script(path .. "/mapgen.lua")
+
+
 va_lobby = {}
 local formspecs = {}
 
@@ -283,9 +288,6 @@ core.register_on_player_receive_fields(function(player, formname, fields)
     end
 end)
 
-
-
-
 core.register_on_player_hpchange(function(player, hp_change, reason, modifier)
     if hp_change < 0 then
         return 0
@@ -293,21 +295,9 @@ core.register_on_player_hpchange(function(player, hp_change, reason, modifier)
     return hp_change
 end, true)
 
-local region_min = {x = -4608, y = -30912 , z = -4608}
-local region_max = {x = 4608, y = 30927, z = 4608}
+core.override_item("bedrock2:bedrock", {light_source = 3, propagates_light = true})
 
-minetest.register_on_generated(function(minp, maxp, seed)
-    for x = minp.x, maxp.x do
-        for y = minp.y, maxp.y do
-            for z = minp.z, maxp.z do
-                if x < region_min.x or x > region_max.x or
-                   y < region_min.y or y > region_max.y or
-                   z < region_min.z or z > region_max.z then
-                    core.set_node({x=x, y=y, z=z}, {name="barrier:barrier"})
-                end
-            end
-        end
-    end
-
-
+core.register_on_joinplayer(function(player, last_login)
+    player:set_lighting({ shadows = { intensity = 0.25 } })
 end)
+
