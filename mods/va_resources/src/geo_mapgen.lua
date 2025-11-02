@@ -89,7 +89,7 @@ if minetest.get_modpath("saltd") then
     table.insert(registrations, {
         place_on = "saltd:salt_sand",
         deco = "va_resources:salt_sand_with_geo",
-        replace = "saltd_salt_sand"
+        replace = "salt_sand"
     })
     table.insert(registrations, {
         place_on = "saltd:humid_salt_sand",
