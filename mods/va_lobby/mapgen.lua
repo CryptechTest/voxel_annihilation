@@ -1,5 +1,5 @@
-local region_min = {x = -4096, y = -((16 * 136) + 2) , z = -4096}
-local region_max = {x = 4096, y = (16 * 136) + 1, z = 4096}
+local region_min = {x = -4096, y = -((16 * 72) + 2) , z = -4096}
+local region_max = {x = 4095, y = (16 * 72) + 1, z = 4095}
 
 local IN_MAPGEN_ENVIRONMENT = not core.after
 
@@ -28,9 +28,11 @@ local function generate_chunk(vm, minp, maxp, chunkseed)
                     node_data[node_index] = c_barrier
                 elseif y == (16 * 64) then
                     node_data[node_index] = c_bedrock
-                elseif y == (16 * 72) + 1 then
+                elseif y == (16 * 64) - 1 then
                     node_data[node_index] = c_barrier
-                elseif y == (16 * 7) + 1 then
+                elseif y == (16 * 72) - 2 then
+                    node_data[node_index] = c_barrier
+                elseif y == (16 * 7) then
                     node_data[node_index] = c_barrier
                 elseif y == -16 then
                     node_data[node_index] = c_bedrock
@@ -59,17 +61,21 @@ core.register_on_generated(function(vm, minp, maxp, chunkseed)
 		minp, maxp, chunkseed = vm, minp, maxp
 	end
 
-	if maxp.y < -(16*72) - 1 or minp.y > (16*72) + 2 then return end
-
 	if not IN_MAPGEN_ENVIRONMENT then
 		vm = core.get_mapgen_object("voxelmanip")
 	end
 
 	generate_chunk(vm, minp, maxp, chunkseed)
 
-	--core.generate_decorations(vm)
-	--core.generate_ores(vm)
-	--vm:update_liquids() -- so they start flowing
+    -- Only generate decorations/ores inside region
+    if minp.x >= region_min.x and maxp.x <= region_max.x and
+       minp.y >= region_min.y and maxp.y <= region_max.y and
+       minp.z >= region_min.z and maxp.z <= region_max.z then
+        core.generate_decorations(vm)
+        core.generate_ores(vm)
+    end
+  
+	vm:update_liquids() -- so they start flowing
 
 	--vm:set_lighting({day = 0, night = 0})
 	--vm:calc_lighting() -- necessary after placing glowing nodes
