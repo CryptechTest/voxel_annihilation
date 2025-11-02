@@ -115,6 +115,16 @@ core.set_gen_notify({
 
 -- start nodetimers
 core.register_on_generated(function(minp, maxp, blockseed)
+    if maxp.y > 16 * 72 + 1 or minp.z < -(16 * 72 + 2) then
+        return
+    end
+    if maxp.x > 4095 or minp.x < -4096 then
+        return  
+    end
+    if maxp.z > 4095 or minp.z < -4096 then
+        return
+    end
+
     local gennotify = core.get_mapgen_object("gennotify")
 
     math.randomseed(blockseed)
