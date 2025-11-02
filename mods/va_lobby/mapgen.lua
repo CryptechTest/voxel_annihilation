@@ -26,9 +26,9 @@ local function generate_chunk(vm, minp, maxp, chunkseed)
                    y < region_min.y or y > region_max.y or
                    z < region_min.z or z > region_max.z then
                     node_data[node_index] = c_barrier
-                elseif y == (16 * 128) then
+                elseif y == (16 * 64) then
                     node_data[node_index] = c_bedrock
-                elseif y == (16 * 136) + 1 then
+                elseif y == (16 * 72) + 1 then
                     node_data[node_index] = c_barrier
                 elseif y == (16 * 7) + 1 then
                     node_data[node_index] = c_barrier
@@ -36,11 +36,15 @@ local function generate_chunk(vm, minp, maxp, chunkseed)
                     node_data[node_index] = c_bedrock
                 elseif y == -17 then
                     node_data[node_index] = c_barrier
-                elseif y < -17 and y > -((16 * 128) + 1) then
+                elseif y < -17 and y > -(16 * 64) - 1 then
                     node_data[node_index] = c_air
-                elseif y == -((16 * 128) + 1) then
+                elseif y == -(16 * 64) - 1 then
+                    node_data[node_index] = c_barrier
+                elseif y < -(16 * 64) - 1 and y > -(16 * 72) then
+                    node_data[node_index] = c_air
+                elseif y == -(16 * 72) then
                     node_data[node_index] = c_bedrock
-                elseif y == -((16 * 136) + 2) then
+                elseif y == -(16 * 72) - 1 then
                     node_data[node_index] = c_barrier
                 end
 			end
@@ -55,7 +59,7 @@ core.register_on_generated(function(vm, minp, maxp, chunkseed)
 		minp, maxp, chunkseed = vm, minp, maxp
 	end
 
-	if maxp.y < -(16*136) or minp.y > (16*136) then return end
+	if maxp.y < -(16*72) - 1 or minp.y > (16*72) + 2 then return end
 
 	if not IN_MAPGEN_ENVIRONMENT then
 		vm = core.get_mapgen_object("voxelmanip")
