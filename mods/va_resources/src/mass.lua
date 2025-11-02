@@ -525,19 +525,19 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
             side = "_8"
         end
 
-        local node = core.get_node_or_nil(d_pos)
-        if node then
-            local n_name = node.name
-            local match = match_deposit_overlap(n_name)
-            if match then
-                b_name = match
+        local n = core.get_node_or_nil(d_pos)
+        if n then
+            local n_name = n.name
+            local _match = match_deposit_overlap(n_name)
+            if _match then
+                b_name = _match
             end
 
             core.add_node(d_pos, {
                 name = "va_resources:" .. b_name .. "_near_metal" .. mass_type .. side
             })
-            local meta = core.get_meta(d_pos)
-            meta:set_int("va_mass_amount", value * 100)
+            local _meta = core.get_meta(d_pos)
+            _meta:set_int("va_mass_amount", value * 100)
         end
     end
     return true
@@ -595,8 +595,8 @@ local function register_resource_mass()
         register_mass_deposit(d)
     end
 
-    local mass_deposits_s = deepcopy(mass_deposits)
-    for _, d in pairs(mass_deposits_s) do
+    local mass_deposits_c = deepcopy(mass_deposits)
+    for _, d in pairs(mass_deposits_c) do
         d.mass_type = "c"
         register_mass_deposit(d)
     end

@@ -135,7 +135,7 @@ for _, def in pairs(registrations) do
     metals[id] = def.replace
 end
 
-function split(s, delimiter)
+local function split(s, delimiter)
     local result = {}
     -- Use gmatch to find all substrings that are not the delimiter
     for match in string.gmatch(s, "([^" .. delimiter .. "]+)") do
