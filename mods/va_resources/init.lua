@@ -17,3 +17,6 @@ dofile(mod_path .. "/src/windstep.lua")
 dofile(mod_path .. "/src/geothermal.lua")
 dofile(mod_path .. "/src/geo_mapgen.lua")
 dofile(mod_path .. "/src/geo_entity.lua")
+
+-- rocks and foilage...
+dofile(mod_path .. "/src/rocks.lua")
