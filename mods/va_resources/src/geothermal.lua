@@ -156,11 +156,11 @@ end
 
 if minetest.get_modpath("bakedclay") then
     table.insert(geo_vents, {
-        check = "bakedclay:natural",
-        base_name = "clay_natural",
-        node_desc = "Natural Clay",
-        base_texture = "baked_clay_natural.png",
-        tiles = {"baked_clay_natural.png", "baked_clay_natural.png"}
+        check = "bakedclay:orange",
+        base_name = "clay_orange",
+        node_desc = "Orange Clay",
+        base_texture = "baked_clay_orange.png",
+        tiles = {"baked_clay_orange.png", "baked_clay_orange.png"}
     })
 end
 

@@ -64,6 +64,45 @@ local registrations = {{
     replace = "silver_sand"
 }}
 
+if minetest.get_modpath("badlands") then
+    table.insert(registrations, {
+        place_on = "badlands:red_sand",
+        deco = "va_resources:red_sand_with_metal",
+        replace = "red_sand"
+    })
+    table.insert(registrations, {
+        place_on = "badlands:red_sandstone",
+        deco = "va_resources:red_sandstone_with_metal",
+        replace = "red_sandstone"
+    })
+end
+
+if minetest.get_modpath("bakedclay") then
+    table.insert(registrations, {
+        place_on = "bakedclay:orange",
+        deco = "va_resources:clay_orange_with_metal",
+        replace = "clay_orange"
+    })
+end
+
+if minetest.get_modpath("saltd") then
+    table.insert(registrations, {
+        place_on = "saltd:salt_sand",
+        deco = "va_resources:salt_sand_with_metal",
+        replace = "salt_sand"
+    })
+    table.insert(registrations, {
+        place_on = "saltd:humid_salt_sand",
+        deco = "va_resources:humid_salt_sand_with_metal",
+        replace = "humid_salt_sand"
+    })
+    table.insert(registrations, {
+        place_on = "saltd:barren",
+        deco = "va_resources:barren_with_metal",
+        replace = "barren"
+    })
+end
+
 local function register_mass(def)
 
     core.register_decoration({
@@ -116,7 +155,7 @@ core.set_gen_notify({
 
 -- start nodetimers
 core.register_on_generated(function(minp, maxp, blockseed)
-    if maxp.y > 16 * 72 + 1 or minp.z < -(16 * 72 + 2) then
+    if maxp.y > 16 * 72 + 1 or minp.y < -(16 * 72 + 2) then
         return
     end
     if maxp.x > 4095 or minp.x < -4096 then

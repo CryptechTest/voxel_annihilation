@@ -4,7 +4,7 @@ local mass_deposits = {{
     check = "default:dirt_with_grass",
     base_name = "grass",
     node_desc = "Grass",
-    base_texture = "default_grass",
+    base_texture = "default_grass.png",
     tiles = {"default_grass.png", "default_dirt.png", {
         name = "default_dirt.png^default_grass_side.png",
         tileable_vertical = false
@@ -13,7 +13,7 @@ local mass_deposits = {{
     check = "default:dry_dirt_with_dry_grass",
     base_name = "dry_dirt_with_grass",
     node_desc = "Dry Dirt with Grass",
-    base_texture = "default_dry_grass",
+    base_texture = "default_dry_grass.png",
     tiles = {"default_dry_grass.png", "default_dry_dirt.png", {
         name = "default_dry_dirt.png^default_dry_grass_side.png",
         tileable_vertical = false
@@ -22,7 +22,7 @@ local mass_deposits = {{
     check = "default:dirt_with_dry_grass",
     base_name = "dry_grass",
     node_desc = "Dry Dirt with Grass",
-    base_texture = "default_dry_grass",
+    base_texture = "default_dry_grass.png",
     tiles = {"default_dry_grass.png", "default_dry_dirt.png", {
         name = "default_dry_dirt.png^default_dry_grass_side.png",
         tileable_vertical = false
@@ -31,7 +31,7 @@ local mass_deposits = {{
     check = "default:dirt_with_dry_grass",
     base_name = "dirt_with_dry_grass",
     node_desc = "Dry Grass",
-    base_texture = "default_dry_grass",
+    base_texture = "default_dry_grass.png",
     tiles = {"default_dry_grass.png", "default_dirt.png", {
         name = "default_dirt.png^default_dry_grass_side.png",
         tileable_vertical = false
@@ -40,7 +40,7 @@ local mass_deposits = {{
     check = "default:dirt_with_snow",
     base_name = "dirt_snow",
     node_desc = "Snow",
-    base_texture = "default_snow",
+    base_texture = "default_snow.png",
     tiles = {"default_snow.png", "default_dirt.png", {
         name = "default_dirt.png^default_snow_side.png",
         tileable_vertical = false
@@ -49,68 +49,68 @@ local mass_deposits = {{
     check = "default:dry_dirt",
     base_name = "dry_dirt",
     node_desc = "Dry Dirt",
-    base_texture = "default_dry_dirt",
+    base_texture = "default_dry_dirt.png",
     tiles = {"default_dry_dirt.png", "default_dry_dirt.png"}
 }, {
     check = "default:dirt",
     base_name = "dirt",
     node_desc = "Dirt",
-    base_texture = "default_dirt",
+    base_texture = "default_dirt.png",
     tiles = {"default_dirt.png", "default_dirt.png"}
 }, {
     check = "default:gravel",
     base_name = "gravel",
     node_desc = "Gravel",
-    base_texture = "default_gravel",
+    base_texture = "default_gravel.png",
     tiles = {"default_gravel.png", "default_gravel.png"}
 }, {
     check = "default:stone",
     base_name = "stone",
     node_desc = "Stone",
-    base_texture = "default_stone",
+    base_texture = "default_stone.png",
     tiles = {"default_stone.png", "default_stone.png"}
 }, {
     check = "default:desert_stone",
     base_name = "desert_stone",
     node_desc = "Desert Stone",
-    base_texture = "default_desert_stone",
+    base_texture = "default_desert_stone.png",
     tiles = {"default_desert_stone.png", "default_desert_stone.png"}
 }, {
     check = "default:desert_sandstone",
     base_name = "desert_sandstone",
     node_desc = "Desert Sandstone",
-    base_texture = "default_desert_sandstone",
+    base_texture = "default_desert_sandstone.png",
     tiles = {"default_desert_sandstone.png", "default_desert_sandstone.png"}
 }, {
     check = "default:sand",
     base_name = "sand",
     node_desc = "Sand",
-    base_texture = "default_sand",
+    base_texture = "default_sand.png",
     tiles = {"default_sand.png", "default_sand.png"}
 }, {
     check = "default:desert_sand",
     base_name = "desert_sand",
     node_desc = "Desert Sand",
-    base_texture = "default_desert_sand",
+    base_texture = "default_desert_sand.png",
     tiles = {"default_desert_sand.png", "default_desert_sand.png"}
 }, {
     check = "default:silver_sand",
     base_name = "silver_sand",
     node_desc = "Silver Sand",
-    base_texture = "default_silver_sand",
+    base_texture = "default_silver_sand.png",
     tiles = {"default_silver_sand.png", "default_silver_sand.png"}
 }, {
     check = "default:permafrost_with_stones",
     base_name = "permafrost",
     node_desc = "Permaforst",
-    base_texture = "default_permafrost.png^default_stones",
+    base_texture = "default_permafrost.png^default_stones.png",
     tiles = {"default_permafrost.png^default_stones.png", "default_permafrost.png",
              "default_permafrost.png^default_stones_side.png"}
 }, {
     check = "default:permafrost_with_moss",
     base_name = "moss",
     node_desc = "Moss",
-    base_texture = "default_moss",
+    base_texture = "default_moss.png",
     tiles = {"default_moss.png", "default_permafrost.png", {
         name = "default_permafrost.png^default_moss_side.png",
         tileable_vertical = false
@@ -119,7 +119,7 @@ local mass_deposits = {{
     check = "default:dirt_with_coniferous_litter",
     base_name = "coniferous_litter",
     node_desc = "Coniferous Litter",
-    base_texture = "default_coniferous_litter",
+    base_texture = "default_coniferous_litter.png",
     tiles = {"default_coniferous_litter.png", "default_dirt.png", {
         name = "default_dirt.png^default_coniferous_litter_side.png",
         tileable_vertical = false
@@ -128,7 +128,7 @@ local mass_deposits = {{
     check = "default:dirt_with_rainforest_litter",
     base_name = "rainforest_litter",
     node_desc = "Rainforest Litter",
-    base_texture = "default_rainforest_litter",
+    base_texture = "default_rainforest_litter.png",
     tiles = {"default_rainforest_litter.png", "default_dirt.png", {
         name = "default_dirt.png^default_rainforest_litter_side.png",
         tileable_vertical = false
@@ -140,7 +140,7 @@ if minetest.get_modpath("badlands") then
         check = "badlands:red_sand",
         base_name = "red_sand",
         node_desc = "Red Sand",
-        base_texture = "default_sand",
+        base_texture = "default_sand.png^[colorize:sienna:175^[colorize:red:40",
         tiles = {"default_sand.png^[colorize:sienna:175^[colorize:red:40",
                  "default_sand.png^[colorize:sienna:175^[colorize:red:40"}
     })
@@ -148,7 +148,7 @@ if minetest.get_modpath("badlands") then
         check = "badlands:red_sandstone",
         base_name = "red_sandstone",
         node_desc = "Red Sandstone",
-        base_texture = "default_sandstone",
+        base_texture = "default_sandstone.png^[colorize:sienna:175^[colorize:red:40",
         tiles = {"default_sandstone.png^[colorize:sienna:175^[colorize:red:40",
                  "default_sandstone.png^[colorize:sienna:175^[colorize:red:40"}
     })
@@ -156,11 +156,11 @@ end
 
 if minetest.get_modpath("bakedclay") then
     table.insert(mass_deposits, {
-        check = "bakedclay:natural",
-        base_name = "clay_natural",
-        node_desc = "Natural Clay",
-        base_texture = "baked_clay_natural",
-        tiles = {"baked_clay_natural.png", "baked_clay_natural.png"}
+        check = "bakedclay:orange",
+        base_name = "clay_orange",
+        node_desc = "Orange Clay",
+        base_texture = "baked_clay_orange.png",
+        tiles = {"baked_clay_orange.png", "baked_clay_orange.png"}
     })
 end
 
@@ -170,7 +170,7 @@ if minetest.get_modpath("saltd") then
         base_name = "salt_sand",
         node_desc = "Salt Sand",
         use_hd_texture = true,
-        base_texture = "saltd_salt_sand",
+        base_texture = "saltd_salt_sand.png",
         tiles = {"saltd_salt_sand.png", "saltd_salt_sand.png"}
     })
     table.insert(mass_deposits, {
@@ -178,7 +178,7 @@ if minetest.get_modpath("saltd") then
         base_name = "humid_salt_sand",
         node_desc = "Humid Salt Sand",
         use_hd_texture = true,
-        base_texture = "saltd_humid_salt_sand",
+        base_texture = "saltd_humid_salt_sand.png",
         tiles = {"saltd_humid_salt_sand.png", "saltd_humid_salt_sand.png"}
     })
     table.insert(mass_deposits, {
@@ -186,7 +186,7 @@ if minetest.get_modpath("saltd") then
         base_name = "barren",
         node_desc = "Barren Land",
         use_hd_texture = true,
-        base_texture = "saltd_barren",
+        base_texture = "saltd_barren.png",
         tiles = {"saltd_barren.png", "saltd_barren.png"}
     })
 end
@@ -246,31 +246,31 @@ local function register_mass_deposit(def)
     local tiles = def.tiles or {}
 
     local tiles_0 = deepcopy(tiles)
-    tiles_0[1] = base_texture .. ".png^(" .. mass_texture .. "_" .. t_m .. "_1" .. hd .. ".png)"
+    tiles_0[1] = base_texture .. "^(" .. mass_texture .. "_" .. t_m .. "_1" .. hd .. ".png)"
 
     local tiles_1 = deepcopy(tiles)
-    tiles_1[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformFYR90])"
+    tiles_1[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformFYR90])"
 
     local tiles_2 = deepcopy(tiles)
-    tiles_2[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformR90])"
+    tiles_2[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformR90])"
 
     local tiles_3 = deepcopy(tiles)
-    tiles_3[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformFX])"
+    tiles_3[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformFX])"
 
     local tiles_4 = deepcopy(tiles)
-    tiles_4[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformR180])"
+    tiles_4[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_2" .. hd .. ".png)^[transformR180])"
 
     local tiles_5 = deepcopy(tiles)
-    tiles_5[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3" .. hd .. ".png))"
+    tiles_5[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_3" .. hd .. ".png))"
 
     local tiles_6 = deepcopy(tiles)
-    tiles_6[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_3" .. hd .. ".png)^[transformR180])"
+    tiles_6[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_3" .. hd .. ".png)^[transformR180])"
 
     local tiles_7 = deepcopy(tiles)
-    tiles_7[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4" .. hd .. ".png)^[transformFY])"
+    tiles_7[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_4" .. hd .. ".png)^[transformFY])"
 
     local tiles_8 = deepcopy(tiles)
-    tiles_8[1] = base_texture .. ".png^((" .. mass_texture .. "_" .. t_m .. "_4" .. hd .. ".png)^[transformR90])"
+    tiles_8[1] = base_texture .. "^((" .. mass_texture .. "_" .. t_m .. "_4" .. hd .. ".png)^[transformR90])"
 
     -- center node
     core.register_node(t_name_b, {
