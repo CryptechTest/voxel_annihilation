@@ -886,6 +886,7 @@ end
 function default.register_biomes()
 	-- Icesheet
 
+	--[[
 	core.register_biome({
 		name = "icesheet",
 		node_dust = "default:snowblock",
@@ -906,7 +907,9 @@ function default.register_biomes()
 		heat_point = 0,
 		humidity_point = 73,
 	})
+	]]
 
+	--[[
 	core.register_biome({
 		name = "icesheet_ocean",
 		node_dust = "default:snowblock",
@@ -925,6 +928,7 @@ function default.register_biomes()
 		heat_point = 0,
 		humidity_point = 73,
 	})
+	]]
 
 	--[[
 	core.register_biome({
