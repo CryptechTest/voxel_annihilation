@@ -1,3 +1,5 @@
+
+
 local function fire_light_laser(shooter, shooter_pos, target_pos, range, base_damage)
     local distance = vector.distance(shooter_pos, target_pos)
     if distance > range then
