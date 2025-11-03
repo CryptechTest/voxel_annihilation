@@ -11,7 +11,7 @@ local texture_build = "construction_bar_fullb.png"
 
 local function add_construction_gauge(structure, unit)
     if structure and unit and unit:get_luaentity()._is_va_unit then
-        local entity = minetest.add_entity(unit:get_pos(), "va_structures:unit_build_bar")
+        local entity = core.add_entity(unit:get_pos(), "va_structures:unit_build_bar")
         local s_h = math.max(unit:get_properties().collisionbox[5], 0.25)
         local height = 7.0 + (s_h * 10)
         entity:set_attach(unit, "", {

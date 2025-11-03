@@ -13,7 +13,7 @@ local function register_structure_node(def)
     }
 
     local function remove_attached(pos)
-        local objs = minetest.get_objects_inside_radius(pos, 0.05)
+        local objs = core.get_objects_inside_radius(pos, 0.05)
         for _, obj in pairs(objs) do
             if obj:get_luaentity() then
                 local ent = obj:get_luaentity()
@@ -25,8 +25,8 @@ local function register_structure_node(def)
     end
 
     local function on_timer(pos, elapsed)
-        local meta = minetest.get_meta(pos)
-        local objs = minetest.get_objects_inside_radius(pos, 0.05)
+        local meta = core.get_meta(pos)
+        local objs = core.get_objects_inside_radius(pos, 0.05)
         for _, obj in pairs(objs) do
             if obj:get_luaentity() then
                 local ent = obj:get_luaentity()
@@ -103,7 +103,7 @@ local function register_structure_node(def)
         allow_metadata_inventory_put = function(pos, listname, index, stack, player)
             local meta = core.get_meta(pos)
             local stackname = stack:get_name()
-            local is_unit = minetest.get_item_group(stackname, "va_unit") or 0
+            local is_unit = core.get_item_group(stackname, "va_unit") or 0
             if is_unit == 0 then
                 return 0
             end
@@ -118,7 +118,7 @@ local function register_structure_node(def)
                 return 0
             end
             local stackname = stack:get_name()
-            local is_unit = minetest.get_item_group(stackname, "va_unit") or 0
+            local is_unit = core.get_item_group(stackname, "va_unit") or 0
             if is_unit > 0 then
                 return 0
             end

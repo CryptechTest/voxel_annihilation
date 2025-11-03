@@ -17,7 +17,7 @@ local gauge_max = {
 local function add_structure_gauge(structure)
     if structure and structure.entity_obj then
         local s_ent = structure.entity_obj
-        local entity = minetest.add_entity(structure.pos, "va_structures:hp_bar")
+        local entity = core.add_entity(structure.pos, "va_structures:hp_bar")
         local s_h = math.max(structure.size.y, 0.25)
         local height = 7 + (s_h * 10)
         entity:set_attach(s_ent, "", {

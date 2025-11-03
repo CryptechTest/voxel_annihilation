@@ -128,26 +128,26 @@ function Structure.new(pos, name, def, do_def_check)
         local pos = pointed_thing.above
         local name = placer:get_player_name()
         if self:collides_solid(pos) then
-            minetest.chat_send_player(name, "Structure requires more room.")
+            core.chat_send_player(name, "Structure requires more room.")
             return itemstack
         elseif not self.water_type and not self.under_water_type and not self:collides_has_floor(pos) then
-            minetest.chat_send_player(name, "Structure requires more floor room.")
+            core.chat_send_player(name, "Structure requires more floor room.")
             return itemstack
         elseif not self.water_type and not self.under_water_type and self:collides_liquid(pos) then
-            minetest.chat_send_player(name, "Structure must be built on land.")
+            core.chat_send_player(name, "Structure must be built on land.")
             return itemstack
         elseif self.water_type and not self.under_water_type and not self:collides_has_floor_water(pos) then
-            minetest.chat_send_player(name, "Structure must be built on water.")
+            core.chat_send_player(name, "Structure must be built on water.")
             return itemstack
         elseif self.under_water_type and self.under_water_type and not self:collides_has_water(pos) then
-            minetest.chat_send_player(name, "Structure must be built in water.")
+            core.chat_send_player(name, "Structure must be built in water.")
             return itemstack
         elseif self:collides_other(pos, self.size) then
             -- make sure structure doesn't overlap any other structure area
-            minetest.chat_send_player(name, "Structure overlaps into another structure area.")
+            core.chat_send_player(name, "Structure overlaps into another structure area.")
             return itemstack
         end
-        return minetest.item_place(itemstack, placer, pointed_thing)
+        return core.item_place(itemstack, placer, pointed_thing)
     end
 
     return self
@@ -171,6 +171,9 @@ function Structure.after_place_node(pos, placer, itemstack, pointed_thing)
         return
     end
     local def = va_structures.get_registered_structure(node_name)
+    if not def then
+        return
+    end
     local s = Structure.new(pos, def.name, def, true)
     s:set_hp(1)
     if placer:is_player() then
@@ -416,7 +419,7 @@ end
 
 function Structure:dispose()
     if self._disposed then
-        core.log("[WARN] Structure is already disposed but dispose() was called at " .. minetest.pos_to_string(self.pos))
+        core.log("[WARN] Structure is already disposed but dispose() was called at " .. core.pos_to_string(self.pos))
     end
     self._disposing = true
     va_structures.remove_active_structure(self.pos)
@@ -1103,7 +1106,7 @@ function Structure:explode()
 
     if meta.is_volatile then
         local pos = self.pos
-        local objs = minetest.get_objects_inside_radius(pos, dist + 0.55)
+        local objs = core.get_objects_inside_radius(pos, dist + 0.55)
         for _, obj in pairs(objs) do
             local o_pos = obj:get_pos()
             if obj:get_luaentity() then
@@ -1132,7 +1135,7 @@ function Structure:get_yaw()
     end
     local pos = self.pos
     local pi = math.pi
-    local rotation = minetest.get_node(pos).param2
+    local rotation = core.get_node(pos).param2
     if rotation > 3 then
         rotation = rotation % 4 -- Mask colorfacedir values
     end
@@ -1154,7 +1157,7 @@ function Structure:entity_tick()
     local e_pos = self.pos
     local found_display = false
     local yawRad, rotation = self:get_yaw()
-    local objs = minetest.get_objects_inside_radius(e_pos, 0.05)
+    local objs = core.get_objects_inside_radius(e_pos, 0.05)
     for _, obj in pairs(objs) do
         if obj:get_luaentity() then
             local ent = obj:get_luaentity()
@@ -1170,7 +1173,7 @@ function Structure:entity_tick()
         if not self.entity_obj then
             self.entity_obj = nil
         end
-        local obj = minetest.add_entity(e_pos, self.entity_name, nil)
+        local obj = core.add_entity(e_pos, self.entity_name, nil)
         local rot = {
             x = 0,
             y = yawRad,

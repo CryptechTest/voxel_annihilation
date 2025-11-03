@@ -62,7 +62,7 @@ local function spawn_particles(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, lv
         local rx = dir_x * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
         local ry = dir_y * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
         local rz = dir_z * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
-        minetest.add_particlespawner({
+        core.add_particlespawner({
             amount = amount,
             pos = pos,
             minpos = {

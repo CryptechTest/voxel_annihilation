@@ -12,7 +12,7 @@ local Structure = dofile(modpath .. "/structure/structure.lua")
 
 local find_build_target = function(pos, s)
     local dist = s:get_data().construction_distance
-    local objs = minetest.get_objects_inside_radius(pos, dist + 0.55)
+    local objs = core.get_objects_inside_radius(pos, dist + 0.55)
     for _, obj in pairs(objs) do
         local o_pos = obj:get_pos()
         if obj:get_luaentity() then

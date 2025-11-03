@@ -22,7 +22,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             y = 1,
             z = 0
         })
-        local light_level = minetest.get_node_light(pos_above)
+        local light_level = core.get_node_light(pos_above)
         if light_level > 10 then
             local gen = s_obj:get_data():get_energy_generate()
             local energy = net.energy

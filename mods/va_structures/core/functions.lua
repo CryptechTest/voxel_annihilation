@@ -29,7 +29,7 @@ local function calculatePitch(vector1, vector2)
     local dy = vector2.y - vector1.y
     local dz = vector2.z - vector1.z
     -- Calculate the pitch angle
-    local pitch = math.atan2(dy, math.sqrt(dx * dx + dz * dz))
+    local pitch = math.atan(dy, math.sqrt(dx * dx + dz * dz))
     -- Optional: Convert pitch from radians to degrees
     -- local pitch_degrees = pitch * 180 / math.pi
     local pitch_degrees = math.deg(pitch)
@@ -39,7 +39,7 @@ va_structures.util.calculatePitch = calculatePitch
 
 local function calculateYaw(vector1, vector2)
     -- Calculate yaw for each vector
-    local yaw = math.atan2(vector1.x - vector2.x, vector1.z - vector2.z)
+    local yaw = math.atan(vector1.x - vector2.x, vector1.z - vector2.z)
     -- Optional: Convert to degrees
     -- local yaw_degrees = yaw * 180 / math.pi
     local yaw_degrees = math.deg(yaw) + 0
@@ -339,7 +339,7 @@ local function spawn_particle(pos, dir, i, dist)
         glow = 12
     }
 
-    minetest.add_particle(def);
+    core.add_particle(def);
 end
 
 local function beam_effect(pos1, pos2, min, count)
@@ -352,7 +352,7 @@ local function beam_effect(pos1, pos2, min, count)
     })
     local min = min or 5
 
-    minetest.after(0, function()
+    core.after(0, function()
         local i = 1
         local cur_pos = vector.add(pos1, vector.multiply(dir, {
             x = 0.2,
@@ -493,7 +493,7 @@ local function show_build_beam_effect(pos1, pos2, min, count)
     })
     local min = min or 5
 
-    minetest.after(0, function()
+    core.after(0, function()
         local i = 1
         local cur_pos = vector.add(pos1, vector.multiply(dir, {
             x = 0.2,
@@ -528,7 +528,7 @@ va_structures.show_build_beam_effect = show_build_beam_effect
 -----------------------------------------------------------------
 
 local function destroy_effect_particle(pos, radius)
-    minetest.add_particle({
+    core.add_particle({
         pos = pos,
         velocity = vector.new(),
         acceleration = vector.new(),
@@ -539,7 +539,7 @@ local function destroy_effect_particle(pos, radius)
         texture = "va_explosion_boom.png",
         glow = 15
     })
-    minetest.add_particlespawner({
+    core.add_particlespawner({
         amount = 12,
         time = 0.6,
         minpos = vector.subtract(pos, radius / 4),
@@ -577,7 +577,7 @@ local function destroy_effect_particle(pos, radius)
         collisiondetection = true,
         glow = 3
     })
-    minetest.add_particlespawner({
+    core.add_particlespawner({
         amount = 16,
         time = 0.8,
         minpos = vector.subtract(pos, radius / 3),
@@ -616,7 +616,7 @@ local function destroy_effect_particle(pos, radius)
         collisiondetection = true,
         glow = 5
     })
-    minetest.add_particlespawner({
+    core.add_particlespawner({
         amount = 72,
         time = 0.45,
         minpos = vector.subtract(pos, radius / 2),
