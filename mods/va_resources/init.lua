@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: lowercase-global
 va_resources = {}
 
 local path = core.get_modpath("va_resources")

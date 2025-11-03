@@ -3,6 +3,8 @@
         "core",
         "vector",
         "dump",
-        "ItemStack"
+        "ItemStack",
+        "VoxelArea",
+        "VoxelManip"
     ]
 }
