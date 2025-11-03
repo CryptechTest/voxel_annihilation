@@ -135,7 +135,7 @@ local mass_deposits = {{
     }}
 }}
 
-if minetest.get_modpath("badlands") then
+if core.get_modpath("badlands") then
     table.insert(mass_deposits, {
         check = "badlands:red_sand",
         base_name = "red_sand",
@@ -154,7 +154,7 @@ if minetest.get_modpath("badlands") then
     })
 end
 
-if minetest.get_modpath("bakedclay") then
+if core.get_modpath("bakedclay") then
     table.insert(mass_deposits, {
         check = "bakedclay:orange",
         base_name = "clay_orange",
@@ -164,7 +164,7 @@ if minetest.get_modpath("bakedclay") then
     })
 end
 
-if minetest.get_modpath("saltd") then
+if core.get_modpath("saltd") then
     table.insert(mass_deposits, {
         check = "saltd:salt_sand",
         base_name = "salt_sand",
@@ -243,6 +243,7 @@ local function register_mass_deposit(def)
         hd = "_hd"
     end
 
+    local item_image = base_texture .. "^" .. mass_texture .. "_" .. t_m .. "_1" .. hd .. ".png"
     local tiles = def.tiles or {}
 
     local tiles_0 = deepcopy(tiles)
@@ -283,6 +284,9 @@ local function register_mass_deposit(def)
         drop = "",
         paramtype = "light",
         light_source = 1,
+
+        inventory_image = def.inventory_image or item_image,
+        wield_image = def.wield_image or item_image,
 
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then
@@ -430,6 +434,8 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
 
     local found = false
     local near_air = false
+    local nodes_above = 0
+    -- check if can place at location
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
         local node = core.get_node_or_nil(d_pos)
@@ -458,11 +464,37 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
             end
         end
     end
-    if found or near_air then
+    -- check if area above is clear
+    for _, dir in pairs(dirs) do
+        local d_pos = vector.add(pos, dir)
+        d_pos = vector.add(d_pos, {
+            x = 0,
+            y = 1,
+            z = 0
+        })
+        local node = core.get_node_or_nil(d_pos)
+        if not node then
+            core.load_area(d_pos, d_pos)
+            node = core.get_node_or_nil(d_pos)
+        end
+        local n_name = node.name
+        for _, group in pairs(groups) do
+            local g = core.get_item_group(n_name, group)
+            if g > 0 then
+                nodes_above = nodes_above + 1
+                break
+            end
+        end
+    end
+    -- if not valid, don't place
+    if found or near_air or nodes_above > 1 then
         local n = nil
         local c = {}
         for x = -1, 1 do
             for z = -1, 1 do
+                if x == 0 and z == 0 then
+                    break;
+                end
                 local p = vector.add(pos, {
                     x = x,
                     y = 0,
@@ -474,16 +506,22 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
                     if not c[n] then
                         c[n] = 0
                     end
-                    if c[n] > 2 then
+                    if c[n] > 1 then
                         break
                     end
                     c[n] = c[n] + 1
                 end
             end
         end
-        core.set_node(pos, {
-            name = n
-        })
+        if n then
+            core.set_node(pos, {
+                name = n
+            })
+        else
+            core.set_node(pos, {
+                name = "air"
+            })
+        end
         return false
     end
 
@@ -506,7 +544,7 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
 
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
-        local side = "_1"
+        local side = ""
         if dir.x == 1 and dir.z == 0 then
             side = "_1"
         elseif dir.x == -1 and dir.z == 0 then
@@ -525,19 +563,20 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
             side = "_8"
         end
 
-        local n = core.get_node_or_nil(d_pos)
-        if n then
-            local n_name = n.name
-            local _match = match_deposit_overlap(n_name)
-            if _match then
-                b_name = _match
+        if side then
+            local n = core.get_node_or_nil(d_pos)
+            if n then
+                local n_name = n.name
+                local _match = match_deposit_overlap(n_name)
+                if _match then
+                    b_name = _match
+                end
+                core.add_node(d_pos, {
+                    name = "va_resources:" .. b_name .. "_near_metal" .. mass_type .. side
+                })
+                local _meta = core.get_meta(d_pos)
+                _meta:set_int("va_mass_amount", value * 100)
             end
-
-            core.add_node(d_pos, {
-                name = "va_resources:" .. b_name .. "_near_metal" .. mass_type .. side
-            })
-            local _meta = core.get_meta(d_pos)
-            _meta:set_int("va_mass_amount", value * 100)
         end
     end
     return true

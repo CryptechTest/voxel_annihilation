@@ -23,7 +23,7 @@ local registrations = {{
     deco = "va_resources:stone_with_geo",
     replace = "stone"
 }, {
-    place_on = "default:permafrost_with_moss",
+    place_on = "default:permafrost_with_stones",
     deco = "va_resources:moss_with_geo",
     replace = "moss"
 }, {
@@ -89,7 +89,7 @@ if minetest.get_modpath("saltd") then
     table.insert(registrations, {
         place_on = "saltd:salt_sand",
         deco = "va_resources:salt_sand_with_geo",
-        replace = "salt_sand"
+        replace = "salt_sand",
     })
     table.insert(registrations, {
         place_on = "saltd:humid_salt_sand",
@@ -97,9 +97,10 @@ if minetest.get_modpath("saltd") then
         replace = "humid_salt_sand"
     })
     table.insert(registrations, {
-        place_on = "saltd:barren",
+        place_on = "saltd:salt_sand",
         deco = "va_resources:barren_with_geo",
-        replace = "barren"
+        replace = "barren",
+        scale = 0.0001
     })
 end
 
@@ -108,19 +109,20 @@ local function register_geo(def)
     core.register_decoration({
         name = def.deco,
         deco_type = "simple",
-        place_on = {def.place_on},
+        place_on = {def.place_on} or {},
+        biomes = def.biomes or nil,
         sidelen = 16,
         noise_params = {
-            offset = 0.0000173,
-            scale = 0.000001,
+            offset = def.offset or 0.0000173,
+            scale = def.scale or 0.000001,
             spread = {
                 x = 300,
                 y = 200,
                 z = 300
             },
             seed = 73,
-            octaves = 2,
-            persist = 0.28
+            octaves = def.octaves or 2,
+            persist = def.persist or 0.28
         },
         y_max = 256,
         y_min = 1,

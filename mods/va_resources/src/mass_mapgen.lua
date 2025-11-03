@@ -23,7 +23,7 @@ local registrations = {{
     deco = "va_resources:stone_with_metal",
     replace = "stone"
 }, {
-    place_on = "default:permafrost_with_moss",
+    place_on = "default:permafrost_with_stones",
     deco = "va_resources:moss_with_metal",
     replace = "moss"
 }, {
@@ -64,7 +64,7 @@ local registrations = {{
     replace = "silver_sand"
 }}
 
-if minetest.get_modpath("badlands") then
+if core.get_modpath("badlands") then
     table.insert(registrations, {
         place_on = "badlands:red_sand",
         deco = "va_resources:red_sand_with_metal",
@@ -77,7 +77,7 @@ if minetest.get_modpath("badlands") then
     })
 end
 
-if minetest.get_modpath("bakedclay") then
+if core.get_modpath("bakedclay") then
     table.insert(registrations, {
         place_on = "bakedclay:orange",
         deco = "va_resources:clay_orange_with_metal",
@@ -85,7 +85,7 @@ if minetest.get_modpath("bakedclay") then
     })
 end
 
-if minetest.get_modpath("saltd") then
+if core.get_modpath("saltd") then
     table.insert(registrations, {
         place_on = "saltd:salt_sand",
         deco = "va_resources:salt_sand_with_metal",
@@ -97,9 +97,10 @@ if minetest.get_modpath("saltd") then
         replace = "humid_salt_sand"
     })
     table.insert(registrations, {
-        place_on = "saltd:barren",
+        place_on = "saltd:salt_sand",
         deco = "va_resources:barren_with_metal",
-        replace = "barren"
+        replace = "barren",
+        scale = 0.0001,
     })
 end
 
@@ -108,26 +109,28 @@ local function register_mass(def)
     core.register_decoration({
         name = def.deco,
         deco_type = "simple",
-        place_on = {def.place_on},
+        place_on = {def.place_on} or {},
+        biomes = def.biomes or nil,
+        --spawn_by = def.spawn_by or {},
+        --num_spawn_by = def.num_spawn_by or 1,
         sidelen = 16,
         noise_params = {
-            offset = 0.000231,
-            scale = 0.0002,
+            offset = def.offset or 0.000231,
+            scale = def.scale or 0.0002,
             spread = {
                 x = 200,
                 y = 200,
                 z = 200
             },
             seed = 88,
-            octaves = 2,
-            persist = 0.37
+            octaves = def.octaves or 2,
+            persist = def.persist or 0.37
         },
         y_max = 256,
         y_min = -3,
-        decoration = def.deco,
+        decoration = "va_resources:barren_with_metal",
         place_offset_y = -1,
         flags = "force_placement"
-        -- param2 = 4,
     })
 end
 

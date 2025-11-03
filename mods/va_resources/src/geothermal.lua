@@ -345,25 +345,26 @@ local function register_geo_vent(def)
     local tiles = def.tiles or {}
 
     local tiles_0 = deepcopy(tiles)
-    tiles_0[1] = base_texture .. "^default_stones" .. hd .. ".png^(" .. geo_texture .. "_" .. t_m .. "_1" .. hd .. ".png)"
+    tiles_0[1] = base_texture .. "^default_stones" .. hd .. ".png^(" .. geo_texture .. "_" .. t_m .. "_1" .. hd ..
+                     ".png)"
 
     local tiles_1 = deepcopy(tiles)
     tiles_1[1] =
-        base_texture .. "^((default_stones_side" .. hd .. ".png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2" .. hd ..
-            ".png)^[transformFYR90])"
+        base_texture .. "^((default_stones_side" .. hd .. ".png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2" ..
+            hd .. ".png)^[transformFYR90])"
 
     local tiles_2 = deepcopy(tiles)
-    tiles_2[1] = base_texture .. "^((default_stones_side" .. hd .. ".png^[transformR180])^(" .. geo_texture .. "_" .. t_m ..
-                     "_2" .. hd .. ".png)^[transformR90])"
+    tiles_2[1] = base_texture .. "^((default_stones_side" .. hd .. ".png^[transformR180])^(" .. geo_texture .. "_" ..
+                     t_m .. "_2" .. hd .. ".png)^[transformR90])"
 
     local tiles_3 = deepcopy(tiles)
     tiles_3[1] =
-        base_texture .. "^((default_stones_side" .. hd .. ".png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2" .. hd ..
-            ".png)^[transformFX])"
+        base_texture .. "^((default_stones_side" .. hd .. ".png^[transformFY])^(" .. geo_texture .. "_" .. t_m .. "_2" ..
+            hd .. ".png)^[transformFX])"
 
     local tiles_4 = deepcopy(tiles)
-    tiles_4[1] = base_texture .. "^((default_stones_side" .. hd .. ".png^[transformR180])^(" .. geo_texture .. "_" .. t_m ..
-                     "_2" .. hd .. ".png)^[transformR180])"
+    tiles_4[1] = base_texture .. "^((default_stones_side" .. hd .. ".png^[transformR180])^(" .. geo_texture .. "_" ..
+                     t_m .. "_2" .. hd .. ".png)^[transformR180])"
 
     local tiles_5 = deepcopy(tiles)
     tiles_5[1] = base_texture .. "^((" .. geo_texture .. "_" .. t_m .. "_3" .. hd .. ".png))"
@@ -529,6 +530,8 @@ function va_resources.add_geo_vent(pos, b_name, value, geo_type)
 
     local found = false
     local near_air = false
+    local nodes_above = 0
+    -- check if can place at location
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
         local node = core.get_node_or_nil(d_pos)
@@ -557,7 +560,30 @@ function va_resources.add_geo_vent(pos, b_name, value, geo_type)
             end
         end
     end
-    if found or near_air then
+    -- check if area above is clear
+    for _, dir in pairs(dirs) do
+        local d_pos = vector.add(pos, dir)
+        d_pos = vector.add(d_pos, {
+            x = 0,
+            y = 1,
+            z = 0
+        })
+        local node = core.get_node_or_nil(d_pos)
+        if not node then
+            core.load_area(d_pos, d_pos)
+            node = core.get_node_or_nil(d_pos)
+        end
+        local n_name = node.name
+        for _, group in pairs(groups) do
+            local g = core.get_item_group(n_name, group)
+            if g > 0 then
+                nodes_above = nodes_above + 1
+                break
+            end
+        end
+    end
+    -- if not valid, don't place
+    if found or near_air or nodes_above > 1 then
         local n = nil
         local c = {}
         for x = -1, 1 do
