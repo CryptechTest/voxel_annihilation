@@ -135,7 +135,7 @@ local geo_vents = {{
     }}
 }}
 
-if minetest.get_modpath("badlands") then
+if core.get_modpath("badlands") then
     table.insert(geo_vents, {
         check = "badlands:red_sand",
         base_name = "red_sand",
@@ -154,7 +154,7 @@ if minetest.get_modpath("badlands") then
     })
 end
 
-if minetest.get_modpath("bakedclay") then
+if core.get_modpath("bakedclay") then
     table.insert(geo_vents, {
         check = "bakedclay:orange",
         base_name = "clay_orange",
@@ -164,7 +164,7 @@ if minetest.get_modpath("bakedclay") then
     })
 end
 
-if minetest.get_modpath("saltd") then
+if core.get_modpath("saltd") then
     table.insert(geo_vents, {
         check = "saltd:salt_sand",
         base_name = "salt_sand",
@@ -277,7 +277,7 @@ local function spawn_particles(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, lv
         local rx = dir_x * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
         local ry = dir_y * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
         local rz = dir_z * prt.vel * -math.random(0.3 * 100, 0.7 * 100) / 100
-        minetest.add_particlespawner({
+        core.add_particlespawner({
             amount = amount,
             pos = pos,
             minpos = {

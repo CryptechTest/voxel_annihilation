@@ -64,7 +64,7 @@ local registrations = {{
     replace = "silver_sand"
 }}
 
-if minetest.get_modpath("badlands") then
+if core.get_modpath("badlands") then
     table.insert(registrations, {
         place_on = "badlands:red_sand",
         deco = "va_resources:red_sand_with_geo",
@@ -77,7 +77,7 @@ if minetest.get_modpath("badlands") then
     })
 end
 
-if minetest.get_modpath("bakedclay") then
+if core.get_modpath("bakedclay") then
     table.insert(registrations, {
         place_on = "bakedclay:orange",
         deco = "va_resources:clay_orange_with_geo",
@@ -85,7 +85,7 @@ if minetest.get_modpath("bakedclay") then
     })
 end
 
-if minetest.get_modpath("saltd") then
+if core.get_modpath("saltd") then
     table.insert(registrations, {
         place_on = "saltd:salt_sand",
         deco = "va_resources:salt_sand_with_geo",

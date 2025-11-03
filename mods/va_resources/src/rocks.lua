@@ -88,7 +88,7 @@ local function register_rock(def, index)
 
                 end
             else
-                local param2 = minetest.dir_to_facedir(placer:get_look_dir()) 
+                local param2 = core.dir_to_facedir(placer:get_look_dir()) 
                 local next_node_name = modname .. ":" .. def.name .. "_" .. g_item
                 core.set_node(a_pos, {
                     name = next_node_name,
@@ -116,26 +116,6 @@ local function register_rock(def, index)
                     })
 
                     itemstack:take_item(1)
-                else
-
-                    if g_node == def.levels then
-                        return
-                    end
-
-                    local next_node_name = modname .. ":" .. def.name .. "_" .. 9
-                    
-                    local new_item_lvl = (g_node + g_item) - def.levels
-                    local new_item_name = modname .. ":" .. def.name .. "_" .. new_item_lvl
-
-                    core.swap_node(pos_below, {
-                        name = next_node_name,
-                        param2 = node.param2
-                    })
-
-                    itemstack:take_item(1)
-                    
-                    local inv = placer:get_inventory()
-                    inv:add_item("main", new_item_name)
                 end
             end
         end,
