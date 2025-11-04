@@ -886,7 +886,6 @@ end
 function default.register_biomes()
 	-- Icesheet
 
-	--[[
 	core.register_biome({
 		name = "icesheet",
 		node_dust = "default:snowblock",
@@ -907,9 +906,7 @@ function default.register_biomes()
 		heat_point = 0,
 		humidity_point = 73,
 	})
-	]]
 
-	--[[
 	core.register_biome({
 		name = "icesheet_ocean",
 		node_dust = "default:snowblock",
@@ -928,7 +925,6 @@ function default.register_biomes()
 		heat_point = 0,
 		humidity_point = 73,
 	})
-	]]
 
 	--[[
 	core.register_biome({
@@ -995,7 +991,6 @@ function default.register_biomes()
 		humidity_point = 40,
 	})
 
-	--[[
 	core.register_biome({
 		name = "tundra_ocean",
 		node_top = "default:sand",
@@ -1014,7 +1009,6 @@ function default.register_biomes()
 		heat_point = 0,
 		humidity_point = 40,
 	})
-	
 
 	--[[
 	core.register_biome({
@@ -1465,9 +1459,9 @@ function default.register_biomes()
 
 	core.register_biome({
 		name = "cold_desert_ocean",
-		node_top = "default:sand",
+		node_top = "default:silver_sand",
 		depth_top = 1,
-		node_filler = "default:sand",
+		node_filler = "default:silver_sand",
 		depth_filler = 3,
 		node_riverbed = "default:sand",
 		depth_riverbed = 2,
@@ -2321,7 +2315,7 @@ function default.register_decorations()
 			octaves = 3,
 			persist = 0.6
 		},
-		biomes = { "desert", "sandstone_desert", "cold_desert" },
+		biomes = { "desert", "sandstone_desert", "cold_desert", "cold_desert_ocean" },
 		y_max = 31000,
 		y_min = 2,
 		decoration = "default:dry_shrub",
