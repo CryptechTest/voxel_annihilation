@@ -152,19 +152,19 @@ core.set_gen_notify({
 
 -- start nodetimers
 core.register_on_generated(function(minp, maxp, blockseed)
-    if maxp.y > 16 * 72 + 1 or minp.y < -(16 * 72 + 2) then
-        return
-    end
-    if maxp.x > 4095 or minp.x < -4096 then
-        return
-    end
-    if maxp.z > 4095 or minp.z < -4096 then
-        return
-    end
-
     local gennotify = core.get_mapgen_object("gennotify")
 
     math.randomseed(blockseed)
+
+    local function in_bounds(pos)
+        if pos.x > 4095 or pos.y > 128 or pos.z > 4095 then
+           return false
+        end
+        if pos.x < -4096 or pos.y < -16 or pos.z < -4096 then
+            return false
+        end
+        return  true
+    end
 
     for id, replace in pairs(metals) do
         local poslist = {}
@@ -174,10 +174,12 @@ core.register_on_generated(function(minp, maxp, blockseed)
                 y = pos.y,
                 z = pos.z
             }
-            table.insert(poslist, {
-                pos = deco_pos,
-                replace = replace
-            })
+            if in_bounds(deco_pos) then
+                table.insert(poslist, {
+                    pos = deco_pos,
+                    replace = replace
+                })
+            end
         end
 
         if #poslist ~= 0 then

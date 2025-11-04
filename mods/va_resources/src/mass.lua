@@ -432,6 +432,16 @@ end
 
 local groups = {"cracky", "crumbly", "choppy", "soil", "sand"}
 
+local function in_bounds(pos)
+    if pos.x > 4095 or pos.y > 128 or pos.z > 4095 then
+        return false
+    end
+    if pos.x < -4096 or pos.y < -16 or pos.z < -4096 then
+        return false
+    end
+    return  true
+end
+
 function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
     if b_name == nil then
         b_name = "grass"
@@ -457,6 +467,7 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
     local found = false
     local near_air = false
     local nodes_above = 0
+    local beyond_bounds = 0
     -- check if can place at location
     for _, dir in pairs(dirs) do
         local d_pos = vector.add(pos, dir)
@@ -477,6 +488,10 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
 
         if n_name == "air" then
             near_air = true
+        end
+
+        if not in_bounds(d_pos) then
+            beyond_bounds = beyond_bounds + 1
         end
 
         for _, group in pairs(groups) do
@@ -509,29 +524,28 @@ function va_resources.add_mass_deposit(pos, b_name, value, mass_type)
         end
     end
     -- if not valid, don't place
-    if found or near_air or nodes_above > 1 then
+    if found or near_air or nodes_above > 1 or beyond_bounds > 0 then
         local n = nil
         local c = {}
         for x = -1, 1 do
             for z = -1, 1 do
-                if x == 0 and z == 0 then
-                    break;
-                end
-                local p = vector.add(pos, {
-                    x = x,
-                    y = 0,
-                    z = z
-                })
-                local node = core.get_node(p)
-                if node and node.name ~= "air" and node.name ~= "ignore" then
-                    n = node.name
-                    if not c[n] then
-                        c[n] = 0
+                if x ~= 0 and z ~= 0 then
+                    local p = vector.add(pos, {
+                        x = x,
+                        y = 0,
+                        z = z
+                    })
+                    local node = core.get_node(p)
+                    if node and node.name ~= "air" and node.name ~= "ignore" then
+                        n = node.name
+                        if not c[n] then
+                            c[n] = 0
+                        end
+                        if c[n] > 1 then
+                            break
+                        end
+                        c[n] = c[n] + 1
                     end
-                    if c[n] > 1 then
-                        break
-                    end
-                    c[n] = c[n] + 1
                 end
             end
         end

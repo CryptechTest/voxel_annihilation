@@ -174,12 +174,12 @@ local function register_mass(def)
         biomes = def.biomes or nil,
         sidelen = 16,
         noise_params = {
-            offset = def.offset or 0.004510,
-            scale = def.scale or 0.025,
+            offset = def.offset or 0.002151,
+            scale = def.scale or 0.008,
             spread = {
-                x = 200,
-                y = 50,
-                z = 200
+                x = 300,
+                y = 75,
+                z = 300
             },
             seed = 88,
             octaves = def.octaves or 3,
@@ -216,19 +216,19 @@ core.set_gen_notify({
 
 -- start nodetimers
 core.register_on_generated(function(minp, maxp, blockseed)
-    if maxp.y > 16 * 72 + 1 or minp.y < -(16 * 72 + 2) then
-        return
-    end
-    if maxp.x > 4095 + 16 or minp.x < -(4096) then
-        return
-    end
-    if maxp.z > 4095 + 16 or minp.z < -(4096) then
-        return
-    end
-
     local gennotify = core.get_mapgen_object("gennotify")
 
     math.randomseed(blockseed)
+
+    local function in_bounds(pos)
+        if pos.x > 4095 or pos.y > 128 or pos.z > 4095 then
+           return false
+        end
+        if pos.x < -4096 or pos.y < -16 or pos.z < -4096 then
+            return false
+        end
+        return  true
+    end
 
     for id, replace in pairs(metals) do
         local poslist = {}
@@ -238,10 +238,12 @@ core.register_on_generated(function(minp, maxp, blockseed)
                 y = pos.y,
                 z = pos.z
             }
-            table.insert(poslist, {
-                pos = deco_pos,
-                replace = replace
-            })
+            if in_bounds(deco_pos) then
+                table.insert(poslist, {
+                    pos = deco_pos,
+                    replace = replace
+                })
+            end
         end
 
         if #poslist ~= 0 then
