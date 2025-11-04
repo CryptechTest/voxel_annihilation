@@ -25,7 +25,8 @@ local registrations = {{
 }, {
     place_on = "default:permafrost_with_stones",
     deco = "va_resources:moss_with_geo",
-    replace = "moss"
+    replace = "moss",
+    offset = 0.0000122
 }, {
     place_on = "default:dirt_with_grass",
     deco = "va_resources:grass_with_geo",
@@ -124,7 +125,7 @@ local function register_geo(def)
             octaves = def.octaves or 2,
             persist = def.persist or 0.28
         },
-        y_max = 256,
+        y_max = 128,
         y_min = 1,
         decoration = def.deco,
         place_offset_y = -1,
@@ -138,15 +139,6 @@ for _, def in pairs(registrations) do
     register_geo(def)
     local id = core.get_decoration_id(def.deco)
     metals[id] = def.replace
-end
-
-local function split(s, delimiter)
-    local result = {}
-    -- Use gmatch to find all substrings that are not the delimiter
-    for match in string.gmatch(s, "([^" .. delimiter .. "]+)") do
-        table.insert(result, match)
-    end
-    return result
 end
 
 local geo_ids = {}

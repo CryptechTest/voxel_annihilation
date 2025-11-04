@@ -995,6 +995,7 @@ function default.register_biomes()
 		humidity_point = 40,
 	})
 
+	--[[
 	core.register_biome({
 		name = "tundra_ocean",
 		node_top = "default:sand",
@@ -1013,6 +1014,7 @@ function default.register_biomes()
 		heat_point = 0,
 		humidity_point = 40,
 	})
+	
 
 	--[[
 	core.register_biome({

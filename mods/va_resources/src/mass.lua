@@ -155,13 +155,35 @@ if core.get_modpath("badlands") then
 end
 
 if core.get_modpath("bakedclay") then
-    table.insert(mass_deposits, {
-        check = "bakedclay:orange",
-        base_name = "clay_orange",
-        node_desc = "Orange Clay",
-        base_texture = "baked_clay_orange.png",
-        tiles = {"baked_clay_orange.png", "baked_clay_orange.png"}
-    })
+    -- list of clay colours
+    local clay = {
+        {"natural", "Natural"},
+        {"white", "White"},
+        {"grey", "Grey"},
+        {"black", "Black"},
+        {"red", "Red"},
+        {"yellow", "Yellow"},
+        {"green", "Green"},
+        {"cyan", "Cyan"},
+        {"blue", "Blue"},
+        {"magenta", "Magenta"},
+        {"orange", "Orange"},
+        {"violet", "Violet"},
+        {"brown", "Brown"},
+        {"pink", "Pink"},
+        {"dark_grey", "Dark Grey"},
+        {"dark_green", "Dark Green"}
+    }
+    -- iterate over clay colours
+    for _, c in pairs(clay) do
+        table.insert(mass_deposits, {
+            check = "bakedclay:" .. c[1],
+            base_name = "clay_" .. c[1],
+            node_desc = c[2] .. " Clay",
+            base_texture = "baked_clay_"..c[1]..".png",
+            tiles = {"baked_clay_"..c[1]..".png", "baked_clay_"..c[1]..".png"}
+        })
+    end
 end
 
 if core.get_modpath("saltd") then

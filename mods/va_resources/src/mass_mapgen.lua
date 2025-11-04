@@ -25,7 +25,8 @@ local registrations = {{
 }, {
     place_on = "default:permafrost_with_stones",
     deco = "va_resources:moss_with_metal",
-    replace = "moss"
+    replace = "moss",
+    offset = 0.0000125
 }, {
     place_on = "default:dirt_with_grass",
     deco = "va_resources:grass_with_metal",
@@ -78,11 +79,19 @@ if core.get_modpath("badlands") then
 end
 
 if core.get_modpath("bakedclay") then
-    table.insert(registrations, {
-        place_on = "bakedclay:orange",
-        deco = "va_resources:clay_orange_with_metal",
-        replace = "clay_orange"
-    })
+    -- list of clay colours
+    local clay = {{"natural", "Natural"}, {"white", "White"}, {"grey", "Grey"}, {"black", "Black"}, {"red", "Red"},
+                  {"yellow", "Yellow"}, {"green", "Green"}, {"cyan", "Cyan"}, {"blue", "Blue"}, {"magenta", "Magenta"},
+                  {"orange", "Orange"}, {"violet", "Violet"}, {"brown", "Brown"}, {"pink", "Pink"},
+                  {"dark_grey", "Dark Grey"}, {"dark_green", "Dark Green"}}
+    -- iterate over clay colours
+    for _, c in pairs(clay) do
+        table.insert(registrations, {
+            place_on = "bakedclay:" .. c[1],
+            deco = "va_resources:clay_" .. c[1] .. "_with_metal",
+            replace = "clay_" .. c[1]
+        })
+    end
 end
 
 if core.get_modpath("saltd") then
@@ -100,23 +109,23 @@ if core.get_modpath("saltd") then
         place_on = "saltd:salt_sand",
         deco = "va_resources:barren_with_metal",
         replace = "barren",
-        scale = 0.0001,
+        scale = 0.0001
     })
 end
 
 local function register_mass(def)
 
     core.register_decoration({
-        name = def.deco,
+        name = def.deco .. "_low",
         deco_type = "simple",
         place_on = {def.place_on} or {},
         biomes = def.biomes or nil,
-        --spawn_by = def.spawn_by or {},
-        --num_spawn_by = def.num_spawn_by or 1,
+        -- spawn_by = def.spawn_by or {},
+        -- num_spawn_by = def.num_spawn_by or 1,
         sidelen = 16,
         noise_params = {
-            offset = def.offset or 0.000231,
-            scale = def.scale or 0.0002,
+            offset = def.offset or 0.000146,
+            scale = def.scale or 0.0001,
             spread = {
                 x = 200,
                 y = 200,
@@ -126,9 +135,59 @@ local function register_mass(def)
             octaves = def.octaves or 2,
             persist = def.persist or 0.37
         },
-        y_max = 256,
-        y_min = -3,
-        decoration = "va_resources:barren_with_metal",
+        y_max = 32,
+        y_min = -15,
+        decoration = def.deco,
+        place_offset_y = -1,
+        flags = "force_placement"
+    })
+
+    core.register_decoration({
+        name = def.deco .. "_mid",
+        deco_type = "simple",
+        place_on = {def.place_on} or {},
+        biomes = def.biomes or nil,
+        sidelen = 16,
+        noise_params = {
+            offset = def.offset or 0.001057,
+            scale = def.scale or 0.005,
+            spread = {
+                x = 200,
+                y = 100,
+                z = 200
+            },
+            seed = 88,
+            octaves = def.octaves or 3,
+            persist = def.persist or 0.64
+        },
+        y_max = 64,
+        y_min = 33,
+        decoration = def.deco,
+        place_offset_y = -1,
+        flags = "force_placement"
+    })
+
+    core.register_decoration({
+        name = def.deco .. "_high",
+        deco_type = "simple",
+        place_on = {def.place_on} or {},
+        biomes = def.biomes or nil,
+        sidelen = 16,
+        noise_params = {
+            offset = def.offset or 0.004510,
+            scale = def.scale or 0.025,
+            spread = {
+                x = 200,
+                y = 50,
+                z = 200
+            },
+            seed = 88,
+            octaves = def.octaves or 3,
+            persist = def.persist or 0.72
+        },
+        y_max = 128,
+        y_min = 65,
+        decoration = def.deco,
         place_offset_y = -1,
         flags = "force_placement"
     })
@@ -138,17 +197,12 @@ local metals = {}
 
 for _, def in pairs(registrations) do
     register_mass(def)
-    local id = core.get_decoration_id(def.deco)
-    metals[id] = def.replace
-end
-
-local function split(s, delimiter)
-    local result = {}
-    -- Use gmatch to find all substrings that are not the delimiter
-    for match in string.gmatch(s, "([^" .. delimiter .. "]+)") do
-        table.insert(result, match)
-    end
-    return result
+    local id_1 = core.get_decoration_id(def.deco .. "_low")
+    metals[id_1] = def.replace
+    local id_2 = core.get_decoration_id(def.deco .. "_mid")
+    metals[id_2] = def.replace
+    local id_3 = core.get_decoration_id(def.deco .. "_high")
+    metals[id_3] = def.replace
 end
 
 local metal_ids = {}
@@ -165,10 +219,10 @@ core.register_on_generated(function(minp, maxp, blockseed)
     if maxp.y > 16 * 72 + 1 or minp.y < -(16 * 72 + 2) then
         return
     end
-    if maxp.x > 4095 or minp.x < -4096 then
+    if maxp.x > 4095 + 16 or minp.x < -(4096) then
         return
     end
-    if maxp.z > 4095 or minp.z < -4096 then
+    if maxp.z > 4095 + 16 or minp.z < -(4096) then
         return
     end
 
