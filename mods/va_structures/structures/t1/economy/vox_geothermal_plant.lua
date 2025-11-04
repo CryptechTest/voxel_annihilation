@@ -209,7 +209,7 @@ def.size = {
     z = 1
 }
 def.category = "economy"
-def.tier = 2
+def.tier = 1
 def.faction = "vox"
 
 -- Register a new Geothermal Plant
