@@ -249,6 +249,12 @@ naturalslopeslib.register_slope("default:aspen_leaves", {
 	{stomp = 6}
 )
 
+naturalslopeslib.register_slope("saltd:burnt_branches", {
+	description = S("Burnt Branches Slope"),
+	},
+	2,
+	{stomp = 6}
+)
 
 ---
 --- Plantlife
@@ -344,6 +350,12 @@ default.register_leafdecay({
 	trunks = {"default:pine_bush_stem"},
 	leaves = naturalslopeslib.get_all_shapes("default:pine_bush_needles"),
 	radius = 1,
+})
+
+default.register_leafdecay({
+	trunks = { "saltd:burnt_trunk" },
+	leaves = naturalslopeslib.get_all_shapes("saltd:burnt_branches"),
+	radius = 3,
 })
 
 

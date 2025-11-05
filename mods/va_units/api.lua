@@ -40,7 +40,7 @@ end
 local function find_path(unit, target_pos, ...)
     local start = unit.object:get_pos()
     local path = core.find_path(start, target_pos, ...) or
-        core.find_path(vector.add(start, vector.new(0, 1, 0)), target_pos, ...) 
+        core.find_path(vector.add(start, vector.new(0, 1, 0)), target_pos, ...)
     return path
 end
 
@@ -138,11 +138,11 @@ local function update_physics(unit)
     if not object then
         return
     end
-        --check if unit is stuck inside a solid node
+    --check if unit is stuck inside a solid node
     local pos = object:get_pos()
-    local collisionbox = object:get_properties().collisionbox or {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
+    local collisionbox = object:get_properties().collisionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 }
     local feet_y = pos.y + collisionbox[2] + 0.01 -- slightly below feet
-    local node_pos = {x = floor(pos.x + 0.5), y = floor(feet_y + 0.5), z = floor(pos.z + 0.5)}
+    local node_pos = { x = floor(pos.x + 0.5), y = floor(feet_y + 0.5), z = floor(pos.z + 0.5) }
     local node = core.get_node_or_nil(node_pos)
     if node and node.name ~= "air" then
         local def = core.registered_nodes[node.name]
@@ -194,24 +194,28 @@ end
 local function process_look(driver, unit, horizontal)
     local head_bone = "head"
     local head_override = unit.object:get_bone_override(head_bone) or {}
-    head_override.position = head_override.position or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
-    head_override.rotation = head_override.rotation or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
-    head_override.rotation.vec = head_override.rotation.vec or {x=0, y=0, z=0}
+    head_override.position = head_override.position or
+        { vec = { x = 0, y = 0, z = 0 }, absolute = false, interpolation = 2 }
+    head_override.rotation = head_override.rotation or
+        { vec = { x = 0, y = 0, z = 0 }, absolute = false, interpolation = 2 }
+    head_override.rotation.vec = head_override.rotation.vec or { x = 0, y = 0, z = 0 }
     head_override.rotation.vec.x = head_override.rotation.vec.x or 0
     head_override.rotation.vec.y = head_override.rotation.vec.y or 0
     head_override.rotation.vec.z = head_override.rotation.vec.z or 0
 
     local gun_bone = "arms"
     local gun_override = unit.object:get_bone_override(gun_bone) or {}
-    gun_override.position = gun_override.position or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
-    gun_override.rotation = gun_override.rotation or { vec = {x=0, y=0, z=0}, absolute=false, interpolation=2 }
-    gun_override.rotation.vec = gun_override.rotation.vec or {x=0, y=0, z=0}
+    gun_override.position = gun_override.position or
+        { vec = { x = 0, y = 0, z = 0 }, absolute = false, interpolation = 2 }
+    gun_override.rotation = gun_override.rotation or
+        { vec = { x = 0, y = 0, z = 0 }, absolute = false, interpolation = 2 }
+    gun_override.rotation.vec = gun_override.rotation.vec or { x = 0, y = 0, z = 0 }
     gun_override.rotation.vec.x = gun_override.rotation.vec.x or 0
     gun_override.rotation.vec.y = gun_override.rotation.vec.y or 0
     gun_override.rotation.vec.z = gun_override.rotation.vec.z or 0
 
     local target_yaw = driver:get_look_horizontal()
-    local target_pitch = driver:get_look_vertical() - pi/12
+    local target_pitch = driver:get_look_vertical() - pi / 12
     local speed = 0.2
 
     local function angle_diff(a, b)
@@ -234,7 +238,7 @@ local function process_look(driver, unit, horizontal)
         return max(minv, min(maxv, val))
     end
     local new_pitch = gun_override.rotation.vec.x + angle_diff(target_pitch, gun_override.rotation.vec.x) * speed
-    gun_override.rotation.vec.x = clamp(new_pitch, -pi/2, pi/12)
+    gun_override.rotation.vec.x = clamp(new_pitch, -pi / 2, pi / 12)
     gun_override.rotation.interpolation = 2
     unit.object:set_bone_override(head_bone, head_override)
     unit.object:set_bone_override(gun_bone, gun_override)
@@ -393,6 +397,7 @@ function va_units.register_unit(name, def)
         _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
         _driver = nil,
         _target_pos = nil,
+        _path = nil,
         _timer = 0,
         _marked_for_removal = false,
         _is_constructed = false,
@@ -450,8 +455,8 @@ function va_units.register_unit(name, def)
                 return
             end
             update_physics(self)
-            keep_loaded(self)            
-            
+            keep_loaded(self)
+
             if not self._target_pos and (not self._command_queue or #self._command_queue == 0) then
                 drive(self, {
                     movement_speed = def.movement_speed * 2.5,
@@ -465,20 +470,26 @@ function va_units.register_unit(name, def)
                 -- Handle movement towards target
                 local stepheight = self.object:get_properties().stepheight or 0.6
 
-                local path = find_path(self,
-                    self._target_pos,
-                    128, stepheight + 0.7, stepheight + 0.7)
-                if path and #path > 1 then
+                if self._path == nil or #self._path < 2 then
+                    self._path = find_path(self,
+                        self._target_pos,
+                        128, stepheight + 0.7, stepheight + 0.7)
+                end
+                if self._path and #self._path > 1 then
                     -- Stuck detection: track last position and timer
                     self._last_pos = self._last_pos or self.object:get_pos()
                     self._stuck_timer = self._stuck_timer or 0
+
                     local pos = self.object:get_pos()
-                    local moved_dist = sqrt((pos.x - self._last_pos.x)^2 + (pos.y - self._last_pos.y)^2 + (pos.z - self._last_pos.z)^2)
+
+
+                    local moved_dist = sqrt((pos.x - self._last_pos.x) ^ 2 + (pos.y - self._last_pos.y) ^ 2 +
+                        (pos.z - self._last_pos.z) ^ 2)
                     if moved_dist < 0.05 then
                         self._stuck_timer = self._stuck_timer + dtime
                     else
                         self._stuck_timer = 0
-                        self._last_pos = {x = pos.x, y = pos.y, z = pos.z}
+                        self._last_pos = { x = pos.x, y = pos.y, z = pos.z }
                     end
                     if self._stuck_timer > 1 then
                         self._target_pos = nil
@@ -496,7 +507,8 @@ function va_units.register_unit(name, def)
                     local target_pos = self._target_pos
                     if target_pos then
                         local tpos = self.object:get_pos()
-                        local dist = sqrt((target_pos.x - tpos.x)^2 + (target_pos.y - tpos.y)^2 + (target_pos.z - tpos.z)^2)
+                        local dist = sqrt((target_pos.x - tpos.x) ^ 2 + (target_pos.y - tpos.y) ^ 2 +
+                            (target_pos.z - tpos.z) ^ 2)
                         if dist < 1 then
                             self._target_pos = nil
                             self._path = nil
@@ -509,8 +521,63 @@ function va_units.register_unit(name, def)
                             return
                         end
                     end
-                    
-                    local next_pos = path[2]
+
+                    local next_pos = table.remove(self._path, 2)
+                    if not next_pos then
+                        self._target_pos = nil
+                        self._path = nil
+                        local vel = self.object:get_velocity()
+                        self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                        if self._animation ~= self._animations.stand then
+                            self._animation = self._animations.stand
+                            self.object:set_animation(self._animation, self._animation_speed or 30)
+                        end
+                        return
+                    end
+
+                    --check for objects that might be block the way
+                    local objects = core.get_objects_inside_radius(next_pos, 0.5)
+                    -- remove self and non-physical objects from the list
+                    for i = #objects, 1, -1 do
+                        if objects[i] == self.object then
+                            table.remove(objects, i)
+                        else
+                            local obj = objects[i]:get_luaentity()
+                            if obj and not obj._is_va_unit and not objects[i]:is_player() then
+                                table.remove(objects, i)
+                            end
+                        end
+                    end
+                    -- If there are blocking objects, try to move sideways to go around
+                    if #objects > 0 then
+                        core.chat_send_player(self._owner_name, "Blocked by objects, trying to sidestep.")
+                        local pos = self.object:get_pos()
+                        local dir_vector = vector.subtract(next_pos, pos)
+                        local right_vector = vector.new(-dir_vector.z, 0, dir_vector.x)
+                        local sidestep_pos1 = vector.add(pos, vector.multiply(right_vector, 0.5))
+                        local sidestep_pos2 = vector.subtract(pos, vector.multiply(right_vector, 0.5))
+                        local sidestep_node1 = core.get_node_or_nil(sidestep_pos1)
+                        local sidestep_node2 = core.get_node_or_nil(sidestep_pos2)
+                        local can_step1 = sidestep_node1 and sidestep_node1.name == "air"
+                        local can_step2 = sidestep_node2 and sidestep_node2.name == "air"
+                        if can_step1 then
+                            next_pos = sidestep_pos1
+                        elseif can_step2 then
+                            next_pos = sidestep_pos2
+                        else
+                            -- Cannot sidestep, stop movement
+                            self._target_pos = nil
+                            self._path = nil
+                            local vel = self.object:get_velocity()
+                            self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                            if self._animation ~= self._animations.stand then
+                                self._animation = self._animations.stand
+                                self.object:set_animation(self._animation, self._animation_speed or 30)
+                            end
+                            return
+                        end
+                    end
+
                     local dir_vector = vector.subtract(next_pos, pos)
                     local yaw = atan2(dir_vector.z, dir_vector.x) - (pi / 2)
                     self.object:set_yaw(yaw)
@@ -518,9 +585,9 @@ function va_units.register_unit(name, def)
                     local animation = self._animation
 
                     -- Snap to next node if close horizontally
-                    local horiz_dist = sqrt((next_pos.x - pos.x)^2 + (next_pos.z - pos.z)^2)
+                    local horiz_dist = sqrt((next_pos.x - pos.x) ^ 2 + (next_pos.z - pos.z) ^ 2)
                     if horiz_dist < 0.25 then
-                        self.object:set_pos({x = next_pos.x + 0.5, y = pos.y, z = next_pos.z + 0.5})
+                        self.object:set_pos({ x = next_pos.x + 0.5, y = pos.y, z = next_pos.z + 0.5 })
                     end
 
                     -- Step-up logic for walkable or liquid nodes
@@ -547,7 +614,7 @@ function va_units.register_unit(name, def)
 
                     -- If vertical movement is blocked, nudge upward
                     if not step_up_needed and abs(next_pos.y - pos.y) > stepheight and horiz_dist < 0.5 then
-                        self.object:set_pos({x = pos.x, y = next_pos.y, z = pos.z})
+                        self.object:set_pos({ x = pos.x, y = next_pos.y, z = pos.z })
                     end
 
                     -- Apply velocity for smooth stepping
@@ -589,7 +656,7 @@ function va_units.register_unit(name, def)
     core.register_craftitem("va_units:" .. name, {
         description = def.spawn_item_description,
         inventory_image = def.item_inventory_image or ("va_units_" .. name .. "_item.png"),
-        groups = { spawn_egg = 2, not_in_creative_inventory = 1, va_unit =1 },
+        groups = { spawn_egg = 2, not_in_creative_inventory = 1, va_unit = 1 },
         on_place = function(itemstack, placer, pointed_thing)
             local pos = pointed_thing.above
 
