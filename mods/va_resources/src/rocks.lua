@@ -23,8 +23,8 @@ local function register_rock(def, index)
         groups = {
             cracky = 2,
             va_rocks = index or 1,
-            va_mass_value = 20, -- scaled by 0.1
-            va_energy_value = 5 -- scaled by 0.1
+            va_mass_value = 2.14, -- base value for index 1
+            va_energy_value = 0.2 -- base value for index 1
         },
         drop = "",
         sunlight_propagates = true,
@@ -36,6 +36,23 @@ local function register_rock(def, index)
             type = "fixed",
             fixed = {-8 / 16, -8 / 16, -8 / 16, 8 / 16, 0, 8 / 16}
         },
+
+        _degrade = function (pos)
+            local node = core.get_node(pos)
+            local g_node = core.get_item_group(node.name, "va_rocks")
+            if g_node - 1 <= 0 then
+                core.remove_node(pos)
+                return true
+            end
+            local meta = core.get_meta(pos)
+            meta:set_int("claimed", 0)
+            local next_node_name = modname .. ":" .. def.name .. "_" .. (g_node - 1)
+            core.swap_node(pos, {
+                name = next_node_name,
+                param2 = node.param2
+            })
+            return false
+        end,
 
         on_place = function(itemstack, placer, pointed_thing)
             if pointed_thing.type ~= "node" then
@@ -65,7 +82,7 @@ local function register_rock(def, index)
                     })
 
                     itemstack:take_item(1)
-                else 
+                else
 
                     if g_node == def.levels then
                         return
@@ -88,7 +105,7 @@ local function register_rock(def, index)
 
                 end
             else
-                local param2 = core.dir_to_facedir(placer:get_look_dir()) 
+                local param2 = core.dir_to_facedir(placer:get_look_dir())
                 local next_node_name = modname .. ":" .. def.name .. "_" .. g_item
                 core.set_node(a_pos, {
                     name = next_node_name,
@@ -97,7 +114,11 @@ local function register_rock(def, index)
                 itemstack:take_item(1)
             end
 
-            return core.rotate_node(itemstack, placer, pointed_thing)
+            local node_def = core.registered_nodes[node.name]
+            if node_def and node_def.after_place_node then
+                node_def.after_place_node(pointed_thing.above, placer, itemstack, pointed_thing)
+            end
+            return itemstack
         end,
 
         on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)

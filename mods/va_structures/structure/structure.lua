@@ -67,6 +67,7 @@ function Structure.new(pos, name, def, do_def_check)
     self.water_type = def.water_type or false -- flag for water structures
     self.under_water_type = def.under_water_type or false -- flag for underwater structures
     self.factory_type = def.factory_type or false
+    self.construction_type = def.construction_type or false
 
     self.tier = def.tier -- tech tier of this structure
     self.faction = def.faction -- faction teams: 'vox' and 'cube'
@@ -110,12 +111,13 @@ function Structure.new(pos, name, def, do_def_check)
 
     self.last_hit = 0 -- last time structure was hit by player
 
+    self._out_index = 0 -- unit build tick flag
+
     -- validitiy flags
     self._active = false
     self._defined = false
     self._disposed = false
     self._disposing = false
-    self._out_index = 0
     if do_def_check then
         self._defined = va_structures.is_registered_structure(self.fqnn)
     end
@@ -933,7 +935,6 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
         table.remove(self.process_queue, 1)
         inv:set_list("build_unit", {})
     end
-
 end
 
 -----------------------------------------------------------------

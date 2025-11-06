@@ -80,6 +80,15 @@ local function register_structure_node(def)
                 meta:set_int("build_repeat", 0)
                 meta:set_int("build_page", 0)
                 meta:set_int("queue_page", 0)
+                meta:set_int("build_priority", 0)
+            end
+            if def.construction_type then
+                meta:set_int("do_assist", 1)
+                meta:set_int("do_repair", 1)
+                meta:set_int("do_reclaim", 1)
+                meta:set_int("build_focus", 1)
+                meta:set_int("reclaim_focus", 1)
+                meta:set_int("build_priority", 1)
             end
             meta:set_int("active", 1)
             meta:set_int("is_constructed", 0)

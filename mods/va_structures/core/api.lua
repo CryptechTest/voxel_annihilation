@@ -91,6 +91,7 @@ function va_structures.register_structure(def)
             water_type = def.water_type,
             under_water_type = def.under_water_type,
             factory_type = def.factory_type,
+            construction_type = def.construction_type,
             entity_name = def.entity_name,
             tier = def.tier,
             faction = def.faction,
@@ -130,7 +131,7 @@ function va_structures.register_structure(def)
     local name = def.fqnn
     local tier = def.tier
     local category = def.category
-    local desc = def.desc
+    --local desc = def.desc
     if not _registered_defs[category] then
         _registered_defs[category] = {}
     end
