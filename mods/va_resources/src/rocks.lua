@@ -7,7 +7,62 @@ local rocks_defs = {{
     mesh = "va_small_rocks",
     tiles = {{
         name = "va_small_rocks_2.png"
-    }}
+    }},
+    place_on = {"default:dirt_with_grass", "default:dirt_with_snow", "default:dirt", "default:stone", "default:gravel", "dirt_with_coniferous_litter"}
+}, {
+    name = "small_rocks_red",
+    desc = "Small Rocks Desert",
+    levels = 9,
+    mesh = "va_small_rocks",
+    tiles = {{
+        name = "va_small_rocks_3.png"
+    }},
+    place_on = {"default:desert_sand", "default:desert_stone", "badlands:red_sand", "bakedclay:red"}
+}, {
+    name = "small_rocks_sandstone",
+    desc = "Small Rocks Sandstone",
+    levels = 9,
+    mesh = "va_small_rocks",
+    tiles = {{
+        name = "va_small_rocks_5.png"
+    }},
+    place_on = {"saltd:salt_sand", "default:sand", "default:desert_sandstone", "default:dry_dirt"}
+}, {
+    name = "small_rocks_sandstone_dry",
+    desc = "Small Rocks Dry Sandstone",
+    levels = 9,
+    mesh = "va_small_rocks",
+    tiles = {{
+        name = "va_small_rocks_4.png"
+    }},
+    place_on = {"saltd:salt_sand", "default:dry_dirt", "default:dry_dirt_with_dry_grass", "bakedclay:orange"}
+}, {
+    name = "small_rocks_sandstone_silver",
+    desc = "Small Rocks Silver Sandstone",
+    levels = 9,
+    mesh = "va_small_rocks",
+    tiles = {{
+        name = "va_small_rocks_6.png"
+    }},
+    place_on = {"saltd:salt_sand", "default:silver_sand", "default:dirt_with_snow", "bakedclay:natural"}
+}, {
+    name = "small_rocks_permafrost",
+    desc = "Small Rocks Permafrost",
+    levels = 9,
+    mesh = "va_small_rocks",
+    tiles = {{
+        name = "va_small_rocks_7.png"
+    }},
+    place_on = {"default:permafrost_with_stones", "default:dirt_with_grass", "default:dirt", "default:stone", "dirt_with_coniferous_litter"}
+}, {
+    name = "small_rocks_moss",
+    desc = "Small Rocks Mossy",
+    levels = 9,
+    mesh = "va_small_rocks",
+    tiles = {{
+        name = "va_small_rocks_8b.png"
+    }},
+    place_on = {"default:permafrost_with_stones", "default:permafrost_with_moss", "default:dirt_with_grass", "dirt_with_coniferous_litter" }
 }}
 
 local function register_rock(def, index)
@@ -37,7 +92,7 @@ local function register_rock(def, index)
             fixed = {-8 / 16, -8 / 16, -8 / 16, 8 / 16, 0, 8 / 16}
         },
 
-        _degrade = function (pos)
+        _degrade = function(pos)
             local node = core.get_node(pos)
             local g_node = core.get_item_group(node.name, "va_rocks")
             if g_node - 1 <= 0 then
@@ -70,7 +125,7 @@ local function register_rock(def, index)
             local node = core.get_node(b_pos or pos_below)
             local g_node = core.get_item_group(node.name, "va_rocks")
             local g_item = core.get_item_group(itemstack:get_name(), "va_rocks")
-            
+
             if g_node > 0 and g_item > 0 then
 
                 if g_node + g_item <= def.levels then
@@ -89,7 +144,7 @@ local function register_rock(def, index)
                     end
 
                     local next_node_name = modname .. ":" .. def.name .. "_" .. 9
-                    
+
                     local new_item_lvl = (g_node + g_item) - def.levels
                     local new_item_name = modname .. ":" .. def.name .. "_" .. new_item_lvl
 
@@ -99,7 +154,7 @@ local function register_rock(def, index)
                     })
 
                     itemstack:take_item(1)
-                    
+
                     local inv = placer:get_inventory()
                     inv:add_item("main", new_item_name)
 
@@ -122,7 +177,7 @@ local function register_rock(def, index)
         end,
 
         on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
-            
+
             local g_node = core.get_item_group(node.name, "va_rocks")
             local g_item = core.get_item_group(itemstack:get_name(), "va_rocks")
 
@@ -162,12 +217,43 @@ local function register_rock(def, index)
 
 end
 
+local function register_deco(def, level)
+
+    core.register_decoration({
+        name = def.name .. "_deco" .. "_" .. tonumber(level),
+        deco_type = "simple",
+        place_on = def.place_on or {},
+        biomes = def.biomes or nil,
+        sidelen = 8,
+        noise_params = {
+            offset = def.offset or 0.0001073,
+            scale = def.scale or 0.0001,
+            spread = {
+                x = 100,
+                y = 100,
+                z = 100
+            },
+            seed = 441 + level,
+            octaves = def.octaves or 4,
+            persist = def.persist or 0.28
+        },
+        y_max = 128,
+        y_min = 1,
+        decoration = "va_resources:" .. def.name .. "_" .. tostring(level),
+        --place_offset_y = -1,
+        flags = "force_placement"
+    })
+
+end
+
 local function register_rocks()
     for _, v in pairs(rocks_defs) do
         for i = 1, v.levels, 1 do
             register_rock(v, i)
+            register_deco(v, i)
         end
     end
+
 end
 
 register_rocks()

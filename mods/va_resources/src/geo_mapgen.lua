@@ -36,6 +36,10 @@ local registrations = {{
     deco = "va_resources:dirt_snow_with_geo",
     replace = "dirt_snow"
 }, {
+    place_on = "default:snowblock",
+    deco = "va_resources:snowblock_with_metal",
+    replace = "snowblock"
+}, {
     place_on = "default:permafrost_with_stones",
     deco = "va_resources:permafrost_with_geo",
     replace = "permafrost"
@@ -90,7 +94,7 @@ if core.get_modpath("saltd") then
     table.insert(registrations, {
         place_on = "saltd:salt_sand",
         deco = "va_resources:salt_sand_with_geo",
-        replace = "salt_sand",
+        replace = "salt_sand"
     })
     table.insert(registrations, {
         place_on = "saltd:humid_salt_sand",
@@ -158,12 +162,12 @@ core.register_on_generated(function(minp, maxp, blockseed)
 
     local function in_bounds(pos)
         if pos.x > 4095 or pos.y > 128 or pos.z > 4095 then
-           return false
+            return false
         end
         if pos.x < -4096 or pos.y < -16 or pos.z < -4096 then
             return false
         end
-        return  true
+        return true
     end
 
     for id, replace in pairs(metals) do

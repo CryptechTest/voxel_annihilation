@@ -11,6 +11,10 @@ local registrations = {{
     deco = "va_resources:dirt_with_metal",
     replace = "dirt"
 }, {
+    place_on = "default:snowblock",
+    deco = "va_resources:snowblock_with_metal",
+    replace = "snowblock"
+}, {
     place_on = "default:dry_dirt",
     deco = "va_resources:dry_dirt_with_metal",
     replace = "dry_dirt"
@@ -222,12 +226,12 @@ core.register_on_generated(function(minp, maxp, blockseed)
 
     local function in_bounds(pos)
         if pos.x > 4095 or pos.y > 128 or pos.z > 4095 then
-           return false
+            return false
         end
         if pos.x < -4096 or pos.y < -16 or pos.z < -4096 then
             return false
         end
-        return  true
+        return true
     end
 
     for id, replace in pairs(metals) do

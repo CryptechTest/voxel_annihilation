@@ -46,6 +46,12 @@ local geo_vents = {{
         tileable_vertical = false
     }}
 }, {
+    check = "default:snowblock",
+    base_name = "snowblock",
+    node_desc = "Snow",
+    base_texture = "default_snow.png",
+    tiles = {"default_snow.png", "default_snow.png"}
+}, {
     check = "default:dry_dirt",
     base_name = "dry_dirt",
     node_desc = "Dry Dirt",

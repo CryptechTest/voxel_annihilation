@@ -21,3 +21,4 @@ dofile(mod_path .. "/src/geo_entity.lua")
 
 -- rocks and foilage...
 dofile(mod_path .. "/src/rocks.lua")
+dofile(mod_path .. "/src/plants.lua")

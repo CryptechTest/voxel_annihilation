@@ -39,12 +39,18 @@ local mass_deposits = {{
 }, {
     check = "default:dirt_with_snow",
     base_name = "dirt_snow",
-    node_desc = "Snow",
+    node_desc = "Snowy Dirt",
     base_texture = "default_snow.png",
     tiles = {"default_snow.png", "default_dirt.png", {
         name = "default_dirt.png^default_snow_side.png",
         tileable_vertical = false
     }}
+}, {
+    check = "default:snowblock",
+    base_name = "snowblock",
+    node_desc = "Snow",
+    base_texture = "default_snow.png",
+    tiles = {"default_snow.png", "default_snow.png"}
 }, {
     check = "default:dry_dirt",
     base_name = "dry_dirt",
@@ -156,32 +162,18 @@ end
 
 if core.get_modpath("bakedclay") then
     -- list of clay colours
-    local clay = {
-        {"natural", "Natural"},
-        {"white", "White"},
-        {"grey", "Grey"},
-        {"black", "Black"},
-        {"red", "Red"},
-        {"yellow", "Yellow"},
-        {"green", "Green"},
-        {"cyan", "Cyan"},
-        {"blue", "Blue"},
-        {"magenta", "Magenta"},
-        {"orange", "Orange"},
-        {"violet", "Violet"},
-        {"brown", "Brown"},
-        {"pink", "Pink"},
-        {"dark_grey", "Dark Grey"},
-        {"dark_green", "Dark Green"}
-    }
+    local clay = {{"natural", "Natural"}, {"white", "White"}, {"grey", "Grey"}, {"black", "Black"}, {"red", "Red"},
+                  {"yellow", "Yellow"}, {"green", "Green"}, {"cyan", "Cyan"}, {"blue", "Blue"}, {"magenta", "Magenta"},
+                  {"orange", "Orange"}, {"violet", "Violet"}, {"brown", "Brown"}, {"pink", "Pink"},
+                  {"dark_grey", "Dark Grey"}, {"dark_green", "Dark Green"}}
     -- iterate over clay colours
     for _, c in pairs(clay) do
         table.insert(mass_deposits, {
             check = "bakedclay:" .. c[1],
             base_name = "clay_" .. c[1],
             node_desc = c[2] .. " Clay",
-            base_texture = "baked_clay_"..c[1]..".png",
-            tiles = {"baked_clay_"..c[1]..".png", "baked_clay_"..c[1]..".png"}
+            base_texture = "baked_clay_" .. c[1] .. ".png",
+            tiles = {"baked_clay_" .. c[1] .. ".png", "baked_clay_" .. c[1] .. ".png"}
         })
     end
 end
@@ -439,7 +431,7 @@ local function in_bounds(pos)
     if pos.x < -4096 or pos.y < -16 or pos.z < -4096 then
         return false
     end
-    return  true
+    return true
 end
 
 function va_resources.add_mass_deposit(pos, b_name, value, mass_type)

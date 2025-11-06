@@ -132,7 +132,15 @@ local reclaim_groups = {
         time = 8,
         mass = 0.1,
         energy = 2,
-        priority = 4
+        priority = 4,
+        use_group = true
+    },
+    ['va_gems'] = {
+        time = 100,
+        mass = 5,
+        energy = 4,
+        priority = 3,
+        use_group = true
     },
 }
 
@@ -152,6 +160,13 @@ local function get_reclaim_value(node)
                 -- energy = value.energy * rock_energy * rock_lvl
                 mass = value.mass * rock_mass,
                 energy = value.energy * rock_energy
+            }
+        elseif key == "va_gems" then
+            local gem_lvl = core.get_item_group(node.name, key)
+            return {
+                time = value.time * gem_lvl,
+                mass = value.mass * gem_lvl,
+                energy = value.energy * gem_lvl
             }
         elseif not value.use_group and node.name == key then
             return value
