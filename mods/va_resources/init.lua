@@ -1,10 +1,6 @@
 ---@diagnostic disable-next-line: lowercase-global
 va_resources = {}
 
-local path = core.get_modpath("va_resources")
-
-dofile(path .. "/api.lua")
-
 local modname = core.get_current_modname()
 local mod_path = core.get_modpath(modname)
 
@@ -22,3 +18,5 @@ dofile(mod_path .. "/src/geo_entity.lua")
 -- rocks and foilage...
 dofile(mod_path .. "/src/rocks.lua")
 dofile(mod_path .. "/src/plants.lua")
+
+dofile(mod_path .. "/api.lua")

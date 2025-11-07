@@ -78,8 +78,8 @@ local function register_rock(def, index)
         groups = {
             cracky = 2,
             va_rocks = index or 1,
-            va_mass_value = 2.14, -- base value for index 1
-            va_energy_value = 0.2 -- base value for index 1
+            va_mass_value = 21, -- base value for index 1
+            va_energy_value = 2 -- base value for index 1
         },
         drop = "",
         sunlight_propagates = true,
@@ -226,8 +226,8 @@ local function register_deco(def, level)
         biomes = def.biomes or nil,
         sidelen = 8,
         noise_params = {
-            offset = def.offset or 0.0001073,
-            scale = def.scale or 0.0001,
+            offset = def.offset or 0.00008173,
+            scale = def.scale or 0.000002,
             spread = {
                 x = 100,
                 y = 100,
@@ -240,8 +240,10 @@ local function register_deco(def, level)
         y_max = 128,
         y_min = 1,
         decoration = "va_resources:" .. def.name .. "_" .. tostring(level),
-        --place_offset_y = -1,
-        flags = "force_placement"
+        flags = "force_placement",
+        rotation = "random",
+        --param2 = 0,
+        --param2_max = 4,
     })
 
 end

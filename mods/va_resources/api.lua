@@ -1,3 +1,19 @@
+
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 -- reclaim groups for resources
 local reclaim_groups = {
     ['va_rocks'] = {
@@ -16,19 +32,19 @@ local reclaim_groups = {
         mass = 1, -- acts as scaler
         energy = 0, -- acts as scaler
         use_group = true,
-        priority = 4
+        priority = 2
     },
     ['leaves'] = {
         time = 10,
         mass = 0,
         energy = 2.5,
         use_group = true,
-        priority = 3
+        priority = 4
     },
     ['tree'] = {
         time = 25,
-        mass = 0.3,
-        energy = 7,
+        mass = 0,
+        energy = 8,
         use_group = true,
         priority = 5
     },
@@ -59,8 +75,8 @@ local reclaim_groups = {
     ['saltd:salt_gem'] = {
         time = 80,
         mass = 3.0,
-        energy = 2.8,
-        priority = 6
+        energy = 3.0,
+        priority = 4
     },
     ['saltd:burnt_bush'] = {
         time = 20,
@@ -81,16 +97,16 @@ local reclaim_groups = {
         priority = 3
     },
     ['saltd:burnt_trunk'] = {
-        time = 25,
-        mass = 0.3,
-        energy = 6.5,
-        priority = 4
+        time = 20,
+        mass = 0,
+        energy = 7.5,
+        priority = 5
     },
     ['saltd:burnt_branches'] = {
         time = 10,
         mass = 0,
         energy = 2.3,
-        priority = 3
+        priority = 4
     },
     ['va_terrain:slope_burnt_branches'] = {
         time = 10,
@@ -114,7 +130,7 @@ local reclaim_groups = {
         time = 15,
         mass = 0,
         energy = 3,
-        priority = 3
+        priority = 5
     },
     ['default:dry_shrub'] = {
         time = 10,
@@ -138,30 +154,60 @@ local reclaim_groups = {
     ['va_gems'] = {
         time = 100,
         mass = 5,
-        energy = 4,
-        priority = 3,
+        energy = 5,
+        priority = 4,
         use_group = true
-    },
+    }
 }
+
+local filtered_reclaim_groups = {}
+for key, value in pairs(reclaim_groups) do
+    local val = value
+    val.name = key
+    if val.use_group == nil then
+        val.use_group = false
+    end
+    if val.priority == nil then
+        val.priority = 5
+    end
+    table.insert(filtered_reclaim_groups, val)
+end
+
+table.sort(filtered_reclaim_groups, function (a, b)
+    return a.priority < b.priority
+end)
+
+local reclaim_group_keys = {}
+for _, group in pairs(filtered_reclaim_groups) do
+    if group.use_group and group.use_group == true then
+        table.insert(reclaim_group_keys, "group:" .. group.name)
+    else
+        table.insert(reclaim_group_keys, group.name)
+    end
+end
+
+--core.log(dump(filtered_reclaim_groups))
 
 local function get_reclaim_value(node)
     local splt_name = {}
     for part in string.gmatch(node.name, "([^:]+)") do
         table.insert(splt_name, part)
     end
-    for key, value in pairs(reclaim_groups) do
-        if key == "va_rocks" then
+    for _, value in pairs(filtered_reclaim_groups) do
+        local key = value.name
+        if key == "va_rocks" and core.get_item_group(node.name, key) > 0 then
             local rock_lvl = core.get_item_group(node.name, key)
-            local rock_mass = core.get_item_group(node.name, "va_mass_value")
-            local rock_energy = core.get_item_group(node.name, "va_energy_value")
+            local rock_mass = core.get_item_group(node.name, "va_mass_value") * 0.1
+            local rock_energy = core.get_item_group(node.name, "va_energy_value") * 0.1
             return {
+                name = value.name,
                 time = 1 + value.time * math.min(rock_lvl * 0.5, 2),
                 -- mass = value.mass * rock_mass * rock_lvl,
                 -- energy = value.energy * rock_energy * rock_lvl
                 mass = value.mass * rock_mass,
                 energy = value.energy * rock_energy
             }
-        elseif key == "va_gems" then
+        elseif key == "va_gems" and core.get_item_group(node.name, key) > 0 then
             local gem_lvl = core.get_item_group(node.name, key)
             return {
                 time = value.time * gem_lvl,
@@ -210,40 +256,33 @@ function va_resources.structure_find_reclaim(structure, net)
         --return false
     end
     local pos = structure.pos
-    local dist = structure:get_data().construction_distance
+    local dist = structure:get_data().construction_distance + 3
     local pos1 = vector.add(pos, {
         x = dist,
-        y = math.max(3, dist - 2),
+        y = math.max(3, dist - 1),
         z = dist
     })
     local pos2 = vector.subtract(pos, {
         x = dist,
-        y = math.max(3, dist - 3),
+        y = math.max(3, dist - 1),
         z = dist
     })
-    local groups = {}
-    for g, group in pairs(reclaim_groups) do
-        if group.use_group then
-            table.insert(groups, "group:" .. g)
-        else
-            table.insert(groups, g)
-        end
-    end
 
     -- find nodes to reclaim in area
-    local nodes = core.find_nodes_in_area(pos1, pos2, groups)
+    local nodes = core.find_nodes_in_area(pos1, pos2, reclaim_group_keys)
     if #nodes < 1 then
         return false
     end
 
     local reclaim_targets = {}
     for _, p in pairs(nodes) do
-        if vector.distance(structure.pos, p) <= dist + 0.51 then
+        --if vector.distance(structure.pos, p) <= dist + 0.51 then
             local node = core.get_node(p)
             local meta = core.get_meta(p)
             -- get reclaim value of node
-            local reclaim_value = get_reclaim_value(node)
-            if reclaim_value ~= nil and reclaim_value.time > 0 then
+            local _reclaim_value = get_reclaim_value(node)
+            if _reclaim_value ~= nil then
+                local reclaim_value = deepcopy(_reclaim_value)
                 local claimed = (meta:get_int("claimed") ~= nil and meta:get_int("claimed")) or 0
                 local reclaim_target = {
                     pos = p,
@@ -251,9 +290,13 @@ function va_resources.structure_find_reclaim(structure, net)
                     tick = claimed
                 }
                 table.insert(reclaim_targets, reclaim_target)
+            else
+                core.log("reclaim_value nil")
             end
-        end
+        --end
     end
+
+    --core.log("found " .. tostring(#reclaim_targets) .. " reclaim targets")
 
     -- return if no targets found
     if #reclaim_targets < 1 then
@@ -263,8 +306,57 @@ function va_resources.structure_find_reclaim(structure, net)
     local meta = core.get_meta(pos)
     local r_focus = meta:get_int("reclaim_focus")
 
+    local filtered_reclaim_targets = {}
+    for _, rc in pairs(reclaim_targets) do
+        if r_focus == 1 then
+            local e_thrs = 1
+            if need_energy then
+                e_thrs = 10
+            end
+            if need_mass and rc.value.mass > 0 and rc.value.energy <= e_thrs then
+                table.insert(filtered_reclaim_targets, rc)
+            end
+        elseif r_focus == 2 then
+            local m_thrs = 0
+            if need_mass then
+                m_thrs = 3
+            end
+            if need_energy and rc.value.mass <= m_thrs and rc.value.energy > 0 then
+                table.insert(filtered_reclaim_targets, rc)
+            end
+        elseif r_focus == 3 then
+            if need_mass and need_energy then
+                table.insert(filtered_reclaim_targets, rc)
+            elseif need_mass then
+                if rc.value.mass > 0 and rc.value.energy <= 10 then
+                    table.insert(filtered_reclaim_targets, rc)
+                end
+            elseif need_energy then
+                if rc.value.mass <= 10 and rc.value.energy > 0 then
+                    table.insert(filtered_reclaim_targets, rc)
+                end
+            end
+        end
+    end
+
+    table.sort(filtered_reclaim_targets, function(a, b)
+        local p_a = 5
+        if a.value.priority ~= nil then
+            p_a = a.value.priority
+        end
+        local p_b = 5
+        if b.value.priority ~= nil then
+            p_b = b.value.priority
+        end
+        return p_a < p_b
+    end)
+    -- third sort for avoiding multiple claimers using same pos
+    --[[table.sort(filtered_reclaim_targets, function(a, b)
+        local has_tick = a.tick ~= nil and b.tick ~= nil
+        return (has_tick and a.tick < b.tick) or false
+    end)]]
     -- sort by resource value and final priority
-    table.sort(reclaim_targets, function(a, b)
+    table.sort(filtered_reclaim_targets, function(a, b)
         local p_a = 5
         if a.value.priority ~= nil then
             p_a = a.value.priority
@@ -274,14 +366,14 @@ function va_resources.structure_find_reclaim(structure, net)
             p_b = b.value.priority
         end
         if r_focus == 1 then
-            return p_a < p_b and a.value.mass > b.value.mass
+            return a.value.mass > b.value.mass and p_a < p_b
         elseif r_focus == 2 then
-            return p_a < p_b and a.value.energy > b.value.energy
+            return a.value.energy > b.value.energy and p_a < p_b
         elseif r_focus == 3 then
             if need_mass and not need_energy then
-                return p_a < p_b and a.value.mass > b.value.mass
+                return a.value.mass > b.value.mass
             elseif need_energy then
-                return p_a < p_b and a.value.energy > b.value.energy
+                return a.value.energy > b.value.energy
             else
                 local has_tick = a.tick ~= nil and b.tick ~= nil
                 return a.value.time < b.value.time and (has_tick and a.tick < b.tick)
@@ -291,38 +383,17 @@ function va_resources.structure_find_reclaim(structure, net)
         end
     end)
     -- sort by y pos value for found targets, from least to greatest
-    table.sort(reclaim_targets, function(a, b)
+    table.sort(filtered_reclaim_targets, function(a, b)
         return a.pos.y > b.pos.y
     end)
-    -- third sort for avoiding multiple claimers using same pos
-    table.sort(reclaim_targets, function(a, b)
-        local has_tick = a.tick ~= nil and b.tick ~= nil
-        return (has_tick and a.tick < b.tick) or false
-    end)
 
-    local reclaim_target_a = nil
-    local reclaim_target_b = nil
-    for _, rec in pairs(reclaim_targets) do
-        local do_exec = false
-        if need_mass and rec.value.mass > 0 then
-            do_exec = true
-        elseif need_energy and rec.value.energy > 0 then
-            do_exec = true
-        end
-        if do_exec then
-            if rec.value.time > 0 and rec.tick <= 0 then
-                reclaim_target_a = rec
-                break
-            elseif rec.value.time > 0 then
-                reclaim_target_b = rec
-                break
-            end
-        end
-    end
+    -- get first and second target from ordered list
+    local reclaim_target_a = filtered_reclaim_targets[1]
+    local reclaim_target_b = filtered_reclaim_targets[2]
 
     local reclaim_target = nil
     if reclaim_target_a ~= nil and reclaim_target_b ~= nil then
-        if reclaim_target_a.tick < reclaim_target_b then
+        if reclaim_target_a.tick == nil or (reclaim_target_b.tick ~= nil and reclaim_target_a.tick < reclaim_target_b.tick) then
             reclaim_target = reclaim_target_a
         else
             reclaim_target = reclaim_target_b
@@ -336,6 +407,7 @@ function va_resources.structure_find_reclaim(structure, net)
     if reclaim_target == nil then
         -- clear build target
         structure._build_target = nil
+        --core.log("reclaim target is nil")
         return false
     end
     -- set target for reclaim object
@@ -363,10 +435,14 @@ function va_resources.do_reclaim_with_power(reclaim_target, build_power, actor)
     local claimed_max = reclaim_target.value.time
     local mass_cost = reclaim_target.value.mass
     local energy_cost = reclaim_target.value.energy
-    local mass_cost_rate = mass_cost > 0 and math.floor((mass_cost / claimed_max) * 10000) * 0.0001 or 0
-    local energy_cost_rate = energy_cost > 0 and math.floor((energy_cost / claimed_max) * 10000) * 0.0001 or 0
+    local mass_cost_rate = mass_cost > 0 and ((mass_cost / claimed_max)) or 0
+    local energy_cost_rate = energy_cost > 0 and ((energy_cost / claimed_max)) or 0
     mass_cost_rate = math.min(mass_cost_rate * build_power, mass_cost)
     energy_cost_rate = math.min(energy_cost_rate * build_power, energy_cost)
+    mass_cost_rate = math.floor(mass_cost_rate * 1000) / 1000
+    energy_cost_rate = math.floor(energy_cost_rate * 1000) / 1000
+
+    --core.log("reclaim_target " .. dump(reclaim_target))
 
     local mass = actor.mass
     local energy = actor.energy

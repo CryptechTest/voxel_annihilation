@@ -4,7 +4,7 @@ core.register_decoration({
     place_on = {"badlands:red_sand", "default:desert_sand", "default:dry_dirt"},
     sidelen = 8,
     noise_params = {
-        offset = 0.0003,
+        offset = 0.00007,
         scale = 0.00121,
         spread = {
             x = 250,
@@ -29,7 +29,7 @@ core.register_decoration({
     place_on = {"badlands:red_sand", "default:silver_sand"},
     sidelen = 8,
     noise_params = {
-        offset = 0.0011,
+        offset = 0.00152,
         scale = 0.003124,
         spread = {
             x = 350,
@@ -53,7 +53,7 @@ core.register_decoration({
     sidelen = 8,
     noise_params = {
         offset = 0.00021,
-        scale = 0.0006554,
+        scale = 0.0006254,
         spread = {
             x = 350,
             y = 200,
@@ -72,11 +72,11 @@ core.register_decoration({
 core.register_decoration({
     name = "va_resources:salt_gem_1",
     deco_type = "simple",
-    place_on = {"badlands:red_sand", "default:silver_sand"},
+    place_on = {"default:silver_sand"},
     sidelen = 16,
     noise_params = {
-        offset = 0.000011,
-        scale = 0.00127,
+        offset = 0.0000011,
+        scale = 0.00082,
         spread = {
             x = 250,
             y = 100,
@@ -88,7 +88,7 @@ core.register_decoration({
     },
     -- biomes = { "badlands_plains" },
     y_max = 10,
-    y_min = 2,
+    y_min = 3,
     decoration = "saltd:salt_gem"
 })
 
@@ -177,8 +177,8 @@ core.register_decoration({
     place_on = {"default:silver_sand", "saltd:salt_sand"},
     sidelen = 8,
     noise_params = {
-        offset = 0.00000818,
-        scale = 0.001083,
+        offset = 0.00000218,
+        scale = 0.001023,
         spread = {
             x = 150,
             y = 100,
@@ -200,8 +200,8 @@ core.register_decoration({
     place_on = {"default:silver_sand"},
     sidelen = 32,
     noise_params = {
-        offset = 0.00000348,
-        scale = 0.0004192,
+        offset = 0.00000148,
+        scale = 0.0003192,
         spread = {
             x = 150,
             y = 100,
@@ -223,8 +223,8 @@ core.register_decoration({
     place_on = {"badlands:red_sand"},
     sidelen = 16,
     noise_params = {
-        offset = 0.000007102,
-        scale = 0.00104,
+        offset = 0.000002102,
+        scale = 0.00014,
         spread = {
             x = 150,
             y = 100,
