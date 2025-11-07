@@ -536,7 +536,7 @@ function va_units.register_unit(name, def)
                     end
 
                     --check for objects that might be block the way
-                    local objects = core.get_objects_inside_radius(next_pos, 0.5)
+                    local objects = core.get_objects_inside_radius(next_pos, 1)
                     -- remove self and non-physical objects from the list
                     for i = #objects, 1, -1 do
                         if objects[i] == self.object then
@@ -551,20 +551,68 @@ function va_units.register_unit(name, def)
                     -- If there are blocking objects, try to move sideways to go around
                     if #objects > 0 then
                         core.chat_send_player(self._owner_name, "Blocked by objects, trying to sidestep.")
-                        local pos = self.object:get_pos()
-                        local dir_vector = vector.subtract(next_pos, pos)
+                        local p = self.object:get_pos()
+                        local dir_vector = vector.subtract(next_pos, p)
                         local right_vector = vector.new(-dir_vector.z, 0, dir_vector.x)
-                        local sidestep_pos1 = vector.add(pos, vector.multiply(right_vector, 0.5))
-                        local sidestep_pos2 = vector.subtract(pos, vector.multiply(right_vector, 0.5))
-                        local sidestep_node1 = core.get_node_or_nil(sidestep_pos1)
-                        local sidestep_node2 = core.get_node_or_nil(sidestep_pos2)
-                        local can_step1 = sidestep_node1 and sidestep_node1.name == "air"
-                        local can_step2 = sidestep_node2 and sidestep_node2.name == "air"
-                        if can_step1 then
-                            next_pos = sidestep_pos1
-                        elseif can_step2 then
-                            next_pos = sidestep_pos2
-                        else
+                        local sidestep_found = false
+                        local attempt = 1
+                        local sidestep_offsets = {}
+                        for _, dist in ipairs({1, 1.5, 2}) do
+                            for _, sign in ipairs({1, -1}) do
+                                -- direct right/left
+                                table.insert(sidestep_offsets, vector.multiply(right_vector, dist * sign))
+                                -- diagonal right/left + forward
+                                local diag = vector.add(vector.multiply(right_vector, dist * sign), vector.multiply(dir_vector, 0.5))
+                                table.insert(sidestep_offsets, diag)
+                            end
+                        end
+                        for _, offset in ipairs(sidestep_offsets) do
+                            for _, y_offset in ipairs({0, 1, -1}) do
+                                local sidestep_pos = vector.add(p, offset)
+                                sidestep_pos.y = sidestep_pos.y + y_offset
+                                -- Round to node center
+                                local node_pos = {
+                                    x = math.floor(sidestep_pos.x + 0.5),
+                                    y = math.floor(sidestep_pos.y + 0.5),
+                                    z = math.floor(sidestep_pos.z + 0.5)
+                                }
+                                local node = core.get_node_or_nil(node_pos)
+                                local node_above = core.get_node_or_nil({x=node_pos.x, y=node_pos.y+1, z=node_pos.z})
+                                local node_free = false
+                                if node and node.name then
+                                    local d = core.registered_nodes[node.name]
+                                    node_free = d and not d.walkable and d.liquidtype == "none"
+                                end
+                                local node_above_free = false
+                                if node_above and node_above.name then
+                                    local d_above = core.registered_nodes[node_above.name]
+                                    node_above_free = d_above and not d_above.walkable and d_above.liquidtype == "none"
+                                end
+                                local objects_at_side = core.get_objects_inside_radius(sidestep_pos, 0.75)
+                                local object_free = true
+                                for _, obj in ipairs(objects_at_side) do
+                                    if obj ~= self.object then
+                                        object_free = false
+                                        break
+                                    end
+                                end
+                                core.chat_send_player(self._owner_name,
+                                    string.format("Sidestep attempt %d (offset=%.2f,%.2f,%.2f y_offset=%d): node_free=%s, node_above_free=%s, object_free=%s", attempt, offset.x, offset.y, offset.z, y_offset, tostring(node_free), tostring(node_above_free), tostring(object_free)))
+                                if node_free and node_above_free and object_free then
+                                    next_pos = {
+                                        x = node_pos.x + 0.5,
+                                        y = node_pos.y,
+                                        z = node_pos.z + 0.5
+                                    }
+                                    sidestep_found = true
+                                    core.chat_send_player(self._owner_name, "Sidestepping to " .. next_pos.x .. ", " .. next_pos.y .. ", " .. next_pos.z)
+                                    break
+                                end
+                                attempt = attempt + 1
+                            end
+                            if sidestep_found then break end
+                        end
+                        if not sidestep_found then
                             -- Cannot sidestep, stop movement
                             self._target_pos = nil
                             self._path = nil
@@ -574,6 +622,7 @@ function va_units.register_unit(name, def)
                                 self._animation = self._animations.stand
                                 self.object:set_animation(self._animation, self._animation_speed or 30)
                             end
+                            core.chat_send_player(self._owner_name, "No sidestep possible, stopping.")
                             return
                         end
                     end
