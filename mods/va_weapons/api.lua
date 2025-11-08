@@ -12,7 +12,7 @@ function va_weapons.register_weapon(name, def)
         on_use = function(itemstack, user, pointed_thing)
             if def.fire then
                 local shooter = user
-                local shooter_pos = vector.add(shooter:get_pos(), vector.new(0, 0.8, 0))
+                local shooter_pos = vector.add(shooter:get_pos(), vector.new(0, 1.1, 0))
                 local target_pos = nil
                 local range = def.range or 16
                 local base_damage = def.base_damage or 10
