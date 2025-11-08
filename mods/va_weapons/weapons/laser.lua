@@ -23,7 +23,6 @@ local light_laser = {
             return
         end
         self._lifetime = lifetime
-        core.chat_send_all(tostring(lifetime))
     end,
 }
 core.register_entity("va_weapons:light_laser", light_laser)
