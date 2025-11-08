@@ -704,7 +704,7 @@ function va_units.register_unit(name, def)
 
     core.register_craftitem("va_units:" .. name, {
         description = def.spawn_item_description,
-        inventory_image = def.item_inventory_image or ("va_units_" .. name .. "_item.png"),
+        inventory_image = def.item_inventory_image or ("va_units_" .. name .. ".png"),
         groups = { spawn_egg = 2, not_in_creative_inventory = 1, va_unit = 1 },
         on_place = function(itemstack, placer, pointed_thing)
             local pos = pointed_thing.above

@@ -6,6 +6,15 @@ va_weapons.register_weapon("railgun", {
         end
         local damage = base_damage
         -- Fire the railgun and deal damage
+        local gain = 1.0
+        local pitch = 0.8
+        core.after(0, function()
+            core.sound_play("va_weapons_railgun", {
+                pos = shooter_pos,
+                gain = gain,
+                pitch = pitch,
+            })
+        end)
         return true
     end
 })
