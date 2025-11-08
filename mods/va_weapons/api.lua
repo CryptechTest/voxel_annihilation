@@ -8,6 +8,7 @@ function va_weapons.register_weapon(name, def)
     core.register_craftitem("va_weapons:" .. name, {
         description = def.description or ("Weapon: " .. name),
         inventory_image = def.inventory_image or "va_weapons_default.png",
+        range = def.range or 16,
         on_use = function(itemstack, user, pointed_thing)
             if def.fire then
                 local shooter = user
