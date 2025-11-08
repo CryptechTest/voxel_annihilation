@@ -25,7 +25,7 @@ end
 local def = {
     mesh = "va_vox_wall_1.gltf",
     textures = {"va_vox_wall_1.png"},
-    collisionbox = {-0.5, -0.75, -0.5, 0.5, 0.5, 0.5},
+    collisionbox = {-1.2, -0.75, -1.2, 1.2, 1.0, 1.2},
     max_health = 280,
     mass_cost = 0.8,
     build_time = 30,
@@ -37,7 +37,7 @@ def.name = "wall"
 def.desc = "Wall"
 def.size = {
     x = 1,
-    y = 0,
+    y = 1,
     z = 1
 }
 def.category = "utility"
