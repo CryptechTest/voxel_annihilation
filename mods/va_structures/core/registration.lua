@@ -41,6 +41,7 @@ local structure_files = {
         ['utility'] = {
             "vox_anti_radar_missile",
             "vox_jammer_tower",
+            "vox_lamp_tower",
             "vox_perimeter_camera",
             "vox_radar_tower",
             "vox_wall"

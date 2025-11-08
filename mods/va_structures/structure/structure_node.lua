@@ -55,6 +55,7 @@ local function register_structure_node(def)
         use_texture_alpha = "blend",
         drawtype = "nodebox",
         paramtype = "light",
+        light_source = def.light_source or 0,
         node_box = {
             type = "fixed",
             fixed = {{-0.3125, -0.5, -0.3125, 0.3125, -0.4375, 0.3125}}
