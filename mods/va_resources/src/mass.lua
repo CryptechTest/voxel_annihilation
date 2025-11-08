@@ -636,15 +636,45 @@ local function show_indicator(pos)
     end
 end
 
+local function remove_indicator(pos)
+    local i_pos = vector.add(pos, {
+        x = 0,
+        y = 0.505,
+        z = 0
+    })
+    local objs = core.get_objects_inside_radius(i_pos, 0.1)
+    for _, obj in pairs(objs) do
+        if obj:get_luaentity() then
+            local ent = obj:get_luaentity()
+            if ent.name == "va_resources:resource_mass_indicator" then
+                obj:remove()
+            end
+        end
+    end
+end
+
 core.register_abm({
     label = "va mass indicator abm",
     nodenames = {"group:va_mass"},
     interval = 3,
     chance = 1,
-    min_y = -1000,
-    max_y = 1000,
+    min_y = -10000,
+    max_y = 10000,
     action = function(pos, node, active_object_count, active_object_count_wider)
-        show_indicator(pos)
+        local g = core.get_item_group(node.name, "va_mass")
+        if g == 3 then
+            local p_pos = vector.add(pos, {
+                x = 0,
+                y = 0.55,
+                z = 0
+            })
+            local p_group = core.get_item_group(core.get_node(p_pos).name, "va_mass_extractor")
+            if p_group > 0 then
+                remove_indicator(pos)
+            else
+                show_indicator(pos)
+            end
+        end
     end
 })
 

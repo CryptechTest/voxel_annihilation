@@ -81,7 +81,7 @@ end
 local def = {
     mesh = "va_mass_extractor_1.gltf",
     textures = {"va_vox_mass_extractor_1.png"},
-    collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.70, 0.75},
+    collisionbox = {-0.5, -0.5, -0.5, 0.5, 0.55, 0.5},
     max_health = 16,
     mass_storage = 5,
     mass_extract = 1, -- this used as a percent here
@@ -103,6 +103,10 @@ def.size = {
 def.category = "economy"
 def.tier = 1
 def.faction = "vox"
+
+def.extractor_type = true
+
+def.node_groups = { va_mass_extractor = 1 }
 
 -- Register a new Mass Extractor
 Structure.register(def)

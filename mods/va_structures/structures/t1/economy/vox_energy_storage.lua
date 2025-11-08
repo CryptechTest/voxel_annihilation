@@ -23,7 +23,7 @@ end
 
 -- Structure metadata definition setup
 local def = {
-    collisionbox = {-0.75, -0.75, -0.75, 0.75, 1.05, 0.75},
+    collisionbox = {-0.55, -0.5, -0.55, 0.55, 0.8, 0.55},
     mesh = "va_energy_storage_1.gltf",
     textures = {"va_vox_energy_storage.png"},
     max_health = 20,

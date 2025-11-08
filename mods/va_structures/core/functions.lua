@@ -211,197 +211,33 @@ va_structures.particle_build_effect_cancel = build_effect_particles_cancel
 
 -----------------------------------------------------------------
 
-local function spawn_build_effect_particle(pos, texture, _dir, dist, size, count, radius)
-    local grav = 1;
-    if (pos.y > 4000) then
-        grav = 0.4;
-    end
-    local _vel = vector.multiply(_dir, {
-        x = 2.0,
-        y = 2.0,
-        z = 2.0
-    })
-    local vel = vector.multiply(_vel, size)
-    local t = 1.5 + (dist * 0.1) - randFloat(0.2, 0.4)
-    local texture = texture
-    if math.random(0, 1) == 0 then
-        texture = texture .. "^[transformR90"
-    end
-    local r = radius
-    local minpos = {
-        x = pos.x - r,
-        y = pos.y - r,
-        z = pos.z - r
-    }
-    local maxpos = {
-        x = pos.x + r,
-        y = pos.y + r,
-        z = pos.z + r
-    }
-    local def = {
-        amount = count,
-        minpos = minpos,
-        maxpos = maxpos,
-        minvel = {
-            x = vel.x,
-            y = vel.y,
-            z = vel.z
-        },
-        maxvel = {
-            x = vel.x,
-            y = vel.y,
-            z = vel.z
-        },
-        minacc = {
-            x = -vel.x * 0.15,
-            y = randFloat(-0.02, -0.01) * grav,
-            z = -vel.z * 0.15
-        },
-        maxacc = {
-            x = vel.x * 0.15,
-            y = randFloat(0.01, 0.02) * grav,
-            z = vel.z * 0.15
-        },
-        time = t * 0.5,
-        minexptime = t - 0.28,
-        maxexptime = t,
-        minsize = randFloat(1.02, 1.42) * ((size + 0.5) / 2),
-        maxsize = randFloat(1.05, 1.44) * ((size + 0.81) / 2),
-        collisiondetection = false,
-        collision_removal = false,
-        object_collision = false,
-        vertical = false,
-
-        texture = {
-            name = texture,
-            alpha = 1,
-            alpha_tween = {1, 0.88},
-            scale_tween = {{
-                x = 1.0,
-                y = 1.0
-            }, {
-                x = 1.5,
-                y = 1.5
-            }},
-            blend = "alpha"
-        },
-        glow = 13
-    }
-
-    core.add_particlespawner(def);
-end
-
-local function spawn_particle(pos, dir, i, dist)
-    local grav = 1;
-    if (pos.y > 4000) then
-        grav = 0.4;
-    end
-    dir = vector.multiply(dir, {
-        x = 1.05,
-        y = 1.05,
-        z = 1.05
-    })
-    local i = (dist - (dist - i * 0.1)) * 0.064
-    local t = 0.6 + i
-    local def = {
-        pos = pos,
-        velocity = {
-            x = dir.x,
-            y = dir.y,
-            z = dir.z
-        },
-        acceleration = {
-            x = 0,
-            y = randFloat(-0.02, 0.05) * grav,
-            z = 0
-        },
-
-        expirationtime = t,
-        size = randFloat(1.32, 1.6),
-        collisiondetection = false,
-        collision_removal = false,
-        object_collision = false,
-        vertical = false,
-
-        texture = {
-            name = "va_structure_energy_particle.png",
-            alpha = 1.0,
-            alpha_tween = {1, 0},
-            scale_tween = {{
-                x = 0.5,
-                y = 0.5
-            }, {
-                x = 1.3,
-                y = 1.3
-            }},
-            blend = "alpha"
-        },
-        glow = 12
-    }
-
-    core.add_particle(def);
-end
-
-local function beam_effect(pos1, pos2, min, count)
-    local dir = vector.direction(pos1, pos2)
-    local step_min = 0.5
-    local step = vector.multiply(dir, {
-        x = step_min,
-        y = step_min,
-        z = step_min
-    })
-    local min = min or 5
-
-    core.after(0, function()
-        local i = 1
-        local cur_pos = vector.add(pos1, vector.multiply(dir, {
-            x = 0.2,
-            y = 0.2,
-            z = 0.2
-        }))
-        while (vector.distance(cur_pos, pos2) > step_min * min) do
-            if true then
-                -- spawn_particle(cur_pos, dir, i, vector.distance(cur_pos, pos2))
-                local dist = vector.distance(cur_pos, pos2)
-                local size = 0.2
-                local dist2 = vector.distance(cur_pos, pos1)
-                local r = 0.025 * dist2
-                spawn_build_effect_particle(cur_pos, "va_structure_energy_particle.png", dir, dist, size, count, r)
-            end
-            cur_pos = vector.add(cur_pos, step)
-            i = i + 1
-            if i > 256 then
-                break
-            end
-        end
-    end)
-
-    return true
-end
-
-local function particle_build_effects(target, source, min, count)
+local function particle_build_effects(target, source, count)
 
     --beam_effect(source, target, min, count)
-    va_structures.show_build_beam_effect(source, target, min, count)
+    va_structures.show_build_beam_effect(source, target, count)
 
 end
 
 va_structures.particle_build_effects = particle_build_effects
 
+-----------------------------------------------------------------
 
 local function spawn_build_beam_particles(pos, texture, _dir, dist, count)
     local grav = 1;
     if (pos.y > 4000) then
         grav = 0.4;
     end
-    local count = count * 3
-    if dist < 3 then
-        count = count * 0.5
+    count = count * 1.5
+    if dist < 2.5 then
+        count = math.floor(count * 0.4)
     end
-    local size = 0.67
+    local size = 0.357
     local vel = vector.multiply(_dir, math.max(1.2, dist * 0.227))
     local t = 1.0 + math.min(dist * 0.322, 3.92)
-    if dist <= 3 then
+    if dist <= 1.75 then
+        t = t - 0.85
+        vel = vector.multiply(vel, 0.75)
+    elseif dist <= 3 then
         t = t - 0.65
         vel = vector.multiply(vel, 0.9)
     elseif dist <= 5 then
@@ -409,14 +245,14 @@ local function spawn_build_beam_particles(pos, texture, _dir, dist, count)
     end
     if dist <= 8 then
         t = t + 0.525
-        vel = vector.multiply(vel, 1.05)
+        vel = vector.multiply(vel, 1.1)
     end
     if dist >= 13 then
-        t = t - 0.55
+        t = t - 0.45
     elseif dist >= 9 then
-        t = t - 0.25
+        t = t - 0.20
     end
-    local texture = texture
+    texture = texture
     if math.random(0, 1) == 0 then
         texture = texture .. "^[transformR90"
     end
@@ -489,13 +325,13 @@ local function spawn_reclaim_beam_particles(pos, texture, _dir, dist, count)
     if (pos.y > 4000) then
         grav = 0.4;
     end
-    count = count * 3
+    count = count * 2
     if dist < 3 then
         count = count * 0.5
     end
-    local size = 0.45
-    local vel = vector.multiply(_dir, math.max(1.2, dist * 0.227))
-    local t = 1.0 + math.min(dist * 0.313, 3.92)
+    local size = 0.357
+    local vel = vector.multiply(_dir, math.max(1.2, dist * 0.228))
+    local t = 1.0 + math.min(dist * 0.312, 3.93)
     if dist <= 3 then
         t = t - 0.65
         vel = vector.multiply(vel, 0.9)
@@ -503,13 +339,13 @@ local function spawn_reclaim_beam_particles(pos, texture, _dir, dist, count)
         t = t + 0.5
     end
     if dist <= 8 then
-        t = t + 0.125
-        vel = vector.multiply(vel, 1.05)
+        t = t + 0.325
+        vel = vector.multiply(vel, 1.07)
     end
     if dist >= 13 then
-        t = t - 0.55
+        t = t - 0.65
     elseif dist >= 9 then
-        t = t - 0.25
+        t = t - 0.27
     end
     if math.random(0, 1) == 0 then
         texture = texture .. "^[transformR90"
@@ -578,66 +414,19 @@ local function spawn_reclaim_beam_particles(pos, texture, _dir, dist, count)
     core.add_particlespawner(def);
 end
 
-local function show_build_beam_effect(pos1, pos2, min, count)
+local function show_build_beam_effect(pos1, pos2, count)
     local dir = vector.direction(pos1, pos2)
-    local step_min = 0.5
-    local step = vector.multiply(dir, {
-        x = step_min,
-        y = step_min,
-        z = step_min
-    })
-    min = min or 5
     core.after(0, function()
-        local i = 1
         local cur_pos = vector.add(pos1, vector.multiply(dir, {
             x = 0.2,
             y = 0.2,
             z = 0.2
         }))
         local dist = vector.distance(cur_pos, pos2)
-        spawn_build_beam_particles(cur_pos, "va_structure_energy_particle.png", dir, dist, count)
+        spawn_build_beam_particles(cur_pos, "va_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
     end)
     return true
 end
-
-local function show_build_beam_effect2(pos1, pos2, min, count)
-    local dir = vector.direction(pos1, pos2)
-    local step_min = 0.5
-    local step = vector.multiply(dir, {
-        x = step_min,
-        y = step_min,
-        z = step_min
-    })
-    min = min or 5
-    core.after(0, function()
-        local i = 1
-        local cur_pos = vector.add(pos1, vector.multiply(dir, {
-            x = 0.2,
-            y = 0.2,
-            z = 0.2
-        }))
-        local dist = vector.distance(cur_pos, pos2)
-        spawn_build_beam_particles(cur_pos, "va_structure_energy_particle.png", dir, dist, count)
-
-        --[[while (vector.distance(cur_pos, pos2) > step_min * min) do
-            if true then
-                -- spawn_particle(cur_pos, dir, i, vector.distance(cur_pos, pos2))
-                local dist = vector.distance(cur_pos, pos2)
-                local size = 0.2
-                local dist2 = vector.distance(cur_pos, pos1)
-                local r = 0.025 * dist2
-                spawn_build_effect_particle(cur_pos, "va_structure_energy_particle.png", dir, dist, size, count, r)
-            end
-            cur_pos = vector.add(cur_pos, step)
-            i = i + 1
-            if i > 256 then
-                break
-            end
-        end]]
-    end)
-    return true
-end
-
 va_structures.show_build_beam_effect = show_build_beam_effect
 
 function va_structures.show_reclaim_beam_effect(target, source, count)
@@ -649,7 +438,7 @@ function va_structures.show_reclaim_beam_effect(target, source, count)
             z = 0.2
         }))
         local dist = vector.distance(target, cur_pos)
-        spawn_reclaim_beam_particles(target, "va_structure_energy_particle.png", dir, dist, count)
+        spawn_reclaim_beam_particles(target, "va_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
     end)
 end
 
@@ -881,7 +670,7 @@ local function reclaim_effect_particle(pos, texture, _dir, dist, size, count, r)
         grav = 0.4;
     end
     local dir = vector.multiply(_dir, ((size + 1) / 2))
-    local t = 1 + (dist * 0.25) - randFloat(0.1, 0.2)
+    local t = 1 + (dist * 0.275) - randFloat(0.05, 0.2)
     if math.random(0, 1) == 0 then
         texture = texture .. "^[transformR90"
     end
@@ -920,7 +709,7 @@ local function reclaim_effect_particle(pos, texture, _dir, dist, size, count, r)
             y = dir.y * randFloat(-0.001, -0.01) * grav,
             z = dir.z * 0.275
         },
-        time = t * 0.642,
+        time = t * 0.647,
         minexptime = t - 0.25,
         maxexptime = t + 1,
         minsize = randFloat(1.02, 1.42) * ((size + 0.5) / 2),
@@ -950,9 +739,9 @@ end
 
 function va_structures.reclaim_effect_particles(pos, pow, dir)
     dir = vector.multiply(dir, 0.5)
-    local dist = pow * 0.05 or 0.75
-    local size = 0.105
+    local dist = pow * 0.075 or 0.75
+    local size = 0.121
     local count = pow * 15
-    local radius = 0.25
-    reclaim_effect_particle(pos, "va_explosion_spark.png^[colorize:#00ff00:255", dir, dist, size, count, radius)
+    local radius = 0.33
+    reclaim_effect_particle(pos, "va_explosion_spark.png^[colorize:#00ff00:alpha", dir, dist, size, count, radius)
 end

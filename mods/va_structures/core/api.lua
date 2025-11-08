@@ -88,11 +88,14 @@ function va_structures.register_structure(def)
             desc = def.desc,
             size = def.size,
             category = def.category,
+            node_groups = def.node_groups,
             water_type = def.water_type,
             under_water_type = def.under_water_type,
             factory_type = def.factory_type,
             construction_type = def.construction_type,
+            extractor_type = def.extractor_type,
             entity_name = def.entity_name,
+            entity_offset = def.entity_offset,
             tier = def.tier,
             faction = def.faction,
             volume = def.volume,
@@ -123,7 +126,7 @@ function va_structures.register_structure(def)
             energy_generate = def.meta.energy_generate,
             mass_extract = def.meta.mass_extract,
             energy_storage = def.meta.energy_storage,
-            mass_storage = def.meta.mass_storage,
+            mass_storage = def.meta.mass_storage
         }
         return sdef
     end
@@ -131,7 +134,7 @@ function va_structures.register_structure(def)
     local name = def.fqnn
     local tier = def.tier
     local category = def.category
-    --local desc = def.desc
+    -- local desc = def.desc
     if not _registered_defs[category] then
         _registered_defs[category] = {}
     end
@@ -149,6 +152,11 @@ end
 -- active structures
 
 function va_structures.get_active_structure(pos)
+    pos = {
+        x = math.floor(pos.x),
+        y = math.floor(pos.y + 0.5),
+        z = math.floor(pos.z)
+    }
     local hash = core.hash_node_position(pos)
     return _active_instances[hash]
 end
@@ -169,11 +177,21 @@ function va_structures.get_active_structure_by_id(id)
 end
 
 function va_structures.add_active_structure(pos, s)
+    pos = {
+        x = math.floor(pos.x),
+        y = math.floor(pos.y + 0.5),
+        z = math.floor(pos.z)
+    }
     local hash = core.hash_node_position(pos)
     _active_instances[hash] = s
 end
 
 function va_structures.remove_active_structure(pos)
+    pos = {
+        x = math.floor(pos.x),
+        y = math.floor(pos.y + 0.5),
+        z = math.floor(pos.z)
+    }
     local hash = core.hash_node_position(pos)
     if _active_instances[hash] then
         _active_instances[hash] = nil

@@ -38,7 +38,7 @@ end
 local def = {
     mesh = "va_energy_converter_1.gltf",
     textures = {"va_vox_energy_converter_1.png"},
-    collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.75, 0.75},
+    collisionbox = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
     max_health = 20,
     mass_extract = 0.1,
     mass_storage = 5,

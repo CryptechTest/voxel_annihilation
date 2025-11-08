@@ -270,7 +270,7 @@ local function find_target(structure, net)
     end
     if build_focus >= 1 and build_focus <= 4 then
         if _do_assist or _do_repair then
-            if structure._build_target == nil then --  and is_net_not_low_resources(net) 
+            if structure._build_target == nil and is_net_not_low_resources(structure.pos, net) then
                 -- core.log("find_build_target")
                 -- find build target
                 find_build_target(structure)
@@ -500,7 +500,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 reset_builder(s_obj, true, net)
             elseif s_obj._build_target.unit and s_obj._build_target.unit.object then
                 -- reset build target if target unit is disposed
-                local t_obj = s_obj._build_target.uniet.object
+                local t_obj = s_obj._build_target.unit.object
                 if not t_obj or not t_obj:get_luaentity() or t_obj:get_luaentity()._marked_for_removal then
                     reset_builder(s_obj, true, net)
                 end
@@ -531,7 +531,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 local b_power = s_obj:get_data():get_build_power()
                 local b_pos = vector.add(pos, {
                     x = 0,
-                    y = 0.75,
+                    y = 0.4,
                     z = 0
                 })
                 -- core.log("do reclaim with power")
@@ -590,7 +590,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 local n = core.get_node(s_obj._build_target.reclaim.pos)
                 if n.name == "air" and s_obj._out_index > 0 then
                     -- object to reclaim was removed
-                    core.log("reclaim target is gone on check!")
+                    --core.log("reclaim target is gone on check!")
                     return reset_builder(s_obj)
                 end
             end
@@ -619,14 +619,14 @@ end
 local def = {
     mesh = "va_build_turret_1.gltf",
     textures = {"va_vox_build_turret_1.png"},
-    collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.75, 0.75},
+    collisionbox = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
     max_health = 25,
     energy_generate = 0,
     energy_storage = 0,
-    -- mass_cost = 21,
-    mass_cost = 1,
-    -- energy_cost = 320,
-    energy_cost = 1,
+    mass_cost = 21,
+    --mass_cost = 1,
+    energy_cost = 320,
+    --energy_cost = 1,
     energy_consume = 0.1,
     build_time = 530,
     build_power = 20,

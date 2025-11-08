@@ -12,8 +12,14 @@ local function register_structure_node(def)
         va_structure = 1
     }
 
+    if def.node_groups ~= nil then
+        for k, g in pairs(def.node_groups) do
+            groups[k] = g
+        end
+    end
+
     local function remove_attached(pos)
-        local objs = core.get_objects_inside_radius(pos, 0.05)
+        local objs = core.get_objects_inside_radius(pos, 0.15)
         for _, obj in pairs(objs) do
             if obj:get_luaentity() then
                 local ent = obj:get_luaentity()
@@ -25,8 +31,8 @@ local function register_structure_node(def)
     end
 
     local function on_timer(pos, elapsed)
-        local meta = core.get_meta(pos)
-        local objs = core.get_objects_inside_radius(pos, 0.05)
+        --local meta = core.get_meta(pos)
+        local objs = core.get_objects_inside_radius(pos, 0.15)
         for _, obj in pairs(objs) do
             if obj:get_luaentity() then
                 local ent = obj:get_luaentity()
@@ -87,7 +93,7 @@ local function register_structure_node(def)
                 meta:set_int("do_repair", 1)
                 meta:set_int("do_reclaim", 1)
                 meta:set_int("build_focus", 1)
-                meta:set_int("reclaim_focus", 2)
+                meta:set_int("reclaim_focus", 3)
                 meta:set_int("build_priority", 1)
                 meta:set_int("reclaim_bar_mass", 800)
                 meta:set_int("reclaim_bar_energy", 900)

@@ -139,7 +139,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             end
             local gen = s_obj:get_data():get_energy_generate()
             local generate = value * gen * amount
-            local mass = net.mass
+            --local mass = net.mass
             local energy = net.energy
             if energy + gen <= net.energy_storage then
                 net.energy = energy + generate
@@ -170,7 +170,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
 
             local pos_above = vector.add(pos, {
                 x = 0,
-                y = 1.65,
+                y = 0.975,
                 z = 0
             })
             -- get wind system data for particle effect
@@ -178,8 +178,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             local dir = math.rad(va_resources.get_env_wind_vel().direction)
             local dir_x = math.sin(dir) * vel
             local dir_z = math.cos(dir) * vel
-            spawn_particles(pos_above, dir_x, -1, dir_z, 0.88 * dir_x, -0.167, 0.88 * dir_z, 0.5, 3, 21)
-            
+            spawn_particles(pos_above, dir_x, -1, dir_z, 0.75 * dir_x, -0.167, 0.75 * dir_z, 0.5, 3, 21)
         end
     end
 end
@@ -188,7 +187,7 @@ end
 local def = {
     mesh = "va_vox_geothermal_plant_1.gltf",
     textures = {"va_vox_geo_plant_1.png"},
-    collisionbox = {-1.25, -0.75, -1.25, 1.25, 1.5, 1.25},
+    collisionbox = {-0.8, -0.5, -0.8, 0.8, 1.1, 0.8},
     max_health = 30,
     mass_cost = 56,
     energy_cost = 1300,
@@ -197,6 +196,7 @@ local def = {
     build_time = 1310,
     self_explosion_radius = 6.20,
     death_explosion_radius = 5.05,
+    destroy_explosion_damage = 5,
     vas_run = vas_run
 }
 
@@ -211,6 +211,10 @@ def.size = {
 def.category = "economy"
 def.tier = 1
 def.faction = "vox"
+
+def.generator_type = true
+
+def.node_groups = { va_geothermal = 1 }
 
 -- Register a new Geothermal Plant
 Structure.register(def)

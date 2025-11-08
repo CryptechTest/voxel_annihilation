@@ -19,7 +19,7 @@ local reclaim_groups = {
     ['va_rocks'] = {
         -- uses the va_rocks node groups,
         -- these values might not have effect
-        time = 25,
+        time = 30,
         mass = 1, -- acts as scaler
         energy = 0, -- acts as scaler
         use_group = true,
@@ -73,9 +73,9 @@ local reclaim_groups = {
         use_group = true
     },
     ['saltd:salt_gem'] = {
-        time = 80,
+        time = 95,
         mass = 3.0,
-        energy = 3.0,
+        energy = 7.5,
         priority = 4
     },
     ['saltd:burnt_bush'] = {
@@ -139,9 +139,9 @@ local reclaim_groups = {
         priority = 5
     },
     ['default:cactus'] = {
-        time = 32,
+        time = 35,
         mass = 0.2,
-        energy = 8,
+        energy = 9,
         priority = 4
     },
     ['food_apple'] = {
@@ -152,9 +152,9 @@ local reclaim_groups = {
         use_group = true
     },
     ['va_gems'] = {
-        time = 100,
+        time = 120,
         mass = 5,
-        energy = 5,
+        energy = 11,
         priority = 4,
         use_group = true
     }

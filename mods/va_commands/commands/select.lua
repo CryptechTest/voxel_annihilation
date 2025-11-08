@@ -233,6 +233,15 @@ local function add_selection(entity)
         return remove_selection(entity)
     end
     local cbox = entity.object:get_properties().collisionbox
+    if entity._is_va_structure == true then
+        if cbox then
+            local collisionbox = {}
+            for _, v in pairs(cbox) do
+                table.insert(collisionbox, v * 1.333)
+            end
+            cbox = collisionbox
+        end
+    end
     local size = 1 -- fallback default
     local xsize, ysize, zsize = 1, 1, 1
     if cbox then

@@ -40,7 +40,7 @@ end
 local def = {
     mesh = "va_solar_collector_1.gltf",
     textures = {"va_vox_solar_collector_2.png"},
-    collisionbox = {-0.75, -0.75, -0.75, 0.75, 0.75, 0.75},
+    collisionbox = {-0.65, -0.5, -0.65, 0.65, 0.55, 0.65},
     max_health = 25,
     energy_generate = 2,
     energy_storage = 5,
@@ -61,6 +61,8 @@ def.size = {
 def.category = "economy"
 def.tier = 1
 def.faction = "vox"
+
+def.generator_type = true
 
 -- Register a new Solar Collector
 Structure.register(def)

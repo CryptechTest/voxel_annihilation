@@ -56,18 +56,23 @@ function Structure.new(pos, name, def, do_def_check)
     self.pos = pos -- position of structure in world
     self.name = name or "base_structure" -- name of this structure
     self.desc = def.desc or "Abstract Structure" -- description of this structure
+    self.node_groups = def.node_groups -- groups for node def
 
     def.fqnn = modname .. ":" .. def.faction .. "_" .. self.name
     self.fqnn = def.fqnn -- fully qualified node name
     def.entity_name = def and def.entity_name or self.fqnn .. "_entity"
     self.entity_name = def.entity_name -- name of entity attached
     self.entity_obj = nil -- object corresponding to attached entity
+    def.entity_offset = def.entity_offset or -0.175
+    self.entity_offset = def.entity_offset
 
     self.category = def.category or "none" -- build, combat, economy, utility
     self.water_type = def.water_type or false -- flag for water structures
     self.under_water_type = def.under_water_type or false -- flag for underwater structures
     self.factory_type = def.factory_type or false
     self.construction_type = def.construction_type or false
+    self.extractor_type = def.extractor_type or false
+    self.generator_type = def.generator_type or false
 
     self.tier = def.tier -- tech tier of this structure
     self.faction = def.faction -- faction teams: 'vox' and 'cube'
@@ -453,12 +458,16 @@ function Structure:activate(visible)
         self.entity_obj = nil
     end
     -- core.log("activated structure")
-    local visible = visible or false
-    local pos = self.pos
-    local hash = core.hash_node_position(pos)
-    local meta = core.get_meta(pos)
+    visible = visible or false
+    local e_pos = vector.add(self.pos, {
+        x = 0,
+        y = self.entity_offset,
+        z = 0
+    })
+    local hash = core.hash_node_position(self.pos)
+    local meta = core.get_meta(self.pos)
     meta:set_int("active", 1)
-    local obj = core.add_entity(pos, self.entity_name, nil)
+    local obj = core.add_entity(e_pos, self.entity_name, nil)
     if obj then
         local yawRad, rotation = self:get_yaw()
         local rot = {
@@ -515,7 +524,6 @@ function Structure:force_detach_child(unit)
 end
 
 function Structure:attach_child(unit)
-    local rot_view = 0
     local yawRad, rotation = self:get_yaw()
     local attach_at = {
         x = 0,
@@ -677,15 +685,15 @@ function Structure:construct_with_power(actor, build_power, constructor)
         local pos2 = constructor.pos
         local source = vector.add(pos2, {
             x = 0,
-            y = 0.7,
+            y = 0.3225,
             z = 0
         })
         local target = vector.add(pos, {
             x = 0,
-            y = 0.5,
+            y = 0.60,
             z = 0
         })
-        va_structures.particle_build_effects(target, source, 2, build_power)
+        va_structures.particle_build_effects(target, source, build_power)
     end
     return true
 end
@@ -705,8 +713,12 @@ function Structure:repair_with_power(actor, build_power, constructor)
     end
     if constructor then
         local pos = self.pos
-        local pos2 = vector.add(constructor.pos, {x=0,y=0.71,z=0})
-        va_structures.particle_build_effects(pos, pos2, 5, build_power)
+        local pos2 = vector.add(constructor.pos, {
+            x = 0,
+            y = 0.71,
+            z = 0
+        })
+        va_structures.particle_build_effects(pos, pos2, build_power)
     end
     return true
 end
@@ -724,14 +736,14 @@ function Structure:repair_unit_with_power(actor, unit, b_power)
     self:set_hp(hp + amount)
     local pos = unit_obj:get_pos()
     local pos2 = self.pos
-    va_structures.particle_build_effects(pos, pos2, 2, b_power)
+    va_structures.particle_build_effects(pos, pos2, b_power)
     return true
 end
 
 function Structure:build_unit_with_power(actor, unit, b_power, constructor)
     if unit and not unit.object:get_attach() then
         unit.object:get_luaentity()._is_constructed = true
-        --core.log("build_unit_with_power is_constructred")
+        -- core.log("build_unit_with_power is_constructred")
         return
     end
     local q = constructor and constructor.process_queue[1] or self.process_queue[1]
@@ -792,7 +804,7 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
         local pos = unit.object:get_pos()
         local source = vector.add(pos2, {
             x = 0,
-            y = 0.7,
+            y = 0.3225,
             z = 0
         })
 
@@ -808,20 +820,21 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             -- Rotate build_plate
             local tempX = build_plate.x * cosYaw - build_plate.z * sinYaw
             local tempZ = build_plate.x * sinYaw + build_plate.z * cosYaw
-            build_plate.x = -tempX
-            build_plate.z = -tempZ
+            build_plate.x = -tempX * 0.66
+            build_plate.z = -tempZ * 0.66
+            build_plate.y = build_plate.y * 0.66
         end
-        
+
         local yaw, _ = self:get_yaw()
         rotate_turrets(yaw)
         local t_pos = vector.add(pos, build_plate)
-        
+
         local target = vector.add(t_pos, {
             x = 0,
             y = 0.25,
             z = 0
         })
-        va_structures.particle_build_effects(target, source, 0.5, build_power / 2)
+        va_structures.particle_build_effects(target, source, build_power / 2)
     elseif has_resources then
         q.build_time = q.build_time + b_power
         -- va_structures.particle_build_effect(self.pos, 1)
@@ -829,12 +842,12 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
 
         local l_turret = {
             x = -22 * 1 / 16,
-            y = 7.5 * 1 / 16,
+            y = 3 * 1 / 16,
             z = 13 * 1 / 16
         }
         local r_turret = {
             x = 22 * 1 / 16,
-            y = 7.5 * 1 / 16,
+            y = 3 * 1 / 16,
             z = 13 * 1 / 16
         }
         local build_plate = {
@@ -849,18 +862,21 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             -- Rotate l_turret
             local tempX = l_turret.x * cosYaw - l_turret.z * sinYaw
             local tempZ = l_turret.x * sinYaw + l_turret.z * cosYaw
-            l_turret.x = -tempX
-            l_turret.z = -tempZ
+            l_turret.x = -tempX * 0.66
+            l_turret.z = -tempZ * 0.66
+            l_turret.y = l_turret.y * 0.66
             -- Rotate r_turret
             tempX = r_turret.x * cosYaw - r_turret.z * sinYaw
             tempZ = r_turret.x * sinYaw + r_turret.z * cosYaw
-            r_turret.x = -tempX
-            r_turret.z = -tempZ
+            r_turret.x = -tempX * 0.66
+            r_turret.z = -tempZ * 0.66
+            r_turret.y = r_turret.y * 0.66
             -- Rotate build_plate
             tempX = build_plate.x * cosYaw - build_plate.z * sinYaw
             tempZ = build_plate.x * sinYaw + build_plate.z * cosYaw
-            build_plate.x = -tempX
-            build_plate.z = -tempZ
+            build_plate.x = -tempX * 0.66
+            build_plate.z = -tempZ * 0.66
+            build_plate.y = build_plate.y * 0.66
         end
 
         local yaw, _ = self:get_yaw()
@@ -868,8 +884,8 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
         local b_pos = vector.add(self.pos, build_plate)
         local e_l_pos = vector.add(self.pos, l_turret)
         local e_r_pos = vector.add(self.pos, r_turret)
-        va_structures.particle_build_effects(b_pos, e_l_pos, 0.7, build_power)
-        va_structures.particle_build_effects(b_pos, e_r_pos, 0.7, build_power)
+        va_structures.particle_build_effects(b_pos, e_l_pos, build_power / 2)
+        va_structures.particle_build_effects(b_pos, e_r_pos, build_power / 2)
     end
 
     if q.build_time < q.build_time_max then
@@ -1123,8 +1139,8 @@ function Structure:explode()
     end
 
     local r = math.max(self.size.y, math.max(self.size.x, self.size.z))
-    va_structures.destroy_effect_particle(self.pos, (r + dist) * 0.5)
-    va_structures.explode_effect_sound(self.pos, (r + dist) * 0.5)
+    va_structures.destroy_effect_particle(self.pos, (r + dist) * 0.25)
+    va_structures.explode_effect_sound(self.pos, (r + dist) * 0.25)
 end
 
 -----------------------------------------------------------------
@@ -1155,10 +1171,14 @@ function Structure:entity_tick()
     if not self._active then
         return
     end
-    local e_pos = self.pos
+    local e_pos = vector.add(self.pos, {
+        x = 0,
+        y = self.entity_offset,
+        z = 0
+    })
     local found_display = false
     local yawRad, rotation = self:get_yaw()
-    local objs = core.get_objects_inside_radius(e_pos, 0.05)
+    local objs = core.get_objects_inside_radius(e_pos, 0.15)
     for _, obj in pairs(objs) do
         if obj:get_luaentity() then
             local ent = obj:get_luaentity()

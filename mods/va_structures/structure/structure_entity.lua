@@ -10,14 +10,15 @@ local function register_structure_entity(def)
             physical = true,
             collide_with_objects = true,
             collisionbox = def.collisionbox,
+            selectionbox = def.selectionbox and def.selectionbox or def.collisionbox,
             hp = def.max_health,
             hp_max = def.max_health,
             visual = "mesh",
             mesh = def.mesh,
             textures = def.textures,
             visual_size = {
-                x = 1.0,
-                y = 1.0
+                x = 0.66,
+                y = 0.66
             },
             glow = 2,
             type = "va_structure",
@@ -80,6 +81,11 @@ local function register_structure_entity(def)
         end,
         _check_valid = function(self)
             local pos = self.object:get_pos()
+            pos = {
+                x = math.floor(pos.x),
+                y = math.floor(pos.y + 0.5),
+                z = math.floor(pos.z)
+            }
             local node = core.get_node(pos)
             if node and node.name ~= def.fqnn and node.name ~= def.fqnn .. "_water" then
                 self._marked_for_removal = true
@@ -92,10 +98,29 @@ local function register_structure_entity(def)
             local pos = self.object:get_pos()
             local s = va_structures.get_active_structure(pos)
             if s then
+                local info_extra = ""
+                if s.extractor_type then
+                    local pos_under = vector.subtract(s.pos, {
+                        x = 0,
+                        y = 1,
+                        z = 0
+                    })
+                    local mass_group = core.get_item_group(core.get_node(pos_under).name, "va_mass")
+                    if mass_group > 0 then
+                        local mass_amount = core.get_meta(pos_under):get_int("va_mass_amount") * 0.01
+                        if mass_group == 2 then
+                            mass_amount = mass_amount * 0.8
+                        elseif mass_group == 1 then
+                            mass_amount = mass_amount * 0.6
+                        end
+                        info_extra = info_extra .. "\n+" .. tostring(mass_amount) .. " Mass"
+                    end
+                end
                 local health = s:get_hp()
                 local max_health = s:get_hp_max()
                 self.object:set_properties({
-                    infotext = def.desc .. "\n" .. "HP: " .. tostring(health) .. "/" .. tostring(max_health) .. ""
+                    infotext = def.desc .. "\n" .. "HP: " .. tostring(health) .. "/" .. tostring(max_health) ..
+                    info_extra
                 })
             end
         end,

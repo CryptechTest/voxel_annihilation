@@ -708,30 +708,56 @@ local function show_indicator(pos)
     end
 end
 
+local function remove_indicator(pos)
+    local i_pos = vector.add(pos, {
+        x = 0,
+        y = 0.505,
+        z = 0
+    })
+    local objs = core.get_objects_inside_radius(i_pos, 0.1)
+    for _, obj in pairs(objs) do
+        if obj:get_luaentity() then
+            local ent = obj:get_luaentity()
+            if ent.name == "va_resources:resource_geo_indicator" then
+                obj:remove()
+            end
+        end
+    end
+end
+
 core.register_abm({
     label = "va mass indicator abm",
     nodenames = {"group:va_geo_vent"},
     interval = 3,
     chance = 1,
-    min_y = -1000,
-    max_y = 1000,
+    min_y = -10000,
+    max_y = 10000,
     action = function(pos, node, active_object_count, active_object_count_wider)
-
-        local node = core.get_node(pos)
         local g = core.get_item_group(node.name, "va_geo_vent")
         if g == 3 then
-            show_indicator(pos)
             local p_pos = vector.add(pos, {
                 x = 0,
                 y = 0.55,
                 z = 0
             })
-            if core.get_node(p_pos).name == "air" then
+            local p_group = core.get_item_group(core.get_node(p_pos).name, "va_geothermal")
+            if p_group > 0 then
+                remove_indicator(pos)
+            end
+            if p_group == 0 then
+                show_indicator(pos)
                 local vel = va_resources.get_env_wind_vel().velocity
                 local dir = math.rad(va_resources.get_env_wind_vel().direction)
                 local dir_x = math.sin(dir) * vel
                 local dir_z = math.cos(dir) * vel
-                spawn_particles(p_pos, dir_x, -1, dir_z, 0.88 * dir_x, -0.167, 0.88 * dir_z, 1, 6, 57)
+                local dir_y = -1
+                local acl_x = dir_x * 0.75
+                local acl_z = dir_z * 0.75
+                local acl_y = -0.174
+                local level = 1
+                local time = 5.7
+                local count = 64
+                spawn_particles(p_pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, level, time, count)
             end
         end
     end

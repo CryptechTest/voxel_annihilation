@@ -35,7 +35,8 @@ local structure_files = {
             "vox_naval_mass_extractor",
             "vox_mass_storage",
             "vox_solar_collector",
-            "vox_wind_turbine"
+            "vox_wind_turbine",
+            "vox_geothermal_plant",
         },
         ['utility'] = {
             "vox_anti_radar_missile",
@@ -46,11 +47,17 @@ local structure_files = {
         }
     },
     ['t2'] = {
-        ['economy'] = {
-            "vox_geothermal_plant",
-        },
+        ['build'] = { },
+        ['combat'] = { },
+        ['economy'] = { },
+        ['utility'] = { }
     },
-    ['t3'] = {}
+    ['t3'] = {
+        ['build'] = { },
+        ['combat'] = { },
+        ['economy'] = { },
+        ['utility'] = { }
+    }
 }
 
 -- load all structures define in structure_files
