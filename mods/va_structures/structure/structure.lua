@@ -520,6 +520,7 @@ function Structure:force_detach_child(unit)
     if not unit then
         return
     end
+    unit:set_properties({visual_size = {x=1.0, y=1.0}})
     unit:set_detach()
 end
 
@@ -537,6 +538,7 @@ function Structure:attach_child(unit)
     }
     self:force_detach_child(unit)
     unit:set_attach(self.entity_obj, "build_plate", attach_at, unit_rotation)
+    unit:set_properties({visual_size = {x=1.333, y=1.333}})
 end
 
 function Structure:detach_child(unit)
