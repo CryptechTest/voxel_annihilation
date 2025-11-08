@@ -55,8 +55,25 @@ local function register_structure_entity(def)
         _owner_name = nil,
         _team_id = def.team_id,
         -- internal
+        _animations = def.entity_animations or nil,
+        --_animation = def.entity_animations and def.entity_animations.idle or nil,
         _timer = 1,
         _valid = false,
+
+        -- do animation for entity
+        _do_animation = function(self, animation)
+            local anim = self._animations[animation] or self._animation
+            self.object:set_animation(anim, 1, 0)
+        end,
+        -- do animation once and then do next after delay length
+        _apply_animation = function(self, active_anim, idle_anim, anim_length)
+            local anim_active = self._animations[active_anim] or self._animation
+            self.object:set_animation(anim_active, 1, 0)
+            local anim_idle = self._animations[idle_anim] or self._animation
+            core.after(anim_length, function()
+                self.object:set_animation(anim_idle, 1, 0)
+            end)
+        end,
 
         -- dispose of instance, enitity, and node
         _dispose = function(self, removal)
