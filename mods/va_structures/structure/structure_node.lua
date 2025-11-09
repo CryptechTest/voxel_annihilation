@@ -31,7 +31,7 @@ local function register_structure_node(def)
     end
 
     local function on_timer(pos, elapsed)
-        --local meta = core.get_meta(pos)
+        -- local meta = core.get_meta(pos)
         local objs = core.get_objects_inside_radius(pos, 0.15)
         for _, obj in pairs(objs) do
             if obj:get_luaentity() then
@@ -63,7 +63,7 @@ local function register_structure_node(def)
         inventory_image = def.inventory_image or "base_structure_item.png",
         wield_image = def.wield_image or "base_structure_item.png",
 
-        on_place = def.check_placement,
+        -- on_place = def.check_placement,
         after_place_node = function(pos, placer, itemstack, pointed_thing)
             local meta = core.get_meta(pos)
             if placer:is_player() then
@@ -141,6 +141,20 @@ local function register_structure_node(def)
                 return 0
             end
             return stack:get_count()
+        end,
+
+        range = def.range or 128,
+        on_use = function(itemstack, user, pointed_thing)
+            --return def.check_placement(itemstack, user, pointed_thing)
+            return def.queue_ghost(itemstack, user, pointed_thing)
+        end,
+        on_place = function(itemstack, placer, pointed_thing)
+            --return def.check_placement(itemstack, placer, pointed_thing)
+            return def.queue_ghost(itemstack, placer, pointed_thing, true)
+        end,
+        on_secondary_use = function(itemstack, user, pointed_thing)
+            --return def.check_placement(itemstack, user, pointed_thing)
+            return def.queue_ghost(itemstack, user, pointed_thing, true)
         end
     }
 

@@ -486,3 +486,16 @@ function va_resources.do_reclaim_with_power(reclaim_target, build_power, actor)
     end
     return true
 end
+
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+--- util functions
+
+function va_resources.get_check_reclaim_val(pos)
+    local node = core.get_node(pos)
+    local reclaim_value = get_reclaim_value(node)
+    if reclaim_value then
+        return reclaim_value
+    end
+    return nil
+end

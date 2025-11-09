@@ -13,6 +13,7 @@ va_commands.register_command("stop", {
         elseif pointed_thing.type == "object" then
         end
         core.chat_send_player(player_name, "Immediate stop command.")
+        va_commands.clear_construction_selection_item(player_name)
     end,
     execute_secondary = function(itemstack, user, pointed_thing)
         if user == nil then
@@ -25,6 +26,7 @@ va_commands.register_command("stop", {
         elseif pointed_thing.type == "object" then
         end
         core.chat_send_player(player_name, "Queued stop command.")
+        va_commands.clear_construction_selection_item(player_name)
     end,
 })
 

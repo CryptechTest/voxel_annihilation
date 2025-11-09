@@ -51,9 +51,9 @@ va_commands.register_command("move", {
         end
         if target == nil then
             core.chat_send_player(player_name, "Error: No target selected.")
-            return                
+            return
         end
-        
+
         for _, unit in pairs(va_commands.get_player_selected_units(player_name)) do
             if unit._owner_name == player_name and unit.object and target then
                 local upos = unit.object:get_pos()
@@ -62,6 +62,12 @@ va_commands.register_command("move", {
                     if distance > 1024 then
                         core.chat_send_player(player_name, "Error: Target is too far away.")
                     else
+                        -- temp fix...
+                        local _unit = va_units.get_unit_by_id(unit._id)
+                        if _unit then
+                            -- FIXME: crashed here: "_unit:_command_queue_abort() was nil"
+                            _unit:_command_queue_abort()
+                        end
                         va_units.set_target(unit, target)
                         core.chat_send_player(player_name, "Targeting position: " .. core.pos_to_string(target))
                     end

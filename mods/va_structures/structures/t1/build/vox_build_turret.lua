@@ -195,7 +195,7 @@ local function is_net_low_resources(pos, net)
     local net_mass = net.mass_storage > 0 and net.mass / net.mass_storage or 0
     local net_energy = net.energy_storage > 0 and net.energy / net.energy_storage or 0
     return net_mass < reclaim_bar_mass or net_energy < reclaim_bar_energy
-    --return net.mass < 10 or net.energy < 10
+    -- return net.mass < 10 or net.energy < 10
 end
 
 local function is_net_not_low_resources(pos, net)
@@ -590,7 +590,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 local n = core.get_node(s_obj._build_target.reclaim.pos)
                 if n.name == "air" and s_obj._out_index > 0 then
                     -- object to reclaim was removed
-                    --core.log("reclaim target is gone on check!")
+                    -- core.log("reclaim target is gone on check!")
                     return reset_builder(s_obj)
                 end
             end
@@ -624,13 +624,18 @@ local def = {
     energy_generate = 0,
     energy_storage = 0,
     mass_cost = 21,
-    --mass_cost = 1,
+    -- mass_cost = 1,
     energy_cost = 320,
-    --energy_cost = 1,
+    -- energy_cost = 1,
     energy_consume = 0.1,
     build_time = 530,
     build_power = 20,
     construction_distance = 18,
+    entity_emitters_pos = {{
+        x = 0,
+        y = 0.3225,
+        z = 0
+    }},
     formspec = get_formspec,
     on_receive_fields = on_receive_fields,
     vas_run = vas_run

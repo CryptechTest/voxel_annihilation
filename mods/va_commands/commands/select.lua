@@ -354,6 +354,7 @@ va_commands.register_command("select", {
             return
         end
         local player_name = user:get_player_name()
+        va_commands.clear_construction_selection_item(player_name)
         if pointed_thing.type == "nothing" then
             local extent = va_commands.get_player_selection_extent(player_name)
             if extent then

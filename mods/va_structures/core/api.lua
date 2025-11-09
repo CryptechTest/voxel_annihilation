@@ -14,6 +14,11 @@ local player_actors = {}
 -- player selected pos list
 local player_selects = {}
 
+-- build queue mapping by construction unit
+local build_command_queue = {}
+-- build menu defs for construction
+local build_menu_defs = {}
+
 -----------------------------------------------------------------
 -- registered structures
 
@@ -83,24 +88,30 @@ function va_structures.register_structure(def)
     local build_structure_def = function(def)
 
         local sdef = {
+            -- base information
             name = def.name,
             fqnn = def.fqnn,
             desc = def.desc,
             size = def.size,
+            tier = def.tier,
+            volume = def.volume,
+            faction = def.faction,
             category = def.category,
+            build_time = def.build_time,
+            -- node def groups
             node_groups = def.node_groups,
+            -- structure type flags
             water_type = def.water_type,
             under_water_type = def.under_water_type,
             factory_type = def.factory_type,
             construction_type = def.construction_type,
             extractor_type = def.extractor_type,
+            -- entity attached
             entity_name = def.entity_name,
             entity_offset = def.entity_offset,
-            tier = def.tier,
-            faction = def.faction,
-            volume = def.volume,
+            entity_emitters_pos = def.entity_emitters_pos,
             do_rotate = def.do_rotate,
-            build_time = def.build_time,
+            -- gui (optional)
             formspec = def.ui.formspec,
             -- meta defs
             is_vulnerable = def.meta.is_vulnerable,
@@ -323,6 +334,147 @@ end
 
 function va_structures.get_selected_pos(player_name)
     return player_selects[player_name]
+end
+
+-----------------------------------------------------------------
+-- construction queue
+
+function va_structures.add_construction_to_queue(constructor_id, structure)
+    -- lookup constructor unit
+    local unit = va_units.get_unit_by_id(constructor_id)
+    if unit then
+        if build_command_queue[constructor_id] == nil then
+            build_command_queue[constructor_id] = {}
+        end
+        local command = {
+            command_type = "structure_queued",
+            process_started = false,
+            process_complete = false,
+            pos = structure.pos,
+            owner_name = structure._owner_name,
+            structure_name = structure.fqnn
+        }
+        local build_command = va_structures.util.deepcopy(command)
+        local hash = core.hash_node_position(structure.pos)
+        build_command.structure_ghost = structure
+        build_command.structure_ghost_hash = hash
+        -- queue build command in global tracking
+        build_command_queue[constructor_id][hash] = build_command
+        -- enqueue command within unit
+        table.insert(unit._command_queue, command)
+    end
+end
+
+function va_structures.get_construction_queue()
+    return build_command_queue
+end
+
+function va_structures.get_unit_construction_queue(unit)
+    if not unit then
+        return nil
+    end
+    local unit_ent = unit:get_luaentity()
+    local unit_id = unit_ent._id
+    return build_command_queue[unit_id]
+end
+
+function va_structures.get_unit_command_queue(unit_id)
+    return build_command_queue[unit_id]
+end
+
+function va_structures.remove_pos_from_command_queue(pos, unit_id)
+    local to_remove = {}
+    if build_command_queue[unit_id] then
+        local index = 0
+        for i, bcq in pairs(build_command_queue[unit_id]) do
+            if bcq.pos == pos then
+                table.insert(to_remove, bcq.structure_ghost_hash)
+                index = i
+                break
+            end
+        end
+        table.remove(build_command_queue[unit_id], index)
+    else
+        local hash = core.hash_node_position(pos)
+        for _, bcu in pairs(build_command_queue) do
+            if bcu[hash] then
+                table.insert(to_remove, bcu[hash].structure_ghost_hash)
+                bcu[hash] = nil
+                break
+            end
+        end
+    end
+    for _, rem in pairs(to_remove) do
+        local s = build_command_queue[unit_id][rem]
+        if s and s.dispose then
+            --core.log("dispose... remove_pos_from_command_queue()")
+            s:dispose()
+        end
+    end
+end
+
+function va_structures.dispose_unit_command_queue(unit_id)
+    if build_command_queue[unit_id] then
+        local to_remove = {}
+        for _, bcq in pairs(build_command_queue[unit_id]) do
+            if bcq.structure_ghost_hash then
+                table.insert(to_remove, bcq.structure_ghost_hash)
+            end
+        end
+        for _, rem in pairs(to_remove) do
+            local s = build_command_queue[unit_id][rem]
+            if s and s.dispose then
+                --core.log("dispose... dispose_unit_command_queue()")
+                s:dispose()
+            end
+        end
+        build_command_queue[unit_id] = nil
+    end
+end
+
+function va_structures.get_unit_command_queue_from_pos(pos)
+    local hash = core.hash_node_position(pos)
+    for k, _ in pairs(build_command_queue) do
+        if build_command_queue[k][hash] then
+            return build_command_queue[k][hash]
+        end
+    end
+    return nil
+end
+
+-----------------------------------------------------------------
+
+function va_structures.add_construction_menu(menu_name, def)
+    build_menu_defs[menu_name] = def.formspec
+    -- register formspec on_receive_fields
+    core.register_on_player_receive_fields(function(player, formname, fields)
+        -- check if our form
+        if formname ~= menu_name then
+            return
+        end
+        local name = player:get_player_name()
+        local unit_id = fields.unit_id or nil -- get unit id from form field
+        if (fields.close_me or fields.quit) then
+            return
+        end
+        if unit_id then
+            local refresh_form = false
+            if def.on_receive_fields then
+                refresh_form = def.on_receive_fields(unit_id, player, formname, fields)
+            end
+            if refresh_form then
+                core.show_formspec(name, formname, def.formspec(menu_name, name, unit_id))
+            end
+        end
+    end)
+end
+
+function va_structures.show_construction_menu(player_name, menu_name, unit_id)
+    local menu = build_menu_defs[menu_name]
+    if not menu then
+        return
+    end
+    core.show_formspec(player_name, menu_name, menu(menu_name, player_name, unit_id))
 end
 
 -----------------------------------------------------------------

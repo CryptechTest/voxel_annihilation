@@ -16,6 +16,7 @@ local function register_structure_entity(def)
             visual = "mesh",
             mesh = def.mesh,
             textures = def.textures,
+            use_texture_alpha = true,
             visual_size = {
                 x = 0.66,
                 y = 0.66
@@ -56,7 +57,7 @@ local function register_structure_entity(def)
         _team_id = def.team_id,
         -- internal
         _animations = def.entity_animations or nil,
-        --_animation = def.entity_animations and def.entity_animations.idle or nil,
+        -- _animation = def.entity_animations and def.entity_animations.idle or nil,
         _timer = 1,
         _valid = false,
 
@@ -137,7 +138,7 @@ local function register_structure_entity(def)
                 local max_health = s:get_hp_max()
                 self.object:set_properties({
                     infotext = def.desc .. "\n" .. "HP: " .. tostring(health) .. "/" .. tostring(max_health) ..
-                    info_extra
+                        info_extra
                 })
             end
         end,
@@ -167,10 +168,11 @@ local function register_structure_entity(def)
                     self._constructed = true
                     return
                 end
+                local opacity = math.min(math.max(10, math.floor((prog / max) * 255)), 255)
                 local prcnt = 255 - math.floor((prog / max) * 255)
                 local textures =
                     {def.textures[1] .. "^[colorize:#00FF00:" .. tostring(prcnt) .. "^[colorize:#0000FF:" ..
-                        tostring(math.floor(prcnt * 0.6)) .. ""}
+                        tostring(math.floor(prcnt * 0.6)) .. "" .. "^[opacity:" .. tostring(opacity)}
                 self.object:set_properties({
                     textures = textures,
                     is_visible = true

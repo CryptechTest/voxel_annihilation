@@ -57,3 +57,37 @@ end
 function va_commands.get_player_selection_extent(player_name)
     return player_selection_extent[player_name] or nil
 end
+
+function va_commands.clear_construction_selection_item(player_name)
+    local player = core.get_player_by_name(player_name)
+    if not player then
+        return
+    end
+    -- find command item in player inventory hotbar
+    local build_item = ItemStack({
+        name = "va_commands:build",
+        count = 1
+    })
+    local inv = player:get_inventory()
+    local inv_name = "main"
+    local inv_list = inv:get_list(inv_name)
+    local found_index = -1
+    local found_stack = nil
+    for i, stack in ipairs(inv_list) do
+        if not stack:is_empty() then
+            local g = core.get_item_group(stack:get_name(), "va_structure")
+            if g > 0 then
+                found_index = i
+                found_stack = stack
+            end
+        end
+    end
+    if found_stack == nil then
+        return
+    end
+    found_stack:take_item(1)
+    core.after(0, function()
+        -- update build item
+        inv:set_stack(inv_name, found_index, build_item)
+    end)
+end

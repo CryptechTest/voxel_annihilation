@@ -37,6 +37,7 @@ local modpath = core.get_modpath(modname)
 local StructureMetaData = dofile(modpath .. "/structure/structure_meta.lua")
 local register_structure_node = dofile(modpath .. "/structure/structure_node.lua")
 local register_structure_entity = dofile(modpath .. "/structure/structure_entity.lua")
+local register_structure_ghost = dofile(modpath .. "/structure/structure_entity_ghost.lua")
 local _, attach_structure_gauge = dofile(modpath .. "/structure/structure_entity_gauge.lua")
 local _, attach_structure_build = dofile(modpath .. "/structure/structure_entity_build.lua")
 local _, add_construction_gauge = dofile(modpath .. "/structure/unit/construction_entity.lua")
@@ -65,6 +66,7 @@ function Structure.new(pos, name, def, do_def_check)
     self.entity_obj = nil -- object corresponding to attached entity
     def.entity_offset = def.entity_offset or -0.175
     self.entity_offset = def.entity_offset
+    self.entity_emitters_pos = def.entity_emitters_pos
 
     self.category = def.category or "none" -- build, combat, economy, utility
     self.water_type = def.water_type or false -- flag for water structures
@@ -132,26 +134,26 @@ function Structure.new(pos, name, def, do_def_check)
         if pointed_thing.type ~= "node" then
             return itemstack
         end
-        local pos = pointed_thing.above
-        local name = placer:get_player_name()
-        if self:collides_solid(pos) then
-            core.chat_send_player(name, "Structure requires more room.")
+        local _pos = pointed_thing.above
+        local _name = placer:get_player_name()
+        if self:collides_solid(_pos) then
+            core.chat_send_player(_name, "Structure requires more room.")
             return itemstack
-        elseif not self.water_type and not self.under_water_type and not self:collides_has_floor(pos) then
-            core.chat_send_player(name, "Structure requires more floor room.")
+        elseif not self.water_type and not self.under_water_type and not self:collides_has_floor(_pos) then
+            core.chat_send_player(_name, "Structure requires more floor room.")
             return itemstack
-        elseif not self.water_type and not self.under_water_type and self:collides_liquid(pos) then
-            core.chat_send_player(name, "Structure must be built on land.")
+        elseif not self.water_type and not self.under_water_type and self:collides_liquid(_pos) then
+            core.chat_send_player(_name, "Structure must be built on land.")
             return itemstack
-        elseif self.water_type and not self.under_water_type and not self:collides_has_floor_water(pos) then
-            core.chat_send_player(name, "Structure must be built on water.")
+        elseif self.water_type and not self.under_water_type and not self:collides_has_floor_water(_pos) then
+            core.chat_send_player(_name, "Structure must be built on water.")
             return itemstack
-        elseif self.under_water_type and self.under_water_type and not self:collides_has_water(pos) then
-            core.chat_send_player(name, "Structure must be built in water.")
+        elseif self.under_water_type and self.under_water_type and not self:collides_has_water(_pos) then
+            core.chat_send_player(_name, "Structure must be built in water.")
             return itemstack
-        elseif self:collides_other(pos, self.size) then
+        elseif self:collides_other(_pos, self.size) then
             -- make sure structure doesn't overlap any other structure area
-            core.chat_send_player(name, "Structure overlaps into another structure area.")
+            core.chat_send_player(_name, "Structure overlaps into another structure area.")
             return itemstack
         end
         return core.item_place(itemstack, placer, pointed_thing)
@@ -165,7 +167,8 @@ function Structure.register(def)
         return
     end
     local structure = Structure.new(nil, def.name, def)
-    local result = register_structure_node(structure) and register_structure_entity(def)
+    local result = register_structure_node(structure) and register_structure_entity(def) and
+                       register_structure_ghost(def)
     if result then
         va_structures.register_structure(structure)
         -- core.log('registered strucutre: ' .. structure.fqnn)
@@ -200,6 +203,189 @@ function Structure.after_dig_node(pos, oldnode, oldmetadata, digger)
     end
 end
 
+function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, s_name, owner, unit_owner_id)
+    if not placer then
+        return itemstack
+    end
+    if pointed_thing.type ~= "node" then
+        return itemstack
+    end
+    -- placed position
+    local pos = pointed_thing.above
+    pos = {
+        x = math.floor(pos.x),
+        y = math.floor(pos.y + 0.49),
+        z = math.floor(pos.z)
+    }
+    -- get placement metadata from itemstack
+    local s_name = itemstack:get_name()
+    local s_meta = itemstack:get_meta()
+    local unit_owner_id = s_meta:get_string("constructor_id")
+    -- check is valid def
+    local def = va_structures.get_registered_structure(s_name)
+    if not def then
+        core.log("no def for queue ghost " .. s_name)
+        return itemstack
+    end
+    local owner = placer:get_player_name()
+    local s = Structure.new(pos, def.name, def, true)
+    -- set structure owner
+    s.owner = owner
+    -- check if structure placement is valid
+    if not s:queue_placement(placer, pos) then
+        return itemstack
+    end
+    -- if one time, swap item back
+    if nonce and nonce == true then
+        -- find command item in player inventory hotbar
+        local build_item = ItemStack({
+            name = "va_commands:build",
+            count = 1
+        })
+        local inv = placer:get_inventory()
+        local inv_name = "main"
+        local inv_list = inv:get_list(inv_name)
+        local found_index = -1
+        local found_stack = nil
+        for i, stack in ipairs(inv_list) do
+            if not stack:is_empty() then
+                if stack:get_name() == itemstack:get_name() then
+                    found_index = i
+                    found_stack = stack
+                end
+            end
+        end
+        if found_stack == nil then
+            return itemstack
+        end
+        -- take item
+        itemstack:take_item(1)
+        core.after(0, function()
+            -- update build item
+            inv:set_stack(inv_name, found_index, build_item)
+        end)
+        -- unit abort current queue...
+        local unit = va_units.get_unit_by_id(unit_owner_id)
+        if unit then
+            unit:_command_queue_abort()
+        end
+    end
+
+    -- add to tracking queue, must happen before add_entity
+    va_structures.add_construction_to_queue(unit_owner_id, s)
+    -- entity offset position
+    local e_pos = vector.add(s.pos, {
+        x = 0,
+        y = s.entity_offset,
+        z = 0
+    })
+    -- summon entity...
+    local obj = core.add_entity(e_pos, def.entity_name .. "_ghost", core.write_json({
+        owner = owner,
+        constructor_id = unit_owner_id
+    }))
+    if obj then
+        -- do rotation
+        local param2 = core.dir_to_facedir(placer:get_look_dir())
+        local yawRad = param2 * math.pi
+        local rot = {
+            x = 0,
+            y = yawRad,
+            z = 0
+        }
+        obj:set_rotation(rot)
+        local ent = obj:get_luaentity()
+        ent._owner_name = s.owner
+        ent._param2 = param2
+        obj:set_properties({
+            is_visible = true
+        })
+        -- set entity object to new entity
+        s.entity_obj = obj
+    end
+    return itemstack
+end
+
+-----------------------------------------------------------------
+-- build queue magic
+
+function Structure:queue_placement(placer, pos)
+    local _pos = vector.new(pos)
+    local _name = placer:get_player_name()
+    if self:collides_solid(_pos) then
+        core.chat_send_player(_name, "Structure requires more room.")
+        return false
+    elseif not self.water_type and not self.under_water_type and not self:collides_has_floor(_pos) then
+        core.chat_send_player(_name, "Structure requires more floor room.")
+        return false
+    elseif not self.water_type and not self.under_water_type and self:collides_liquid(_pos) then
+        core.chat_send_player(_name, "Structure must be built on land.")
+        return false
+    elseif self.water_type and not self.under_water_type and not self:collides_has_floor_water(_pos) then
+        core.chat_send_player(_name, "Structure must be built on water.")
+        return false
+    elseif self.under_water_type and self.under_water_type and not self:collides_has_water(_pos) then
+        core.chat_send_player(_name, "Structure must be built in water.")
+        return false
+    elseif self:collides_other(_pos, self.size) then
+        -- make sure structure doesn't overlap any other structure area
+        core.chat_send_player(_name, "Structure overlaps into another structure area.")
+        return false
+    end
+    return true
+end
+
+-----------------------------------------------------------------
+
+function Structure:dequeue_materialize_ghost()
+    local pos = self.pos
+    local owner = self.owner
+    local ent_ghost = self.entity_obj:get_luaentity()
+    local param2 = ent_ghost._param2
+    -- get command queue for constructor from entity ghost
+    local queue = va_structures.get_unit_command_queue(ent_ghost._constructor_id)
+    if not queue then
+        return nil
+    end
+    local index = 0
+    for i, q in pairs(queue) do
+        if q.pos == pos then
+            index = i
+            break
+        end
+    end
+    -- remove from tracking queue
+    local q_entry = table.remove(queue, index)
+    -- set node to structure marker
+    core.set_node(pos, {
+        name = self.fqnn,
+        param2 = param2
+    })
+    -- get structure def
+    local def = va_structures.get_registered_structure(self.fqnn)
+    if not def then
+        core.remove_node(pos)
+        return nil
+    end
+    -- create a new structure
+    local s = Structure.new(pos, def.name, def, true)
+    s:set_hp(1)
+    s.owner = owner
+    -- add to tracking lists
+    va_structures.add_player_structure(s)
+    va_structures.add_active_structure(pos, s)
+    -- activate structure
+    s:activate()
+    -- activate attechments
+    attach_structure_build(s)
+    attach_structure_gauge(s)
+    core.after(0.5, function()
+        -- dispose entity ghost
+        ent_ghost:_dispose(true)
+    end)
+    return s
+end
+
 -----------------------------------------------------------------
 -- collision checks
 
@@ -213,8 +399,13 @@ function Structure:collides_with(pos)
     return (m_x and m_y and m_z) or false
 end
 
-function Structure:collides_other(pos, size)
-    local size = vector.new(size)
+function Structure:collides_other(pos, s_size)
+    pos = {
+        x = math.floor(pos.x),
+        y = math.floor(pos.y),
+        z = math.floor(pos.z)
+    }
+    local size = vector.new(s_size)
     if size.y == 0 then
         size.y = 0.5
     end
@@ -222,22 +413,39 @@ function Structure:collides_other(pos, size)
     local pos1 = vector.add(pos, _size)
     local pos2 = vector.subtract(pos, _size)
     local structures = core.find_nodes_in_area(pos1, pos2, "group:va_structure")
+    local function col_with(s)
+        if s:collides_with(pos) then
+            return true
+        end
+        local s_pos1 = vector.subtract(pos, size)
+        local s_pos2 = vector.add(pos, size)
+        for y = s_pos1.y - 0.5, s_pos2.y + 0.5 do
+            for x = s_pos1.x, s_pos2.x do
+                for z = s_pos1.z, s_pos2.z do
+                    local n_pos = vector.new(x, y, z)
+                    if s:collides_with(n_pos) then
+                        return true
+                    end
+                end
+            end
+        end
+        return false
+    end
     for _, s_pos in pairs(structures) do
         local s = va_structures.get_active_structure(s_pos)
         if s then
-            if s:collides_with(pos) then
+            if col_with(s) then
                 return true
             end
-            local s_pos1 = vector.subtract(pos, size)
-            local s_pos2 = vector.add(pos, size)
-            for y = s_pos1.y - 0.5, s_pos2.y + 0.5 do
-                for x = s_pos1.x, s_pos2.x do
-                    for z = s_pos1.z, s_pos2.z do
-                        local n_pos = vector.new(x, y, z)
-                        if s:collides_with(n_pos) then
-                            return true
-                        end
-                    end
+        end
+    end
+    for y = -1, math.max(1, _size.y) do
+        for x = -_size.x, _size.x do
+            for z = -_size.z, _size.z do
+                local n_pos = vector.add(pos, vector.new(x, y, z))
+                local q = va_structures.get_unit_command_queue_from_pos(n_pos)
+                if q and col_with(q.structure_ghost) then
+                    return true
                 end
             end
         end
@@ -328,6 +536,9 @@ function Structure:run_pre(run_stage, net)
     if self.owner_actor == nil and net ~= nil then
         self.owner_actor = net
     end
+    if self:decay() then
+        return false
+    end
     if self:construct(net) then
         self:build_assist_reset()
         return false
@@ -355,6 +566,10 @@ function Structure:equals(structure)
     local s_hash = core.hash_node_position(self.pos)
     local o_hash = core.hash_node_position(structure.pos)
     return s_hash == o_hash
+end
+
+function Structure:isStructureInst()
+    return getmetatable(self) == Structure
 end
 
 function Structure:getInfo()
@@ -409,7 +624,7 @@ function Structure:can_store_mass()
 end
 
 function Structure:build_assist_reset()
-    self.build_power_total = 30 -- 10 seconds
+    self.build_power_total = 0 -- 10 seconds
 end
 
 function Structure:build_assist_add(amount_power)
@@ -520,7 +735,12 @@ function Structure:force_detach_child(unit)
     if not unit then
         return
     end
-    unit:set_properties({visual_size = {x=1.0, y=1.0}})
+    unit:set_properties({
+        visual_size = {
+            x = 1.0,
+            y = 1.0
+        }
+    })
     unit:set_detach()
 end
 
@@ -538,7 +758,12 @@ function Structure:attach_child(unit)
     }
     self:force_detach_child(unit)
     unit:set_attach(self.entity_obj, "build_plate", attach_at, unit_rotation)
-    unit:set_properties({visual_size = {x=1.333, y=1.333}})
+    unit:set_properties({
+        visual_size = {
+            x = 1.333,
+            y = 1.333
+        }
+    })
 end
 
 function Structure:detach_child(unit)
@@ -672,30 +897,33 @@ function Structure:construct_with_power(actor, build_power, constructor)
         if hp < max_hp then
             local step = max_hp / self.construction_tick_max
             step = step * build_power
-            local hp = math.floor(math.min(max_hp, hp + step + 0.01) * 100) * 0.01
+            hp = math.floor(math.min(max_hp, hp + step + 0.01) * 100) * 0.01
             self:set_hp(hp)
         end
     end
-    local dist = 0.75 + math.max(1, self.size.y * 2)
     if not has_resources then
-        -- va_structures.particle_build_effect_halt(pos, dist)
         return true
     end
     self.construction_tick = self.construction_tick + (build_power * 1)
-    -- va_structures.particle_build_effect(pos, dist)
+    self._construction_tick_last = core.get_us_time()
     if constructor then
+        -- TODO: handle various constructor types
         local pos2 = constructor.pos
-        local source = vector.add(pos2, {
+        local emitters = constructor.entity_emitters_pos or {{
             x = 0,
-            y = 0.3225,
+            y = 0,
             z = 0
-        })
+        }}
         local target = vector.add(pos, {
             x = 0,
             y = 0.60,
             z = 0
         })
-        va_structures.particle_build_effects(target, source, build_power)
+        local count = math.max(3, math.floor(build_power / #emitters))
+        for _, emitter in pairs(emitters) do
+            local source = vector.add(pos2, emitter)
+            va_structures.particle_build_effects(target, source, count)
+        end
     end
     return true
 end
@@ -1058,6 +1286,25 @@ function Structure:build_queue_clear()
 end
 
 -----------------------------------------------------------------
+
+-- decay structure after some time if not constructing
+function Structure:decay()
+    if self.is_constructed then
+        return false
+    end
+    if self.construction_tick < 0 then
+        self:destroy()
+        return true
+    end
+    local tick_last = self._construction_tick_last or 0
+    if core.get_us_time() - tick_last > 16 * 1000 * 1000 then
+        local hp = self:get_hp()
+        self:set_hp(hp - 0.1)
+        self.construction_tick = self.construction_tick - 2
+        return true
+    end
+    return false
+end
 
 -- destroy structure
 function Structure:destroy()

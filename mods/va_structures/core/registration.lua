@@ -2,6 +2,8 @@
 local modname = core.get_current_modname()
 local mod_path = core.get_modpath(modname)
 
+dofile(mod_path .. "/core/menus/construction_menu.lua")
+
 local register_structure_gauge = dofile(mod_path .. "/structure/structure_entity_gauge.lua")
 local register_structure_build = dofile(mod_path .. "/structure/structure_entity_build.lua")
 local register_construction_gauge = dofile(mod_path .. "/structure/unit/construction_entity.lua")
@@ -31,12 +33,12 @@ local structure_files = {
         ['economy'] = {
             "vox_energy_converter",
             "vox_energy_storage",
+            "vox_geothermal_plant",
             "vox_mass_extractor",
             "vox_naval_mass_extractor",
             "vox_mass_storage",
             "vox_solar_collector",
             "vox_wind_turbine",
-            "vox_geothermal_plant",
         },
         ['utility'] = {
             "vox_anti_radar_missile",

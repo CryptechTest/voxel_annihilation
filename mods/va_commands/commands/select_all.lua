@@ -65,6 +65,7 @@ va_commands.register_command("select_all", {
         local player_name = user:get_player_name()
         va_commands.set_player_selection_extent(player_name, nil)
         clear_selection(user)
+        va_commands.clear_construction_selection_item(player_name)
         local count = 0
         for _, unit in pairs(va_units.get_all_units()) do
             if unit._owner_name == player_name then
@@ -82,6 +83,7 @@ va_commands.register_command("select_all", {
     end,
     execute_secondary = function(itemstack, user, pointed_thing)
         clear_selection(user)
+        va_commands.clear_construction_selection_item(user:get_player_name())
         core.chat_send_player(user:get_player_name(), "Selection cleared.")
     end,
 })

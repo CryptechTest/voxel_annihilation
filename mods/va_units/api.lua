@@ -38,6 +38,10 @@ local function find_free_pos(pos)
 end
 
 local function find_path(unit, target_pos, ...)
+    if not target_pos then
+        core.log("[va_units] target_pos is nil on find_path()")
+        return nil
+    end
     local start = unit.object:get_pos()
     local path = core.find_path(start, target_pos, ...) or
         core.find_path(vector.add(start, vector.new(0, 1, 0)), target_pos, ...)
@@ -188,7 +192,194 @@ local function process_queue(unit)
     if not unit._command_queue or #unit._command_queue == 0 then
         return
     end
+    -- check if recently processed
+    if core.get_us_time() - unit._timer_run < 0.75 * 1000 * 1000 then
+        return
+    end
+    unit._timer_run = core.get_us_time()
     -- Process next command in the queue
+    local q_command = unit._command_queue[1]
+    if not q_command then
+        return
+    end
+    if q_command.command_type == "structure_queued" and not q_command.process_complete then
+        q_command.process_started = true
+        local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
+        -- TODO: unit build range distance
+        if unit_dist > 8 then
+            if unit._target_pos == nil and q_command.pos then
+                unit._target_pos = q_command.pos
+            end
+        else
+            unit._target_pos = nil
+            local q_cmd = va_structures.get_unit_command_queue_from_pos(q_command.pos)
+            if q_cmd then
+                q_command.process_complete = true
+                local structure = q_cmd.structure_ghost:dequeue_materialize_ghost()
+                local construct_command = {
+                    command_type = "structure_construct",
+                    process_started = false,
+                    process_complete = false,
+                    pos = structure.pos,
+                    owner_name = structure._owner_name,
+                    --structure_name = structure.fqnn
+                }
+                table.insert(unit._command_queue, 2, construct_command)
+            end
+        end
+    elseif q_command.command_type == "structure_construct" and not q_command.process_complete then
+        q_command.process_started = true
+        local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
+        -- TODO: unit build range distance
+        if unit_dist > 8 then
+            if q_command.pos then
+                local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
+                unit._target_pos = t_pos
+            end
+        else
+            unit._target_pos = nil
+            local structure = va_structures.get_active_structure(q_command.pos)
+            if structure then
+                if not structure.is_constructed then
+                    local net = va_structures.get_player_actor(unit._owner_name)
+                    local constructor = {
+                        pos = unit.object:get_pos(),
+                        -- TODO: setup offset positions for particle emitters
+                        entity_emitters_pos = {{x=0,y=1.25,z=0}}
+                    }
+                    local unit_def = units[unit.name]
+                    local build_power = unit_def and unit_def.build_power or 0
+                    if build_power > 0 then
+                        structure:construct_with_power(net, build_power, constructor)
+                    end
+                else
+                    q_command.process_complete = true
+                end
+            end
+        end
+    elseif q_command.command_type == "node_reclaim" and not q_command.process_complete then
+        q_command.process_started = true
+        local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
+        -- TODO: unit build range distance
+        if unit_dist > 7 then
+            if q_command.pos then
+                local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
+                unit._target_pos = t_pos
+            end
+        else
+            unit._target_pos = nil
+            local unit_def = units[unit.name]
+            local net = va_structures.get_player_actor(unit._owner_name)
+            if unit_def and net then
+                local b_power = unit_def.build_power
+                local pos = unit.object:get_pos()
+                local b_pos = vector.add(pos, {
+                    x = 0,
+                    y = 0.4,
+                    z = 0
+                })
+                -- core.log("do reclaim with power")
+                local _reclaim_value = va_resources.get_check_reclaim_val(q_command.pos)
+                if _reclaim_value then
+                    local meta = core.get_meta(q_command.pos)
+                    local claimed = (meta:get_int("claimed") ~= nil and meta:get_int("claimed")) or 0
+                    local t_reclaim = {
+                        pos = q_command.pos,
+                        value = _reclaim_value,
+                        tick = claimed
+                    }
+                    if claimed < _reclaim_value.time then
+                        va_structures.show_reclaim_beam_effect(t_reclaim.pos, b_pos, b_power * 0.5)
+                        if not va_resources.do_reclaim_with_power(t_reclaim, b_power, net) then
+                            va_structures.reclaim_effect_particles(t_reclaim.pos, b_power, vector.direction(t_reclaim.pos, pos))
+                            q_command.process_complete = true
+                        end
+                    else
+                        q_command.process_complete = true
+                    end
+                end
+            end
+        end
+    end
+    -- remove completed command
+    if q_command.process_complete then
+        table.remove(unit._command_queue, 1)
+    end
+end
+
+local function enqueue_command(unit, cmd_action)
+    if not unit then
+        return false
+    elseif not cmd_action then
+        return false
+    end
+
+    local function is_vector(t)
+        if type(t) ~= "table" then
+            return false
+        end
+        local len = #t
+        if len == 0 then
+            return true
+        end
+        local count = 0
+        for i, _ in ipairs(t) do
+            count = count + 1
+        end
+        return count == len
+    end
+
+    -- TODO: handle other types of commands instances...
+
+    if cmd_action.isStructureInst and cmd_action:isStructureInst() then
+        local structure = cmd_action
+        if structure.pos then
+            local construct_command = {
+                command_type = "structure_construct",
+                process_started = false,
+                process_complete = false,
+                pos = structure.pos,
+                owner_name = structure._owner_name,
+                --structure_name = structure.fqnn
+            }
+            table.insert(unit._command_queue, construct_command)
+            return true
+        end
+    elseif type(cmd_action) == "table" then
+        if cmd_action.pos then
+            if cmd_action.command_type == "node_reclaim" then
+                local reclaim_command = {
+                    command_type = "node_reclaim",
+                    process_started = false,
+                    process_complete = false,
+                    pos = cmd_action.pos,
+                }
+                table.insert(unit._command_queue, reclaim_command)
+                return true
+            end
+        end
+    end
+    -- show warning
+    core.log("[va_units] unit ignored invalid command on enqueue: ")
+    core.log(dump(cmd_action))
+    return false
+end
+
+local function abort_queue(unit)
+    for _, qc in pairs(unit._command_queue) do
+        if qc.command_type == "structure_queued" then
+            -- clear queued build command ghosts
+            local pos = qc.pos
+            local ghost = va_structures.get_unit_command_queue_from_pos(pos)
+            if ghost and ghost.structure_ghost then
+                ghost.structure_ghost:dispose()
+            end
+        elseif qc.command_type == "structure_construct" then
+            -- ignore?
+        end
+    end
+    va_structures.dispose_unit_command_queue(unit._id)
+    unit._command_queue = {}
 end
 
 local function process_look(driver, unit, horizontal)
@@ -390,8 +581,11 @@ function va_units.register_unit(name, def)
         },
         _is_va_unit = true,
         _command_queue = {},
+        _command_queue_abort = def.command_abort_queue or abort_queue,
+        _command_queue_add = def.command_queue_add or enqueue_command,
         _id = nil,
         _team = nil,
+        _desc = def.nametag,
         _player_rotation = def.player_rotation or { x = 0, y = 0, z = 0 },
         _driver_attach_at = def.driver_attach_at or { x = 0, y = 0, z = 0 },
         _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
@@ -399,6 +593,7 @@ function va_units.register_unit(name, def)
         _target_pos = nil,
         _path = nil,
         _timer = 0,
+        _timer_run = 0,
         _marked_for_removal = false,
         _is_constructed = false,
         _jumping = 0,
@@ -470,7 +665,7 @@ function va_units.register_unit(name, def)
                 -- Handle movement towards target
                 local stepheight = self.object:get_properties().stepheight or 0.6
 
-                if self._path == nil or #self._path < 2 then
+                if (self._path == nil or #self._path < 2) and self._target_pos ~= nil then
                     self._path = find_path(self,
                         self._target_pos,
                         128, stepheight + 0.7, stepheight + 0.7)
