@@ -31,16 +31,16 @@ local build_output_list = {
         },
         ['utility'] = {
             ['va_structures:vox_lamp_tower'] = {
-                index = 3
+                index = 1
             },
             ['va_structures:vox_perimeter_camera'] = {
-                index = 4
+                index = 2
             },
             ['va_structures:vox_radar_tower'] = {
                 index = 5
             },
             ['va_structures:vox_wall'] = {
-                index = 6
+                index = 3
             }
         }
     },
@@ -50,54 +50,54 @@ local build_output_list = {
                 index = 1
             },
             ['va_structures:vox_build_turret'] = {
-                index = 2
+                index = 6
             }
         },
         ['combat'] = {},
         ['economy'] = {
             ['va_structures:vox_energy_converter'] = {
-                index = 1
-            },
-            ['va_structures:vox_energy_storage'] = {
-                index = 2
-            },
-            ['va_structures:vox_geothermal_plant'] = {
-                index = 3
-            },
-            ['va_structures:vox_mass_extractor'] = {
-                index = 4
-            },
-            ['va_structures:vox_naval_mass_extractor'] = {
-                index = 5
-            },
-            ['va_structures:vox_mass_storage'] = {
-                index = 6
-            },
-            ['va_structures:vox_solar_collector'] = {
                 index = 7
             },
+            ['va_structures:vox_energy_storage'] = {
+                index = 3
+            },
+            ['va_structures:vox_geothermal_plant'] = {
+                index = 10
+            },
+            ['va_structures:vox_mass_extractor'] = {
+                index = 1
+            },
+            ['va_structures:vox_naval_mass_extractor'] = {
+                index = 6
+            },
+            ['va_structures:vox_mass_storage'] = {
+                index = 2
+            },
+            ['va_structures:vox_solar_collector'] = {
+                index = 4
+            },
             ['va_structures:vox_wind_turbine'] = {
-                index = 8
+                index = 5
             }
         },
         ['utility'] = {
             ['va_structures:vox_anti_radar_missile'] = {
-                index = 1
+                index = 6
             },
             ['va_structures:vox_jammer_tower'] = {
-                index = 2
+                index = 10
             },
             ['va_structures:vox_lamp_tower'] = {
-                index = 3
+                index = 1
             },
             ['va_structures:vox_perimeter_camera'] = {
-                index = 4
+                index = 2
             },
             ['va_structures:vox_radar_tower'] = {
                 index = 5
             },
             ['va_structures:vox_wall'] = {
-                index = 6
+                index = 3
             }
         }
     }
@@ -176,12 +176,12 @@ local function get_formspec(list_name, player_name, unit_id)
                     }
                     table.insert(_items, entry)
                 else
-                    --core.log("[va_commands] registered node not found for structure " .. menu_item.name)
+                    -- core.log("[va_commands] registered node not found for structure " .. menu_item.name)
                 end
             else
                 local blank = {
                     index = i,
-                    desc = "Unknown",
+                    desc = nil,
                     image = "base_structure_item.png"
                 }
                 table.insert(_items, blank)
@@ -207,7 +207,7 @@ local function get_formspec(list_name, player_name, unit_id)
         for _, item in pairs(sliced_items) do
             if item.desc and item.index > 0 then
                 lines = lines .. "tooltip[build_queue_" .. item.index .. ";" .. item.desc .. ";#000000ff;#d1d1d1f1]"
-                lines = lines .. "image_button[" .. x .. "," .. y .. ";1.5,1.5;base_structure_item.png;build_queue_" ..
+                lines = lines .. "image_button[" .. x .. "," .. y .. ";1.5,1.5;" .. item.image .. ";build_queue_" ..
                             item.index .. ";]"
             end
             x = x + x_max
