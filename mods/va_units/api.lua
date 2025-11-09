@@ -188,6 +188,135 @@ local function force_detach(player)
     player:set_eye_offset({ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 })
 end
 
+local function find_free_ground(unit, target, search_radius)
+    local attempt_max = search_radius
+    local attempts = 0
+    local start_pos = unit.object:get_pos()
+    local found_pos = nil
+
+    local function is_free_pos(pos)
+        local check = {
+            { x = 1,  y = 0, z = 1 },
+            { x = 1,  y = 0, z = 0 },
+            { x = 1, y = 0, z = -1 },
+            { x = 0,  y = 0, z = -1 },
+            { x = -1, y = 0, z = -1 },
+            { x = -1,  y = 0, z = 0 },
+            { x = -1,  y = 0, z = 1 },
+            { x = 0,  y = 0, z = 1 },
+        }
+        local free_pos = {}
+        for _, c in pairs(check) do
+            local npos = { x = pos.x + c.x, y = pos.y + c.y, z = pos.z + c.z }
+            local node = core.get_node_or_nil(npos)
+
+            if node and node.name then
+                local def = core.registered_nodes[node.name]
+                if def and not def.walkable and
+                    def.liquidtype == "none" then
+                    table.insert(free_pos, npos)
+                end
+            end
+        end
+        return #free_pos > 3
+    end
+
+    local function get_free_pos(pos)
+        local check = {
+            { x = 1,  y = 0, z = 1 },
+            { x = 1,  y = 0, z = 0 },
+            { x = 1, y = 0, z = -1 },
+            { x = 0,  y = 0, z = -1 },
+            { x = -1, y = 0, z = -1 },
+            { x = -1,  y = 0, z = 0 },
+            { x = -1,  y = 0, z = 1 },
+            { x = 0,  y = 0, z = 1 },
+        }
+        for _, c in pairs(check) do
+            local npos = { x = pos.x + c.x, y = pos.y + c.y, z = pos.z + c.z }
+            local node = core.get_node_or_nil(npos)
+            if node and node.name then
+                local def = core.registered_nodes[node.name]
+                if def and not def.walkable and
+                    def.liquidtype == "none" then
+                    return npos
+                end
+            end
+        end
+        return pos
+    end
+
+    local function check_find_path(target_pos)
+        if not target_pos then
+            return nil
+        end
+        target_pos = get_free_pos(target_pos)
+        if is_free_pos(target_pos) then
+            local stepheight = unit.object:get_properties().stepheight or 0.6
+            unit._path = find_path(unit, target_pos, 128, stepheight + 0.7, stepheight + 0.7)
+        end
+        return target_pos
+    end
+
+    local function find_ground(pos)
+        if not pos then
+            return nil
+        end
+        for i = -1, search_radius+1, 1 do
+            local p = vector.subtract(pos, {x=0,y=i,z=0})
+            local node = core.get_node_or_nil(p)
+            if node then
+                local nodedef = core.registered_nodes[node.name]
+                if nodedef.walkable then
+                    local pos_above = vector.add(p, {x=0,y=1,z=0})
+                    --core.log("found ground")
+                    return pos_above
+                end
+            end
+        end
+        return nil
+    end
+
+    local function find_random_ground(pos, r)
+        local x = math.random(-r,r)
+        local z = math.random(-r,r)
+        local y = 0
+        local r_pos = vector.add(pos, vector.new(x,y,z))
+        if is_free_pos(r_pos) then
+            return r_pos
+        end
+    end
+
+    if unit._target_pos == nil and target then
+        local dist = vector.distance(start_pos, target)
+        if dist <= search_radius then
+            unit._target_pos = get_free_pos(find_ground(target))
+            return target
+        end
+    elseif unit._target_pos ~= nil and target then
+        return target
+    end
+
+    local last_pos = get_free_pos(find_ground(target))
+    while found_pos == nil and attempts < attempt_max do
+        attempts = attempts + 1
+        local pos = find_random_ground(last_pos, attempts)
+        if pos then
+            pos = find_ground(pos)
+            pos = check_find_path(pos)
+            if pos then
+                found_pos = pos
+            end
+        end
+    end
+
+    if found_pos then
+        unit._target_pos = found_pos
+    end
+
+    return found_pos
+end
+
 local function process_queue(unit)
     if not unit._command_queue or #unit._command_queue == 0 then
         return
@@ -208,7 +337,8 @@ local function process_queue(unit)
         -- TODO: unit build range distance
         if unit_dist > 8 then
             if unit._target_pos == nil and q_command.pos then
-                unit._target_pos = q_command.pos
+                local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
+                unit._target_pos = t_pos
             end
         else
             unit._target_pos = nil
@@ -259,12 +389,16 @@ local function process_queue(unit)
         end
     elseif q_command.command_type == "node_reclaim" and not q_command.process_complete then
         q_command.process_started = true
+        q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
         -- TODO: unit build range distance
-        if unit_dist > 7 then
-            if q_command.pos then
-                local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
-                unit._target_pos = t_pos
+        if unit_dist > 8 then
+            if q_command.pos and unit._target_pos == nil then
+                --core.log("[va_units] find_free_ground() ... ")
+                -- TODO: this is noisey... do better
+                if find_free_ground(unit, q_command.pos, 6) then
+                    q_command.process_timeout = 0
+                end
             end
         else
             unit._target_pos = nil
@@ -280,7 +414,11 @@ local function process_queue(unit)
                 })
                 -- core.log("do reclaim with power")
                 local _reclaim_value = va_resources.get_check_reclaim_val(q_command.pos)
+                if _reclaim_value == nil then
+                    q_command.process_complete = true
+                end
                 if _reclaim_value then
+                    q_command.process_timeout = 0
                     local meta = core.get_meta(q_command.pos)
                     local claimed = (meta:get_int("claimed") ~= nil and meta:get_int("claimed")) or 0
                     local t_reclaim = {
@@ -300,6 +438,9 @@ local function process_queue(unit)
                 end
             end
         end
+        if q_command.process_timeout > 3 then
+            q_command.process_complete = true
+        end
     end
     -- remove completed command
     if q_command.process_complete then
@@ -312,21 +453,6 @@ local function enqueue_command(unit, cmd_action)
         return false
     elseif not cmd_action then
         return false
-    end
-
-    local function is_vector(t)
-        if type(t) ~= "table" then
-            return false
-        end
-        local len = #t
-        if len == 0 then
-            return true
-        end
-        local count = 0
-        for i, _ in ipairs(t) do
-            count = count + 1
-        end
-        return count == len
     end
 
     -- TODO: handle other types of commands instances...
