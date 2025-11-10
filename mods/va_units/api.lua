@@ -322,7 +322,7 @@ local function process_queue(unit)
         return
     end
     -- check if recently processed
-    if core.get_us_time() - unit._timer_run < 0.75 * 1000 * 1000 then
+    if core.get_us_time() - unit._timer_run < 1 * 1000 * 1000 then
         return
     end
     unit._timer_run = core.get_us_time()
@@ -392,13 +392,15 @@ local function process_queue(unit)
         q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
         -- TODO: unit build range distance
-        if unit_dist > 8 then
+        if unit_dist > 9 then
             if q_command.pos and unit._target_pos == nil then
                 --core.log("[va_units] find_free_ground() ... ")
                 -- TODO: this is noisey... do better
-                if find_free_ground(unit, q_command.pos, 6) then
+                if find_free_ground(unit, q_command.pos, 8) then
                     q_command.process_timeout = 0
                 end
+            else
+                q_command.process_timeout = 1
             end
         else
             unit._target_pos = nil

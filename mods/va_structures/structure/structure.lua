@@ -285,6 +285,8 @@ function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, 
         constructor_id = unit_owner_id
     }))
     if obj then
+        local observers = { [owner] = true }
+        obj:set_observers(observers)
         -- do rotation
         local param2 = core.dir_to_facedir(placer:get_look_dir())
         local yawRad = param2 * math.pi
