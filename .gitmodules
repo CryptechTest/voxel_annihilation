@@ -25,3 +25,6 @@
 [submodule "mods/bakedclay"]
 	path = mods/bakedclay
 	url = git@github.com:CryptechTest/bakedclay.git
+[submodule "mods/lightning"]
+	path = mods/lightning
+	url = git@github.com:CryptechTest/lightning.git
