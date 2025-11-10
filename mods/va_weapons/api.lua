@@ -12,21 +12,20 @@ function va_weapons.register_weapon(name, def)
         on_use = function(itemstack, user, pointed_thing)
             if def.fire then
                 local shooter = user
-                local shooter_pos = vector.add(shooter:get_pos(), vector.new(0, 1.1, 0))
-                local target_pos = nil
-                local range = def.range or 16
-                local base_damage = def.base_damage or 10
-                if pointed_thing.type == "object" then
-                    local entity = pointed_thing.ref
-                    if entity then
-                        target_pos = entity:get_pos()
+                local dir = shooter:get_look_dir()
+                -- put the shooter pos a bit in front of the shooter to avoid self-collision
+                local shooter_pos = shooter:get_pos()
+                if shooter_pos and dir and (dir.x ~= 0 or dir.y ~= 0 or dir.z ~= 0) then
+                    -- If not aiming steeply down, add upward offset
+                    if dir.y > -0.7 then
+                        shooter_pos = vector.add(shooter_pos, {x=0, y=1.5, z=0})
                     end
-                elseif pointed_thing.type == "node" then
-                    target_pos = pointed_thing.under
-                else
-                    local dir = shooter:get_look_dir()
-                    target_pos = vector.add(shooter_pos, vector.multiply(dir, range))
+                    shooter_pos = vector.add(shooter_pos, vector.multiply(dir, 1.1))
                 end
+                local range = def.range or 16
+                local base_damage = def.base_damage or 20
+                local d = shooter:get_look_dir()
+                local target_pos = vector.add(shooter_pos, vector.multiply(d, range - 0.5))
                 def.fire(shooter, shooter_pos, target_pos, range, base_damage)
             end
         end
