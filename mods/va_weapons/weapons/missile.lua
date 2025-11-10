@@ -57,24 +57,8 @@ local missile = {
         }
         local node = core.get_node(node_pos)
         if node and core.registered_nodes[node.name] and core.registered_nodes[node.name].walkable and node.name ~= "barrier:barrier" then
-        -- Handle collision (e.g., explode)
-        local sound_pitch = 1.25
-        core.sound_play("va_weapons_explosion", {
-            pos = pos,
-            gain = 0.15,
-            pitch = sound_pitch,
-        })
-        self.object:remove()
-        return
-        end
-        if node_pos.x ~= current_node_pos.x or
-        node_pos.y ~= current_node_pos.y or
-        node_pos.z ~= current_node_pos.z then
-        -- Moved to a new node, check for collision
-        local n = core.get_node(node_pos)
-        if n and core.registered_nodes[n.name] and core.registered_nodes[n.name].walkable and n.name ~= "barrier:barrier" then
             -- Handle collision (e.g., explode)
-            local sound_pitch =  1.25
+            local sound_pitch = 1.25
             core.sound_play("va_weapons_explosion", {
                 pos = pos,
                 gain = 0.15,
@@ -83,6 +67,22 @@ local missile = {
             self.object:remove()
             return
         end
+        if node_pos.x ~= current_node_pos.x or
+            node_pos.y ~= current_node_pos.y or
+            node_pos.z ~= current_node_pos.z then
+            -- Moved to a new node, check for collision
+            local n = core.get_node(node_pos)
+            if n and core.registered_nodes[n.name] and core.registered_nodes[n.name].walkable and n.name ~= "barrier:barrier" then
+                -- Handle collision (e.g., explode)
+                local sound_pitch = 1.25
+                core.sound_play("va_weapons_explosion", {
+                    pos = pos,
+                    gain = 0.15,
+                    pitch = sound_pitch,
+                })
+                self.object:remove()
+                return
+            end
         end
     end,
 }
