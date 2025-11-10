@@ -59,9 +59,9 @@ va_weapons.register_weapon("lightning", {
                 pitch = pitch,
             })
             -- Create the lightning entity, changing between 3 variants for visual variety
-            for i = 1, 10 do
+            for i = 1, 25 do
                 local lightning_variant = math.random(1, 3)
-                core.after(i * 0.1,
+                core.after(i * 0.08,
                     function()
                         -- redefine the shooter_pos to be in front of the shooter each time
                         local dir = vector.direction(shooter_pos, target_pos)
