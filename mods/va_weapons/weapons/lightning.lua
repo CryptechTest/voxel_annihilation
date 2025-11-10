@@ -46,7 +46,7 @@ va_weapons.register_weapon("lightning", {
         if distance > range then
             return false
         end
-        range = math.min(range, 4)
+        range = math.min(range, 8)
         local damage = base_damage
         local jump_distance = 2
         -- Fire the lightning and deal damage
@@ -70,25 +70,14 @@ va_weapons.register_weapon("lightning", {
                         local lightning_entity = core.add_entity(shooter_pos,
                             "va_weapons:lightning_" .. lightning_variant)
                         if lightning_entity then
-                            local dir = vector.direction(shooter_pos, target_pos)
-                            local yaw = core.dir_to_yaw(dir)
-                            local entity_pitch = math.atan2(dir.y, math.sqrt(dir.x * dir.x + dir.z * dir.z)) - math.pi /
+                            local d = vector.direction(shooter_pos, target_pos)
+                            local entity_pitch = math.atan2(d.y, math.sqrt(d.x * d.x + d.z * d.z)) - math.pi /
                                 2
                             -- get the length of the distance to target to set the visual size
                             local dist_to_target = vector.distance(shooter_pos, target_pos)
-                            lightning_entity:set_properties({ visual_size = { x = (dist_to_target * 0.667) / 8, y = (dist_to_target * 0.667) / 16, z = 0.1 } })
-                            local roll_index = math.random(0, 3)
-                            local roll_angle = roll_index * (math.pi / 2)
-                            -- Swap x and z for correct visual orientation
-                            -- Debug: Try all axis combinations for rotation
-                            local combos = {
-                                { x = entity_pitch, y = yaw, z = roll_angle },
-                                { x = roll_angle,   y = yaw, z = entity_pitch },
-                            }
-                            -- Pick one to test per spawn, or cycle through them
-                            local combo_index = i     -- i from 1 to 3 in the loop
-                            local rot = combos[combo_index] or combos[1]
-                            lightning_entity:set_rotation(rot)
+                            lightning_entity:set_properties({ visual_size = { x = (dist_to_target * 0.667) / 8, y = (dist_to_target * 0.667) / 16, z = 0.1 } })                            
+                            local random_yaw = math.random() * math.pi * 2 -- random angle from 0 to 2π
+                            lightning_entity:set_rotation({x = entity_pitch, y = random_yaw, z = -random_yaw})
                         end
                     end
                 )
