@@ -113,7 +113,7 @@ va_weapons.register_weapon("plasma", {
                 local attached = plasma_entity:get_luaentity().object or plasma_entity
                 -- DEBUG: spawn particles at shooter's position to verify spawner works
                 core.add_particlespawner({
-                    amount = 150,
+                    amount = 300,
                     time = 10,
                     attached = attached,
                     minvel = {x=-size, y=-size, z=-size},
@@ -122,9 +122,9 @@ va_weapons.register_weapon("plasma", {
                     maxacc = {x=0, y=0, z=0},
                     minexptime = 0.5,
                     maxexptime = 1.0,
-                    minsize = 0.05,
+                    minsize = 0.1,
                     maxsize = 0.5,
-                    texture = "va_weapons_plasma_particle.png",
+                    texture = { name = "va_weapons_plasma_particle.png", alpha_tween = { 1, 0 } },
                     glow = 14,
                 })
             end

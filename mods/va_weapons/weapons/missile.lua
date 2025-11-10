@@ -44,6 +44,46 @@ local missile = {
             local entity_pitch = math.atan2(vel.y, math.sqrt(vel.x * vel.x + vel.z * vel.z)) - math.pi / 2
             self.object:set_rotation({ x = entity_pitch, y = yaw, z = 0 })
         end
+        local next_pos = vector.add(pos, vector.multiply(self.object:get_velocity(), dtime))
+        local node_pos = {
+            x = math.floor(next_pos.x + 0.5),
+            y = math.floor(next_pos.y + 0.5),
+            z = math.floor(next_pos.z + 0.5)
+        }
+        local current_node_pos = {
+            x = math.floor(pos.x + 0.5),
+            y = math.floor(pos.y + 0.5),
+            z = math.floor(pos.z + 0.5)
+        }
+        local node = core.get_node(node_pos)
+        if node and core.registered_nodes[node.name] and core.registered_nodes[node.name].walkable and node.name ~= "barrier:barrier" then
+        -- Handle collision (e.g., explode)
+        local sound_pitch = 1.25
+        core.sound_play("va_weapons_explosion", {
+            pos = pos,
+            gain = 0.15,
+            pitch = sound_pitch,
+        })
+        self.object:remove()
+        return
+        end
+        if node_pos.x ~= current_node_pos.x or
+        node_pos.y ~= current_node_pos.y or
+        node_pos.z ~= current_node_pos.z then
+        -- Moved to a new node, check for collision
+        local n = core.get_node(node_pos)
+        if n and core.registered_nodes[n.name] and core.registered_nodes[n.name].walkable and n.name ~= "barrier:barrier" then
+            -- Handle collision (e.g., explode)
+            local sound_pitch =  1.25
+            core.sound_play("va_weapons_explosion", {
+                pos = pos,
+                gain = 0.15,
+                pitch = sound_pitch,
+            })
+            self.object:remove()
+            return
+        end
+        end
     end,
 }
 
@@ -96,18 +136,18 @@ va_weapons.register_weapon("missile", {
                 drag = { x = 0.9, y = 0.9, z = 0.9 },
             })
             core.add_particlespawner({
-                amount = 150,
+                amount = 5400,
                 time = 30,
                 attached = attached,
                 minvel = { x = -0.1, y = -0.1, z = -0.1 },
                 maxvel = { x = 0.1, y = 0.1, z = 0.1 },
                 minacc = { x = 0, y = 0, z = 0 },
                 maxacc = { x = 0, y = 0, z = 0 },
-                minexptime = 0.5,
-                maxexptime = 1.0,
+                minexptime = 0.25,
+                maxexptime = 0.5,
                 minsize = 0.05,
                 maxsize = 0.5,
-                texture = "va_weapons_plasma_particle.png",
+                texture = { name = "va_weapons_plasma_particle.png", alpha_tween = { 1, 0 } },
                 glow = 14,
             })
         end)
