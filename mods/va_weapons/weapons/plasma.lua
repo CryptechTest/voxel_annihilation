@@ -27,7 +27,7 @@ local plasma = {
                 local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
                 core.sound_play("va_weapons_plasma", {
                     pos = pos,
-                    gain = 0.5,
+                    gain = 0.15,
                     pitch = sound_pitch,
                 })
                 -- Handle collision (e.g., deal damage)
@@ -54,7 +54,7 @@ local plasma = {
             local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
             core.sound_play("va_weapons_plasma", {
                 pos = pos,
-                gain = 0.5,
+                gain = 0.15,
                 pitch = sound_pitch,
             })
             self.object:remove()
@@ -70,7 +70,7 @@ local plasma = {
                 local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
                 core.sound_play("va_weapons_plasma", {
                     pos = pos,
-                    gain = 0.5,
+                    gain = 0.15,
                     pitch = sound_pitch,
                 })
                 self.object:remove()
