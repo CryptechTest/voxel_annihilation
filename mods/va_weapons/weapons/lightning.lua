@@ -30,7 +30,7 @@ for i = 1, 3 do
         on_step = function(self, dtime)
             local lifetime = self._lifetime or 0
             lifetime = lifetime + dtime
-            if lifetime >= 0.3 then
+            if lifetime >= 0.2 then
                 self.object:remove()
                 return
             end
@@ -61,7 +61,7 @@ va_weapons.register_weapon("lightning", {
             -- Create the lightning entity, changing between 3 variants for visual variety
             for i = 1, 25 do
                 local lightning_variant = math.random(1, 3)
-                core.after(i * 0.08,
+                core.after(i * 0.04,
                     function()
                         -- redefine the shooter_pos to be in front of the shooter each time
                         local dir = vector.direction(shooter_pos, target_pos)
