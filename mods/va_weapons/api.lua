@@ -8,7 +8,7 @@ function va_weapons.register_weapon(name, def)
     core.register_craftitem("va_weapons:" .. name, {
         description = def.description or ("Weapon: " .. name),
         inventory_image = def.inventory_image or "va_weapons_default.png",
-        range = def.range or 16,
+        range = def.range or 64,
         on_use = function(itemstack, user, pointed_thing)
             if def.fire then
                 local shooter = user
@@ -22,7 +22,7 @@ function va_weapons.register_weapon(name, def)
                     end
                     shooter_pos = vector.add(shooter_pos, vector.multiply(dir, 1.1))
                 end
-                local range = def.range or 16
+                local range = def.range or 64
                 local base_damage = def.base_damage or 20
                 local d = shooter:get_look_dir()
                 local target_pos = vector.add(shooter_pos, vector.multiply(d, range - 0.5))
