@@ -779,9 +779,8 @@ function va_units.register_unit(name, def)
                 punch_damage = punch_damage + damage
             end
 
-            -- Default to 1 if no damage specified
-            if punch_damage == 0 then
-                punch_damage = 1
+            if punch_damage <= 0 then
+                return
             end
 
             local new_hp = hp - punch_damage
