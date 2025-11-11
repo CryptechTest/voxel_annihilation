@@ -159,7 +159,7 @@ local function fire_heavy_laser(shooter, shooter_pos, target_pos, range, base_da
             laser:set_rotation({x = entity_pitch, y = yaw, z = 0})
             local luaent = laser:get_luaentity()
             if luaent then
-                luaent.object._damage = damage
+                luaent._damage = damage
             end
         end
     end)
