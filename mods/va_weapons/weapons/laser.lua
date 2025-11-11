@@ -39,15 +39,24 @@ local light_laser = {
         local objects = core.get_objects_inside_radius(pos, 0.4)
         for _, obj in ipairs(objects) do
             if obj ~= self.object and not obj:is_player() then
-                local falloff = math.max(0, 1 - (traveled_distance / self._range)^2)
-                local damage = math.max(1, math.floor(self._damage * falloff))
-                -- Deal damage to the object
-                obj:punch(self.object, 1.0, {
-                    full_punch_interval = 1.0,
-                    damage_groups = { laser = damage }
-                }, nil)
-                self.object:remove()
-                return
+                local ent = obj:get_luaentity()
+                local is_laser = false
+                if ent and ent.name then
+                    if ent.name == "va_weapons:light_laser" or ent.name == "va_weapons:heavy_laser" then
+                        is_laser = true
+                    end
+                end
+                if not is_laser then
+                    local falloff = math.max(0, 1 - (traveled_distance / self._range)^2)
+                    local damage = math.max(1, math.floor(self._damage * falloff))
+                    -- Deal damage to the object
+                    obj:punch(self.object, 1.0, {
+                        full_punch_interval = 1.0,
+                        damage_groups = { laser = damage }
+                    }, nil)
+                    self.object:remove()
+                    return
+                end
             end
         end
         --check for collision with nodes
