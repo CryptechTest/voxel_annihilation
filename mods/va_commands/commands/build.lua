@@ -20,14 +20,12 @@ va_commands.register_command("build", {
                 structure = va_structures.get_active_structure(entity:get_pos())
             end
         end
-        -- core.chat_send_player(player_name, "Immediate build command.")
 
         local selected_unit_ids = {}
         local selected_unit_name = ""
         local selected_units = va_commands.get_player_selected_units(player_name)
         local found = false
         for _, selected_entity in ipairs(selected_units) do
-            -- TODO: constructor type on unit maybe???
             if selected_entity._can_build then
                 found = true
                 table.insert(selected_unit_ids, selected_entity._id)
@@ -37,10 +35,15 @@ va_commands.register_command("build", {
         end
         if found then
             if structure and #selected_unit_ids > 0 then
+                core.chat_send_player(player_name, "Immediate build command.")
                 for _, unit_id in pairs(selected_unit_ids) do
                     local unit = va_units.get_unit_by_id(unit_id)
-                    unit:_command_queue_abort()
-                    unit:_command_queue_add(structure)
+                    if unit._command_queue_abort then
+                        unit:_command_queue_abort()
+                    end
+                    if unit._command_queue_add then
+                        unit:_command_queue_add(structure)
+                    end
                 end
             else
                 va_structures.show_construction_menu(player_name, selected_unit_name, selected_unit_ids[1])
@@ -69,15 +72,13 @@ va_commands.register_command("build", {
                 structure = va_structures.get_active_structure(entity:get_pos())
             end
         end
-        -- core.chat_send_player(player_name, "Queued build command.")
 
         local selected_unit_id = {}
         local selected_unit_name = ""
         local selected_units = va_commands.get_player_selected_units(player_name)
         local found = false
         for _, selected_entity in ipairs(selected_units) do
-            -- TODO: constructor type on unit maybe???
-            if selected_entity.name == "va_units:vox_constructor" then
+            if selected_entity._can_build then
                 found = true
                 selected_unit_id = selected_entity._id
                 selected_unit_name = selected_entity.name
@@ -85,6 +86,7 @@ va_commands.register_command("build", {
             end
         end
         if found then
+            --core.chat_send_player(player_name, "Queued build command.")
             va_structures.show_construction_menu(player_name, selected_unit_name, selected_unit_id)
         else
             core.chat_send_player(player_name, "No constructor selected.")

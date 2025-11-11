@@ -5,28 +5,31 @@ local build_output_list = {
                 index = 1
             }
         },
-        ['combat'] = {},
+        ['combat'] = {
+            ['va_structures:vox_light_laser_tower'] = {
+                index = 1
+            },},
         ['economy'] = {
             ['va_structures:vox_energy_converter'] = {
-                index = 1
-            },
-            ['va_structures:vox_energy_storage'] = {
-                index = 2
-            },
-            ['va_structures:vox_mass_extractor'] = {
-                index = 4
-            },
-            ['va_structures:vox_naval_mass_extractor'] = {
-                index = 5
-            },
-            ['va_structures:vox_mass_storage'] = {
-                index = 6
-            },
-            ['va_structures:vox_solar_collector'] = {
                 index = 7
             },
+            ['va_structures:vox_energy_storage'] = {
+                index = 3
+            },
+            ['va_structures:vox_mass_extractor'] = {
+                index = 1
+            },
+            ['va_structures:vox_naval_mass_extractor'] = {
+                index = 6
+            },
+            ['va_structures:vox_mass_storage'] = {
+                index = 2
+            },
+            ['va_structures:vox_solar_collector'] = {
+                index = 4
+            },
             ['va_structures:vox_wind_turbine'] = {
-                index = 8
+                index = 5
             }
         },
         ['utility'] = {
@@ -376,4 +379,5 @@ local menu_build_all_def = {
     on_receive_fields = on_receive_fields
 }
 
+va_structures.add_construction_menu("va_units:vox_commander", menu_build_all_def)
 va_structures.add_construction_menu("va_units:vox_constructor", menu_build_all_def)

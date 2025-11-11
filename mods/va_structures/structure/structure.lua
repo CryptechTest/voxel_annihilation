@@ -963,7 +963,7 @@ function Structure:repair_with_power(actor, build_power, constructor)
 end
 
 function Structure:repair_unit_with_power(actor, unit, b_power)
-    local unit_obj = unit.object
+    local unit_obj = unit
     if not unit_obj._is_constructed then
         unit_obj._is_constructed = true
     end

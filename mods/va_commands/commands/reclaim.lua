@@ -61,13 +61,16 @@ va_commands.register_command("reclaim", {
             if structure then
                 -- TODO: order reclaim with structure...
             elseif unit then
-                core.log("queue command")
-                unit:_command_queue_abort()
+                if unit._command_queue_abort then
+                    unit:_command_queue_abort()
+                end
                 local cmd = {
                     command_type = "node_reclaim",
                     pos = target_pos
                 }
-                unit:_command_queue_add(cmd)
+                if unit._command_queue_add then
+                    unit:_command_queue_add(cmd)
+                end
             end
         else
             core.chat_send_player(player_name, "No constructor or reclaim unit selected.")
@@ -110,7 +113,7 @@ va_commands.register_command("reclaim", {
         local found = false
         for _, selected_entity in ipairs(selected_units) do
             -- TODO: constructor/reclaim type on unit maybe???
-            if selected_entity.name == "va_units:vox_constructor" then
+            if selected_entity._can_reclaim then
                 found = true
                 selected_unit_id = selected_entity._id
                 break

@@ -463,6 +463,10 @@ function va_resources.do_reclaim_with_power(reclaim_target, build_power, actor)
     local meta = core.get_meta(reclaim_target.pos)
     local claimed = meta:get_int("claimed") or 0
     meta:set_int("claimed", claimed + build_power)
+    if meta:get_int("claimed") < claimed_max then
+        local claimed_prcnt = math.floor(claimed / claimed_max * 1000) * 0.1
+        meta:set_string("infotext", "Claimed: " .. claimed_prcnt .. "%")
+    end
 
     if meta:get_int("claimed") >= claimed_max then
         local rock = core.get_item_group(node.name, "va_rocks")

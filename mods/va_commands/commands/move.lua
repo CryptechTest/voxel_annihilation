@@ -30,7 +30,7 @@ va_commands.register_command("move", {
         elseif pointed_thing.type == "object" then
            local entity = pointed_thing.ref
            if entity then
-               local epos = entity:get_pos()        
+               local epos = entity:get_pos()
                local found = false
                local search_pos = {x = epos.x, y = epos.y, z = epos.z}
                for i = 0, 10 do
@@ -64,7 +64,7 @@ va_commands.register_command("move", {
                     else
                         -- temp fix...
                         local _unit = va_units.get_unit_by_id(unit._id)
-                        if _unit then
+                        if _unit and _unit._command_queue_abort then
                             -- FIXME: crashed here: "_unit:_command_queue_abort() was nil"
                             _unit:_command_queue_abort()
                         end
@@ -105,7 +105,7 @@ va_commands.register_command("move", {
         elseif pointed_thing.type == "object" then
            local entity = pointed_thing.ref
            if entity then
-               local epos = entity:get_pos()        
+               local epos = entity:get_pos()
                local found = false
                local search_pos = {x = epos.x, y = epos.y, z = epos.z}
                for i = 0, 10 do
@@ -143,7 +143,9 @@ va_commands.register_command("move", {
                                 command_type = "move_to_pos",
                                 pos = target
                             }
-                            unit:_command_queue_add(cmd)
+                            if unit._command_queue_add then
+                                unit:_command_queue_add(cmd)
+                            end
 
                             core.chat_send_player(player_name, "Queued move command.")
                             core.chat_send_player(player_name, "Targeting position: " .. core.pos_to_string(target))

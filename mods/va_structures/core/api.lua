@@ -497,7 +497,10 @@ function va_structures.show_construction_menu(player_name, menu_name, unit_id)
     if not menu then
         return
     end
-    core.show_formspec(player_name, menu_name, menu(menu_name, player_name, unit_id))
+    local formspec = menu(menu_name, player_name, unit_id)
+    if formspec then
+        core.show_formspec(player_name, menu_name, formspec)
+    end
 end
 
 -----------------------------------------------------------------

@@ -107,24 +107,43 @@ local function do_turret_rotation(structure, target)
     end
 end
 
+local function can_see(origin, obj)
+    local target_pos = vector.add(obj:get_pos(), vector.new(0, 0.51, 0))
+    local ray = core.raycast(origin, target_pos, false, true, nil)
+    for pointed_thing in ray do
+        if pointed_thing.type == "object" and pointed_thing.ref ~= obj then
+            if pointed_thing.ref:get_pos() ~= origin then
+                return false
+            end
+        elseif pointed_thing.type == "node" and pointed_thing.under ~= target_pos then
+            if pointed_thing.under ~= origin then
+                return false
+            end
+        end
+    end
+    return true
+end
+
 local function find_target(structure, dist)
-    local pos = structure.pos
+    local pos = vector.add(structure.pos, vector.new(0, 1.35, 0))
     local objs = core.get_objects_inside_radius(pos, dist + 0.55)
     local targets = {}
     for _, obj in pairs(objs) do
         local o_pos = obj:get_pos()
-        if obj:get_luaentity() then
-            local ent = obj:get_luaentity()
-            if ent._is_va_unit then
-                if ent._owner_name ~= structure.owner then
-                    if core.line_of_sight(pos, o_pos) then
-                        table.insert(targets, obj)
+        if vector.distance(pos, o_pos) < dist + 1 then
+            if obj:get_luaentity() then
+                local ent = obj:get_luaentity()
+                if ent._is_va_unit then
+                    if ent._owner_name ~= structure.owner then
+                        if can_see(pos, obj) then
+                            table.insert(targets, obj)
+                        end
                     end
-                end
-            elseif ent._is_va_structure then
-                if ent._owner_name ~= structure.owner then
-                    if core.line_of_sight(pos, o_pos) then
-                        table.insert(targets, obj)
+                elseif ent._is_va_structure then
+                    if ent._owner_name ~= structure.owner then
+                        if can_see(pos, obj) then
+                            table.insert(targets, obj)
+                        end
                     end
                 end
             end
@@ -134,6 +153,23 @@ local function find_target(structure, dist)
         return targets[1]:get_pos()
     end
     return nil
+end
+
+local function rotate_y(vector, angle_yaw, angle_pitch)
+    local cos_a = math.cos(angle_yaw)
+    local sin_a = math.sin(angle_yaw)
+    local sin_p = math.cos(angle_pitch)
+    local cos_p = math.cos(angle_pitch)
+    local x = vector.x * cos_a - vector.z * sin_a
+    local z = vector.x * sin_a + vector.z * cos_a
+    local y = vector.y * cos_p
+    local x1 = x * cos_p - z * sin_p
+    local z1 = x * sin_p + z * cos_p
+    return {
+        x = (x),
+        y = (y),
+        z = -(z)
+    }
 end
 
 local vas_run = function(pos, node, s_obj, run_stage, net)
@@ -154,9 +190,6 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         end
 
         local meta = core.get_meta(pos)
-        if meta:get_int("attack_pause") == 1 then
-            return
-        end
         if meta:get_int("attack_mode") == 3 then
             return
         end
@@ -169,30 +202,12 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         if target then
             local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
             local pitch, pitch_deg = va_structures.util.calculatePitch(target, pos)
-            local dir = vector.direction(pos, target)
 
             local turret_end = {
                 x = (0 * 1 / 16) * 0.88,
                 y = (36 * 1 / 16) * 0.50,
                 z = (24 * 1 / 16) * 0.88
             }
-
-            local function rotate_y(vector, angle_yaw, angle_pitch)
-                local cos_a = math.cos(angle_yaw)
-                local sin_a = math.sin(angle_yaw)
-                local sin_p = math.cos(angle_pitch)
-                local cos_p = math.cos(angle_pitch)
-                local x = vector.x * cos_a - vector.z * sin_a
-                local z = vector.x * sin_a + vector.z * cos_a
-                local y = vector.y * cos_p
-                local x1 = x * cos_p - z * sin_p
-                local z1 = x * sin_p + z * cos_p
-                return {
-                    x = (x),
-                    y = (y),
-                    z = -(z)
-                }
-            end
 
             local turret_end_pos = rotate_y(turret_end, yaw, pitch)
             local o_pos = vector.add(s_obj.pos, turret_end_pos)
