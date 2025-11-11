@@ -590,6 +590,13 @@ function Structure:is_active()
     return self._active
 end
 
+function Structure:get_id()
+    if self.entity_obj then
+        return self.entity_obj._id;
+    end
+    return nil
+end
+
 function Structure:hash()
     if not self.pos then
         return "0"

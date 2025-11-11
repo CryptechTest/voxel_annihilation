@@ -5,6 +5,7 @@ local loaded_mapblocks = {}
 local _registered_defs = {}
 -- internal active structure instances
 local _active_instances = {}
+local _active_instances_index = {}
 
 -- player structure tracking
 local player_structures = {}
@@ -162,6 +163,15 @@ end
 -----------------------------------------------------------------
 -- active structures
 
+local function build_active_structure_cache()
+    for k, v in pairs(_active_instances) do
+        local id = v:get_id()
+        if id then
+            _active_instances_index[id] = k
+        end
+    end
+end
+
 function va_structures.get_active_structure(pos)
     pos = {
         x = math.floor(pos.x),
@@ -173,16 +183,15 @@ function va_structures.get_active_structure(pos)
 end
 
 function va_structures.get_active_structure_by_id(id)
-    local pos = nil
-    for k, v in pairs(_active_instances) do
-        if v.entity_obj and v.entity_obj._id == id then
-            -- pos = core.unhash_node_position(k)
-            pos = v.pos
-            break
-        end
+    local hash = _active_instances_index[id]
+    if hash then
+        return _active_instances[hash]
     end
-    if pos then
-        return va_structures.get_active_structure(pos)
+    build_active_structure_cache()
+    for _, v in pairs(_active_instances) do
+        if v:get_id() == tostring(id) then
+            return v
+        end
     end
     return nil
 end
@@ -205,6 +214,10 @@ function va_structures.remove_active_structure(pos)
     }
     local hash = core.hash_node_position(pos)
     if _active_instances[hash] then
+        local id = _active_instances[hash]:get_id()
+        if id and _active_instances_index[id] then
+            _active_instances_index[id] = nil
+        end
         _active_instances[hash] = nil
     end
 end
@@ -407,7 +420,7 @@ function va_structures.remove_pos_from_command_queue(pos, unit_id)
     for _, rem in pairs(to_remove) do
         local s = build_command_queue[unit_id][rem]
         if s and s.dispose then
-            --core.log("dispose... remove_pos_from_command_queue()")
+            -- core.log("dispose... remove_pos_from_command_queue()")
             s:dispose()
         end
     end
@@ -424,7 +437,7 @@ function va_structures.dispose_unit_command_queue(unit_id)
         for _, rem in pairs(to_remove) do
             local s = build_command_queue[unit_id][rem]
             if s and s.dispose then
-                --core.log("dispose... dispose_unit_command_queue()")
+                -- core.log("dispose... dispose_unit_command_queue()")
                 s:dispose()
             end
         end
