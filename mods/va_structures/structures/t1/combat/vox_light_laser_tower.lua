@@ -136,7 +136,11 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 if s_obj._target_locked then
                     net.energy = energy - cost
                     local weapon = va_weapons.get_weapon("light_laser")
-                    weapon.fire(shooter, o_pos, t_pos, range, damage)
+                    for i = 0, 3, 1 do
+                        core.after(0.25 * i, function ()
+                            weapon.fire(shooter, o_pos, t_pos, range, damage)
+                        end)
+                    end
                 end
             end
             net.energy_demand = net.energy_demand + cost

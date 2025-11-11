@@ -138,14 +138,16 @@ va_commands.register_command("move", {
                     if distance > 1024 then
                         core.chat_send_player(player_name, "Error: Target is too far away.")
                     else
-                        local cmd = {
-                            command_type = "move_to_pos",
-                            pos = target
-                        }
-                        unit:_command_queue_add(cmd)
+                        if unit then
+                            local cmd = {
+                                command_type = "move_to_pos",
+                                pos = target
+                            }
+                            unit:_command_queue_add(cmd)
 
-                        core.chat_send_player(player_name, "Queued move command.")
-                        core.chat_send_player(player_name, "Targeting position: " .. core.pos_to_string(target))
+                            core.chat_send_player(player_name, "Queued move command.")
+                            core.chat_send_player(player_name, "Targeting position: " .. core.pos_to_string(target))
+                        end
                     end
                 else
                     core.chat_send_player(player_name, "Error: Unit position is invalid.")
