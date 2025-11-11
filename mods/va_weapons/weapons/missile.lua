@@ -9,6 +9,145 @@ core.register_node("va_weapons:missile_ammo", {
     is_ground_content = false,
 })
 
+
+local function destroy_effect_particle(pos, radius)
+    core.add_particle({
+        pos = pos,
+        velocity = vector.new(),
+        acceleration = vector.new(),
+        expirationtime = 0.64,
+        size = radius * 16,
+        collisiondetection = false,
+        vertical = false,
+        texture ={ name = "va_explosion_boom.png", alpha_tween = { 1, 0.25 } },
+        glow = 15
+    })
+    core.add_particlespawner({
+        amount = 12,
+        time = 0.6,
+        minpos = vector.subtract(pos, radius / 4),
+        maxpos = vector.add(pos, radius / 4),
+        minvel = {
+            x = -1,
+            y = -0.5,
+            z = -1
+        },
+        maxvel = {
+            x = 1,
+            y = 1,
+            z = 1
+        },
+        minacc = vector.new(),
+        maxacc = vector.new(),
+        minexptime = 3,
+        maxexptime = 7,
+        minsize = radius * 4,
+        maxsize = radius * 7,
+        texture = {
+            name = "va_explosion_vapor.png",
+            blend = "alpha",
+            scale = 1,
+            alpha = 1.0,
+            alpha_tween = { 1, 0 },
+            scale_tween = { {
+                x = 0.5,
+                y = 0.5
+            }, {
+                x = 5,
+                y = 5
+            } }
+        },
+        collisiondetection = true,
+        glow = 3
+    })
+    core.add_particlespawner({
+        amount = 16,
+        time = 0.8,
+        minpos = vector.subtract(pos, radius / 3),
+        maxpos = vector.add(pos, radius / 3),
+        minvel = {
+            x = -1,
+            y = -0.5,
+            z = -1
+        },
+        maxvel = {
+            x = 1,
+            y = 1.25,
+            z = 1
+        },
+        minacc = vector.new(),
+        maxacc = vector.new(),
+        minexptime = 2,
+        maxexptime = 5,
+        minsize = radius * 3,
+        maxsize = radius * 6,
+        -- texture = "tnt_smoke.png",
+        texture = {
+            name = "va_explosion_smoke.png",
+            blend = "alpha",
+            scale = 1,
+            alpha = 1.0,
+            alpha_tween = { 1, 0 },
+            scale_tween = { {
+                x = 0.25,
+                y = 0.25
+            }, {
+                x = 6,
+                y = 5
+            } }
+        },
+        collisiondetection = true,
+        glow = 5
+    })
+    core.add_particlespawner({
+        amount = 72,
+        time = 0.45,
+        minpos = vector.subtract(pos, radius / 2),
+        maxpos = vector.add(pos, radius / 2),
+        minvel = {
+            x = -3.5,
+            y = -3.5,
+            z = -3.5
+        },
+        maxvel = {
+            x = 3.5,
+            y = 5.0,
+            z = 3.5
+        },
+        minacc = {
+            x = -0.5,
+            y = -2.0,
+            z = -0.5
+        },
+        maxacc = {
+            x = 0.5,
+            y = 0.5,
+            z = 0.5
+        },
+        minexptime = 0.5,
+        maxexptime = 2,
+        minsize = radius * 0.2,
+        maxsize = radius * 0.6,
+        texture = {
+            name = "va_explosion_spark.png",
+            blend = "alpha",
+            scale = 1,
+            alpha = 1.0,
+            alpha_tween = { 1, 0.5 },
+            scale_tween = { {
+                x = 1.0,
+                y = 1.0
+            }, {
+                x = 0,
+                y = 0
+            } }
+        },
+        collisiondetection = true,
+        glow = 15
+    })
+end
+
+
 local missile = {
     initial_properties = {
         physical = false,
@@ -20,7 +159,10 @@ local missile = {
         visual_size = { x = 0.5, y = 0.5, z = 0.5 }
     },
     _start_pos = nil,
-    _range = 16,
+    _range = 12,
+    _damage = 1,
+    _splash_radius = 1,
+    _splash_damage = 10,
     on_step = function(self, dtime)
         local lifetime = self._lifetime or 0
         lifetime = lifetime + dtime
@@ -58,12 +200,44 @@ local missile = {
         local node = core.get_node(node_pos)
         if node and core.registered_nodes[node.name] and core.registered_nodes[node.name].walkable and node.name ~= "barrier:barrier" then
             -- Handle collision (e.g., explode)
+            destroy_effect_particle(pos, self._splash_radius)
             local sound_pitch = 1.25
             core.sound_play("va_weapons_explosion", {
                 pos = pos,
                 gain = 0.15,
                 pitch = sound_pitch,
             })
+            local objects = core.get_objects_inside_radius(pos, self._splash_radius)
+            local target_units = {}
+            local target_structures = {}
+            for _, obj in ipairs(objects) do
+                if obj ~= self.object and not obj:is_player() then
+                    -- check if it is a unit or structure to deal damage to
+                    if obj:get_luaentity() and obj:get_luaentity()._is_va_unit then
+                        table.insert(target_units, obj)
+                    elseif obj:get_luaentity() and obj:get_luaentity()._is_va_structure then
+                        table.insert(target_structures, obj)
+                    end
+                end
+            end
+            -- deal splash damage to target_units and target_structures here
+            for _, unit in ipairs(target_units) do
+                -- get the active unit by id and deal damage
+            end
+            for _, structure in ipairs(target_structures) do
+                local spos = structure:get_pos()
+                local distance = vector.distance(pos, spos)
+                local damage = self._splash_damage * (1 - (distance / self._splash_radius))
+                local id = structure:get_luaentity()._id
+                if id then
+                    local target = va_structures.get_active_structure(spos)
+                    if target then
+                        target:damage(damage, "explosion")
+                    end
+                end
+                
+            end
+
             self.object:remove()
             return
         end
@@ -74,12 +248,36 @@ local missile = {
             local n = core.get_node(node_pos)
             if n and core.registered_nodes[n.name] and core.registered_nodes[n.name].walkable and n.name ~= "barrier:barrier" then
                 -- Handle collision (e.g., explode)
+                destroy_effect_particle(pos, self._splash_radius)
                 local sound_pitch = 1.25
                 core.sound_play("va_weapons_explosion", {
                     pos = pos,
                     gain = 0.15,
                     pitch = sound_pitch,
                 })
+                local objects = core.get_objects_inside_radius(pos, self._splash_radius)
+                local target_units = {}
+                local target_structures = {}
+                for _, obj in ipairs(objects) do
+                    if obj ~= self.object and not obj:is_player() then
+                        -- check if it is a unit or structure to deal damage to
+                        if obj:get_luaentity() and obj:get_luaentity()._is_va_unit then
+                            table.insert(target_units, obj)
+                        elseif obj:get_luaentity() and obj:get_luaentity()._is_va_structure then
+                            table.insert(target_structures, obj)
+                        end
+                    end
+                end
+                -- deal splash damage to target_units and target_structures here
+                for _, unit in ipairs(target_units) do
+                    -- get the active unit by id and deal damage
+                end
+                for _, structure in ipairs(target_structures) do
+                    local distance = vector.distance(pos, structure:get_pos())
+                    local damage = self._splash_damage * (1 - (distance / self._splash_radius))
+                    va_structures.get_active_structure_by_id(structure:get_luaentity()._id):damage(damage, "explosion")
+                end
+
                 self.object:remove()
                 return
             end
@@ -116,6 +314,9 @@ va_weapons.register_weapon("missile", {
                 local luaent = missile_entity:get_luaentity()
                 if luaent then
                     luaent._range = range
+                    luaent._damage = damage
+                    luaent._splash_radius = splash_radius
+                    luaent._splash_damage = splash_damage
                 end
             end
             local attached = missile_entity:get_luaentity().object or missile_entity
