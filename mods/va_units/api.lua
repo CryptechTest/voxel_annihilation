@@ -336,17 +336,20 @@ local function process_queue(unit)
         q_command.process_started = true
         q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
-        if unit_dist > 2 then
+        va_units.set_target(unit, q_command.pos)
+        if unit_dist > 3 then
             if q_command.pos and unit._target_pos == nil then
                 --core.log("[va_units] find_free_ground() ... ")
                 -- TODO: this is noisey... do better
-                if find_free_ground(unit, q_command.pos, 2) then
+                if find_free_ground(unit, q_command.pos, 1) then
                     q_command.process_timeout = 0
                 end
-                q_command.process_complete = true
+                --q_command.process_complete = true
             else
                 q_command.process_timeout = 1
             end
+        else
+            q_command.process_complete = true
         end
 
     elseif q_command.command_type == "structure_queued" and not q_command.process_complete then

@@ -138,7 +138,7 @@ va_commands.register_command("move", {
                         core.chat_send_player(player_name, "Error: Target is too far away.")
                     else
                         local cmd = {
-                            command_type = "node_reclaim",
+                            command_type = "move_to_pos",
                             pos = target
                         }
                         unit:_command_queue_add(cmd)
