@@ -420,10 +420,10 @@ va_commands.register_command("select", {
             end
             local current_extent = va_commands.get_player_selection_extent(player_name)
             if current_extent then
-                if current_extent.pos1_entity then
+                if current_extent.pos1_entity and current_extent.pos1_entity:get_luaentity() then
                     current_extent.pos1_entity:get_luaentity()._marked_for_removal = true
                 end
-                if current_extent.pos2_entity then
+                if current_extent.pos2_entity and current_extent.pos2_entity:get_luaentity() then
                     current_extent.pos2_entity:get_luaentity()._marked_for_removal = true
                 end
             end
