@@ -145,16 +145,13 @@ local function register_structure_node(def)
 
         range = def.range or 128,
         on_use = function(itemstack, user, pointed_thing)
-            --return def.check_placement(itemstack, user, pointed_thing)
-            return def.queue_ghost(itemstack, user, pointed_thing)
+            return def.queue_ghost(itemstack, user, pointed_thing, true)
         end,
         on_place = function(itemstack, placer, pointed_thing)
-            --return def.check_placement(itemstack, placer, pointed_thing)
-            return def.queue_ghost(itemstack, placer, pointed_thing, true)
+            return def.queue_ghost(itemstack, placer, pointed_thing)
         end,
         on_secondary_use = function(itemstack, user, pointed_thing)
-            --return def.check_placement(itemstack, user, pointed_thing)
-            return def.queue_ghost(itemstack, user, pointed_thing, true)
+            return def.queue_ghost(itemstack, user, pointed_thing)
         end
     }
 
