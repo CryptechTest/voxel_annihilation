@@ -352,15 +352,22 @@ local function process_queue(unit)
         else
             q_command.process_complete = true
         end
+        if q_command.process_timeout > 5 then
+            q_command.process_complete = true
+        end
 
     elseif q_command.command_type == "structure_queued" and not q_command.process_complete then
         q_command.process_started = true
+        q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
         -- TODO: unit build range distance
         if unit_dist > 8 then
             if unit._target_pos == nil and q_command.pos then
                 local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
                 unit._target_pos = t_pos
+            end
+            if unit._target_pos ~= nil then
+                q_command.process_timeout = 0
             end
         else
             unit._target_pos = nil
@@ -377,16 +384,24 @@ local function process_queue(unit)
                     --structure_name = structure.fqnn
                 }
                 table.insert(unit._command_queue, 2, construct_command)
+                q_command.process_timeout = 0
             end
+        end
+        if q_command.process_timeout > 5 then
+            q_command.process_complete = true
         end
     elseif q_command.command_type == "structure_construct" and not q_command.process_complete then
         q_command.process_started = true
+        q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
         -- TODO: unit build range distance
         if unit_dist > 8 then
             if q_command.pos then
                 local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
                 unit._target_pos = t_pos
+            end
+            if unit._target_pos ~= nil then
+                q_command.process_timeout = 0
             end
         else
             unit._target_pos = nil
@@ -404,10 +419,14 @@ local function process_queue(unit)
                     if build_power > 0 then
                         structure:construct_with_power(net, build_power, constructor)
                     end
+                    q_command.process_timeout = 0
                 else
                     q_command.process_complete = true
                 end
             end
+        end
+        if q_command.process_timeout > 3 then
+            q_command.process_complete = true
         end
     elseif q_command.command_type == "node_reclaim" and not q_command.process_complete then
         q_command.process_started = true
@@ -739,6 +758,10 @@ function va_units.register_unit(name, def)
             nametag = "",
         },
         _is_va_unit = true,
+        _can_build = def.can_build or false,
+        _can_reclaim = def.can_reclaim or false,
+        _can_repair = def.can_repair or false,
+        _can_attack = def.can_attack or false,
         _command_queue = {},
         _command_queue_abort = def.command_abort_queue or abort_queue,
         _command_queue_add = def.command_queue_add or enqueue_command,

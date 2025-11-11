@@ -403,15 +403,20 @@ function va_structures.remove_pos_from_command_queue(pos, unit_id)
     }
     local to_remove = {}
     if build_command_queue[unit_id] then
-        local index = 0
-        for i, bcq in pairs(build_command_queue[unit_id]) do
-            if bcq.pos == pos then
+        local index = 1
+        local found_index = 0
+        for _, bcq in pairs(build_command_queue[unit_id]) do
+            if bcq.pos.y == pos.y and bcq.pos.x == pos.x and bcq.pos.z == pos.z then
                 table.insert(to_remove, bcq.structure_ghost_hash)
-                index = i
+                found_index = index
                 break
             end
+            index = index + 1
         end
-        table.remove(build_command_queue[unit_id], index)
+        if found_index > 0 then
+            build_command_queue[unit_id][to_remove[1]] = nil
+            table.remove(build_command_queue[unit_id], to_remove[1])
+        end
     else
         local hash = core.hash_node_position(pos)
         for _, bcu in pairs(build_command_queue) do

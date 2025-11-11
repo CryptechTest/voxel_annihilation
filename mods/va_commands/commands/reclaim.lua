@@ -41,7 +41,7 @@ va_commands.register_command("reclaim", {
         local found = false
         for _, selected_entity in ipairs(selected_units) do
             -- TODO: constructor/reclaim type on unit maybe???
-            if selected_entity.name == "va_units:vox_constructor" then
+            if selected_entity._can_reclaim then
                 found = true
                 selected_unit_id = selected_entity._id
                 --selected_unit_name = selected_entity.name

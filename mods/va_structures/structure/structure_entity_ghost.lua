@@ -28,7 +28,7 @@ local function register_structure_entity_ghost(def)
         },
 
         -- va general vars
-        _is_va_structure = true,
+        _is_va_structure_ghost = true,
         _marked_for_removal = false,
         _id = nil,
         _current_mapblock = nil,

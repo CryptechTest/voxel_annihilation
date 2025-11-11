@@ -22,5 +22,7 @@ va_units.register_unit("vox_constructor", {
     mass_cost = 11,
     energy_cost = 160,
     build_time = 345,
-    build_power = 8
+    build_power = 8,
+    can_build = true,
+    can_reclaim = true
 })

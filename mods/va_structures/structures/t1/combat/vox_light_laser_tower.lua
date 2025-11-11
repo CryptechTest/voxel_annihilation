@@ -10,6 +10,59 @@ local modpath = core.get_modpath(modname)
 -- load class
 local Structure = dofile(modpath .. "/structure/structure.lua")
 
+local function get_formspec(structure)
+    if not structure then
+        return
+    end
+
+    local pos = structure.pos
+    local meta = core.get_meta(pos)
+    local desc = structure.desc
+
+    local formspec = "size[8,8]" .. "no_prepend[]" .. "formspec_version[10]" -- .. "allow_close[false]"
+
+    formspec = formspec .. "style_type[label;font_size=22;font=bold]"
+    formspec = formspec .. "label[0.0,-0.1;" .. desc .. " - Control]" .. "bgcolor[#101010;]"
+    formspec = formspec .. "style_type[label;font_size=16;font=bold]"
+
+    -- fire at will
+    -- return fire
+    -- hold fire
+    local attack_mode = meta:get_int("attack_mode")
+
+    local attck_y = 1.0
+    formspec = formspec .. "label[4.5," .. (attck_y + 0.1) .. ";Attack Mode]"
+    formspec =
+        formspec .. "dropdown[4.5,2.5;" .. (attck_y + 0.5) .. ";attack_mode;Fire at Will,Return Fire,Hold Fire;" ..
+            (attack_mode > 0 and attack_mode or 1) .. ";true]"
+
+    formspec = formspec .. "style[attack_cancel;bgcolor=" .. "#ffee00ff" .. "]"
+    formspec = formspec .. "button[2.0,7.3;2.0,1;attack_cancel;Clear Target]"
+
+    formspec = formspec .. "style[quit;bgcolor=" .. "#ff0000ff" .. "]"
+    formspec = formspec .. "button_exit[6.5,7.3;1.5,1;quit;Exit]"
+
+    return formspec
+end
+
+local function on_receive_fields(structure, player, formname, fields)
+    if not structure then
+        return
+    end
+    local pos = structure.pos
+    local meta = core.get_meta(pos)
+    -- local owner = meta:get_string("owner") or ""
+
+    -- core.log(dump(fields))
+
+    if fields.attack_mode then
+        if meta:get_int("attack_mode") ~= tonumber(fields.attack_mode) then
+            meta:set_int("attack_mode", tonumber(fields.attack_mode))
+        end
+    end
+
+end
+
 local function num_is_close(target, actual, thrs)
     local target_frac = (target * 0.001) + thrs
     return actual < target + target_frac and actual >= target - target_frac
@@ -64,11 +117,15 @@ local function find_target(structure, dist)
             local ent = obj:get_luaentity()
             if ent._is_va_unit then
                 if ent._owner_name ~= structure.owner then
-                    table.insert(targets, obj)
+                    if core.line_of_sight(pos, o_pos) then
+                        table.insert(targets, obj)
+                    end
                 end
             elseif ent._is_va_structure then
                 if ent._owner_name ~= structure.owner then
-                    table.insert(targets, obj)
+                    if core.line_of_sight(pos, o_pos) then
+                        table.insert(targets, obj)
+                    end
                 end
             end
         end
@@ -94,6 +151,14 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local recent_hit = false
         if core.get_us_time() - s_obj.last_hit < 13 * 1000 * 1000 then
             recent_hit = true
+        end
+
+        local meta = core.get_meta(pos)
+        if meta:get_int("attack_pause") == 1 then
+            return
+        end
+        if meta:get_int("attack_mode") == 3 then
+            return
         end
 
         local shooter = s_obj.entity_obj
@@ -122,7 +187,11 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 local y = vector.y * cos_p
                 local x1 = x * cos_p - z * sin_p
                 local z1 = x * sin_p + z * cos_p
-                return {x = (x), y = (y), z = -(z)}
+                return {
+                    x = (x),
+                    y = (y),
+                    z = -(z)
+                }
             end
 
             local turret_end_pos = rotate_y(turret_end, yaw, pitch)
@@ -137,14 +206,14 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     net.energy = energy - cost
                     local weapon = va_weapons.get_weapon("light_laser")
                     for i = 0, 3, 1 do
-                        core.after(0.25 * i, function ()
+                        core.after(0.25 * i, function()
                             weapon.fire(shooter, o_pos, t_pos, range, damage)
                         end)
                     end
                 end
             end
             net.energy_demand = net.energy_demand + cost
-    end
+        end
     end
 end
 
@@ -158,6 +227,8 @@ local def = {
     energy_cost = 68,
     energy_consume = 1,
     build_time = 240,
+    formspec = get_formspec,
+    on_receive_fields = on_receive_fields,
     vas_run = vas_run
 }
 
@@ -166,7 +237,7 @@ def.name = "light_laser_tower"
 def.desc = "Light Laser Tower"
 def.size = {
     x = 1,
-    y = 1.85,
+    y = 1.95,
     z = 1
 }
 def.category = "economy"

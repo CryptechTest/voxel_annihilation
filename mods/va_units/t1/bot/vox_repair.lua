@@ -22,5 +22,6 @@ va_units.register_unit("vox_repair", {
     mass_cost = 13,
     energy_cost = 140,
     build_time = 280,
-    build_power = 20
+    build_power = 20,
+    can_reclaim = true
 })

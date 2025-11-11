@@ -9,7 +9,7 @@ va_commands.register_command("guard", {
         end
         local player_name = user:get_player_name()
         if pointed_thing.type == "nothing" then
-        elseif pointed_thing.type == "node" then            
+        elseif pointed_thing.type == "node" then
         elseif pointed_thing.type == "object" then
         end
         core.chat_send_player(player_name, "Immediate guard command.")
