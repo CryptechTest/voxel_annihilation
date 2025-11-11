@@ -128,8 +128,9 @@ va_commands.register_command("move", {
             core.chat_send_player(player_name, "Error: No target selected.")
             return
         end
-
-        for _, unit in pairs(va_commands.get_player_selected_units(player_name)) do
+        local units = va_commands.get_player_selected_units(player_name)
+        core.chat_send_player(player_name, "Selected " .. #units .. " units.")
+        for _, unit in pairs(units) do
             if unit._owner_name == player_name and unit.object and target then
                 local upos = unit.object:get_pos()
                 if upos and upos.x and upos.y and upos.z then

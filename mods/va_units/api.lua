@@ -332,6 +332,7 @@ local function process_queue(unit)
         return
     end
 
+
     if q_command.command_type == "move_to_pos" and not q_command.process_complete then
         q_command.process_started = true
         q_command.process_timeout = (q_command.process_timeout or 0) + 1
@@ -772,6 +773,7 @@ function va_units.register_unit(name, def)
             self._animation = animations.stand
             self.object:set_animation(self._animation or animations.stand, 1, 0)
             self._id = tostring(self.object:get_guid())
+            self._command_queue = {}
             local punits = player_units[self._owner_name] or {}
             punits[self._id] = self
             player_units[self._owner_name] = punits
@@ -794,6 +796,7 @@ function va_units.register_unit(name, def)
             punits[self._id] = nil
             player_units[self._owner_name] = punits
             active_units[self._id] = nil
+            self._command_queue = {}
             self.object:set_observers({})
         end,
         get_staticdata = function(self)
