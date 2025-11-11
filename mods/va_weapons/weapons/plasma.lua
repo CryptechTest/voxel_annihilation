@@ -1,3 +1,17 @@
+local function set_fire(pos)
+    local node_under = core.get_node(pos).name
+    local nodedef = core.registered_nodes[node_under]
+    if not nodedef then
+        return
+    end
+    if nodedef.on_ignite then
+        nodedef.on_ignite(pos, nil)
+    elseif core.get_item_group(node_under, "flammable") >= 1
+        and core.get_node(vector.add(pos, {x=0, y=1, z=0})).name == "air" then
+        core.set_node(vector.add(pos, {x=0, y=1, z=0}), { name = "fire:basic_flame" })
+    end
+end
+
 local function destroy_effect_particle(pos, radius)
     core.add_particle({
         pos = pos,
@@ -168,7 +182,7 @@ local plasma = {
                     pitch = sound_pitch,
                 })
                 -- Handle collision (e.g., deal damage)
-                
+                set_fire(vector.add(obj:get_pos(), {x=0, y=-1, z=0}))
                 self.object:remove()
                 return
             end
@@ -195,6 +209,7 @@ local plasma = {
                 gain = 0.15,
                 pitch = sound_pitch,
             })
+            set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
             self.object:remove()
             return
         end
@@ -202,7 +217,7 @@ local plasma = {
            node_pos.y ~= current_node_pos.y or
            node_pos.z ~= current_node_pos.z then
             -- Moved to a new node, check for collision
-            local n = core.get_node(node_pos)
+            local n = core.get_node(current_node_pos)
             if n and core.registered_nodes[n.name] and core.registered_nodes[n.name].walkable and n.name ~= "barrier:barrier" then
                 destroy_effect_particle(pos, 1)
                 -- Handle collision (e.g., explode)
@@ -212,6 +227,7 @@ local plasma = {
                     gain = 0.15,
                     pitch = sound_pitch,
                 })
+                set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
                 self.object:remove()
                 return
             end

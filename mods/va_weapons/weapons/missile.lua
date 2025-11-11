@@ -9,6 +9,19 @@ core.register_node("va_weapons:missile_ammo", {
     is_ground_content = false,
 })
 
+local function set_fire(pos)
+    local node_under = core.get_node(pos).name
+    local nodedef = core.registered_nodes[node_under]
+    if not nodedef then
+        return
+    end
+    if nodedef.on_ignite then
+        nodedef.on_ignite(pos, nil)
+    elseif core.get_item_group(node_under, "flammable") >= 1
+        and core.get_node(vector.add(pos, {x=0, y=1, z=0})).name == "air" then
+        core.set_node(vector.add(pos, {x=0, y=1, z=0}), { name = "fire:basic_flame" })
+    end
+end
 
 local function destroy_effect_particle(pos, radius)
     core.add_particle({
@@ -19,7 +32,7 @@ local function destroy_effect_particle(pos, radius)
         size = radius * 16,
         collisiondetection = false,
         vertical = false,
-        texture ={ name = "va_explosion_boom.png", alpha_tween = { 1, 0.25 } },
+        texture = { name = "va_explosion_boom.png", alpha_tween = { 1, 0.25 } },
         glow = 15
     })
     core.add_particlespawner({
@@ -235,9 +248,8 @@ local missile = {
                         target:damage(damage, "explosion")
                     end
                 end
-                
             end
-
+            set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
             self.object:remove()
             return
         end
@@ -245,7 +257,7 @@ local missile = {
             node_pos.y ~= current_node_pos.y or
             node_pos.z ~= current_node_pos.z then
             -- Moved to a new node, check for collision
-            local n = core.get_node(node_pos)
+            local n = core.get_node(current_node_pos)
             if n and core.registered_nodes[n.name] and core.registered_nodes[n.name].walkable and n.name ~= "barrier:barrier" then
                 -- Handle collision (e.g., explode)
                 destroy_effect_particle(pos, self._splash_radius)
@@ -277,6 +289,7 @@ local missile = {
                     local damage = self._splash_damage * (1 - (distance / self._splash_radius))
                     va_structures.get_active_structure_by_id(structure:get_luaentity()._id):damage(damage, "explosion")
                 end
+                    set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
 
                 self.object:remove()
                 return
