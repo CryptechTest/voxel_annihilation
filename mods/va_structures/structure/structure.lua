@@ -1306,7 +1306,7 @@ function Structure:decay()
         return true
     end
     local tick_last = self._construction_tick_last or 0
-    if core.get_us_time() - tick_last > 16 * 1000 * 1000 then
+    if tick_last > 0 and core.get_us_time() - tick_last > 16 * 1000 * 1000 then
         local hp = self:get_hp()
         self:set_hp(hp - 0.1)
         self.construction_tick = self.construction_tick - 2

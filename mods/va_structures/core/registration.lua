@@ -24,7 +24,7 @@ local structure_files = {
         ['combat'] = {
             "vox_heavy_laser_tower",
             "vox_heavy_mine",
-            "vox_light_laer_tower",
+            "vox_light_laser_tower",
             "vox_light_mine",
             "vox_medium_beam_tower",
             "vox_medium_plasma_artillery",

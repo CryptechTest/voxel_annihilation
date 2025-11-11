@@ -269,9 +269,9 @@ local function register_structure_entity(def)
             end
         end,
 
-        on_punch = def.on_punch or function(puncher, time_from_last_punch, tool_capabilities, direction, damage)
+        on_punch = def.on_punch or function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
 
-            local function on_hit(self, target)
+            local function on_hit(_puncher, target, _damage)
 
                 local node = core.get_node(target)
                 local meta = core.get_meta(target)
@@ -281,16 +281,28 @@ local function register_structure_entity(def)
 
                 if s then
                     local hp = s:get_hp()
-                    s:set_hp(hp - 1)
+                    s:set_hp(hp - _damage)
                     s.last_hit = core.get_us_time()
                 end
 
                 return false
             end
 
-            if puncher and puncher.object then
-                local pos = puncher.object:get_pos();
-                on_hit(puncher, pos)
+            local punch_damage = 0
+            if tool_capabilities and tool_capabilities.damage_groups then
+                for group, val in pairs(tool_capabilities.damage_groups) do
+                    punch_damage = punch_damage + val
+                end
+            end
+
+            -- If custom damage is passed (e.g., from explosion), use it
+            if damage and type(damage) == "number" then
+                punch_damage = punch_damage + damage
+            end
+
+            if self and self.object and punch_damage > 0 then
+                local pos = self.object:get_pos();
+                on_hit(puncher, pos, punch_damage)
                 return 0;
             end
 

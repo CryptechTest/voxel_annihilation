@@ -53,7 +53,11 @@ local build_output_list = {
                 index = 6
             }
         },
-        ['combat'] = {},
+        ['combat'] = {
+            ['va_structures:vox_light_laser_tower'] = {
+                index = 1
+            },
+        },
         ['economy'] = {
             ['va_structures:vox_energy_converter'] = {
                 index = 7
