@@ -396,6 +396,11 @@ function va_structures.get_unit_command_queue(unit_id)
 end
 
 function va_structures.remove_pos_from_command_queue(pos, unit_id)
+    pos = {
+        x = math.floor(pos.x),
+        y = math.floor(pos.y + 0.5),
+        z = math.floor(pos.z)
+    }
     local to_remove = {}
     if build_command_queue[unit_id] then
         local index = 0
@@ -416,12 +421,12 @@ function va_structures.remove_pos_from_command_queue(pos, unit_id)
                 break
             end
         end
-    end
-    for _, rem in pairs(to_remove) do
-        local s = build_command_queue[unit_id][rem]
-        if s and s.dispose then
-            -- core.log("dispose... remove_pos_from_command_queue()")
-            s:dispose()
+        for _, rem in pairs(to_remove) do
+            local s = build_command_queue[unit_id][rem]
+            if s and s.dispose then
+                -- core.log("dispose... remove_pos_from_command_queue()")
+                s:dispose()
+            end
         end
     end
 end
