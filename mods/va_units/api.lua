@@ -331,7 +331,25 @@ local function process_queue(unit)
     if not q_command then
         return
     end
-    if q_command.command_type == "structure_queued" and not q_command.process_complete then
+
+    if q_command.command_type == "move_to_pos" and not q_command.process_complete then
+        q_command.process_started = true
+        q_command.process_timeout = (q_command.process_timeout or 0) + 1
+        local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
+        if unit_dist > 2 then
+            if q_command.pos and unit._target_pos == nil then
+                --core.log("[va_units] find_free_ground() ... ")
+                -- TODO: this is noisey... do better
+                if find_free_ground(unit, q_command.pos, 2) then
+                    q_command.process_timeout = 0
+                end
+                q_command.process_complete = true
+            else
+                q_command.process_timeout = 1
+            end
+        end
+
+    elseif q_command.command_type == "structure_queued" and not q_command.process_complete then
         q_command.process_started = true
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
         -- TODO: unit build range distance
@@ -483,6 +501,15 @@ local function enqueue_command(unit, cmd_action)
                     pos = cmd_action.pos,
                 }
                 table.insert(unit._command_queue, reclaim_command)
+                return true
+            elseif cmd_action.command_type == "move_to_pos" then
+                local move_command = {
+                    command_type = "move_to_pos",
+                    process_started = false,
+                    process_complete = false,
+                    pos = cmd_action.pos,
+                }
+                table.insert(unit._command_queue, move_command)
                 return true
             end
         end
