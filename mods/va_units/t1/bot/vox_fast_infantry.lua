@@ -12,7 +12,7 @@ va_units.register_unit("vox_fast_infantry", {
     selectionbox = { -0.6, 0.0, -0.45, 0.6, 1.65, 0.65},
     driver_eye_offset = { x = 0, y = 10, z = -16 },
     stepheight = 1.0,
-    hp_max = 10,
+    hp_max = 37,
     nametag = "VFIB-1",
     animations = animations,
     animation_speed = 2.0,

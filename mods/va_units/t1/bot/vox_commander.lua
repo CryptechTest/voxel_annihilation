@@ -11,7 +11,7 @@ va_units.register_unit("vox_commander", {
     collisionbox = {-0.5, 0.01, -0.45, 0.5, 2.2, 0.45},
     selectionbox = { -0.5, 0.0, -0.45, 0.5, 2.2, 0.45 },
     stepheight =  1.0,
-    hp_max = 10,
+    hp_max = 370,
     nametag = "VCOM",
     animations = animations,
     animation_speed = 0.6,

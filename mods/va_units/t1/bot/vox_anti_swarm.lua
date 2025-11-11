@@ -12,7 +12,7 @@ va_units.register_unit("vox_anti_swarm", {
     selectionbox = { -0.7, 0.0, -0.85, 0.7, 1.95, 0.85 },
     driver_eye_offset = { x = 0, y = 10, z = -16 },
     stepheight = 1.0,
-    hp_max = 10,
+    hp_max = 159,
     nametag = "VASB-1",
     animations = animations,
     animation_speed = 1.0,

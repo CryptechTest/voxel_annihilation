@@ -764,6 +764,37 @@ function va_units.register_unit(name, def)
         _current_mapblock = nil,
         _forceloaded_block = nil,
         _movement_type = def.movement_type or "ground",
+        on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage) 
+            local hp = self.object:get_hp()
+            local punch_damage = 0
+
+            if tool_capabilities and tool_capabilities.damage_groups then
+                for group, val in pairs(tool_capabilities.damage_groups) do
+                    punch_damage = punch_damage + val
+                end
+            end
+
+            -- If custom damage is passed (e.g., from explosion), use it
+            if damage and type(damage) == "number" then
+                punch_damage = punch_damage + damage
+            end
+
+            -- Default to 1 if no damage specified
+            if punch_damage == 0 then
+                punch_damage = 1
+            end
+
+            local new_hp = hp - punch_damage
+            self.object:set_hp(new_hp)
+
+            -- Optionally, play a hit sound or effect here
+
+            -- Remove unit if HP is zero or less
+            if self.object:get_hp() <= 0 then
+                self.object:remove()
+                -- Optionally, play a death effect or sound here
+            end
+        end,
         on_activate = function(self, staticdata, dtime_s)
             local animations = def.animations
             if staticdata ~= nil and staticdata ~= "" then
@@ -803,13 +834,16 @@ function va_units.register_unit(name, def)
             return self._owner_name or ""
         end,
         on_step = function(self, dtime, moveresult)
+            
             if not self.object then
                 return
             end
+            
             self._timer = self._timer + dtime
             if check_for_removal(self) then
                 return
             end
+            self.object:set_properties({infotext = def.nametag .. "\n" .. "HP: " .. tostring(self.object:get_hp()) .. "/" .. tostring(def.hp_max) .. ""})
             update_physics(self)
             keep_loaded(self)
 

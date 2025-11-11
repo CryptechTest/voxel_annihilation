@@ -12,7 +12,7 @@ va_units.register_unit("vox_scout", {
     selectionbox = { -0.25, 0.0, -0.2, 0.25, 0.35, 0.25 },
     driver_eye_offset = { x = 0, y = 2, z = -16 },
     stepheight = 1.0,
-    hp_max = 10,
+    hp_max = 6,
     nametag = "VFSB-1",
     animations = animations,
     animation_speed = 3.5,

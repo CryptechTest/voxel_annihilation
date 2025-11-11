@@ -18,8 +18,8 @@ local function set_fire(pos)
     if nodedef.on_ignite then
         nodedef.on_ignite(pos, nil)
     elseif core.get_item_group(node_under, "flammable") >= 1
-        and core.get_node(vector.add(pos, {x=0, y=1, z=0})).name == "air" then
-        core.set_node(vector.add(pos, {x=0, y=1, z=0}), { name = "fire:basic_flame" })
+        and core.get_node(vector.add(pos, { x = 0, y = 1, z = 0 })).name == "air" then
+        core.set_node(vector.add(pos, { x = 0, y = 1, z = 0 }), { name = "fire:basic_flame" })
     end
 end
 
@@ -235,7 +235,19 @@ local missile = {
             end
             -- deal splash damage to target_units and target_structures here
             for _, unit in ipairs(target_units) do
-                -- get the active unit by id and deal damage
+                local upos = unit:get_pos()
+                local distance = vector.distance(pos, upos)
+                local damage = self._splash_damage * (1 - (distance / self._splash_radius))
+                local id = unit:get_luaentity()._id
+                if id ~= nil then
+                    local target = va_units.get_unit_by_id(id)
+                    if target and target.object then
+                        target.object:punch(self.object, 1.0, {
+                            full_punch_interval = 1.0,
+                            damage_groups = { explosion = damage }
+                        }, nil)
+                    end
+                end
             end
             for _, structure in ipairs(target_structures) do
                 local spos = structure:get_pos()
@@ -249,7 +261,7 @@ local missile = {
                     end
                 end
             end
-            set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
+            set_fire(vector.add(current_node_pos, { x = 0, y = -1, z = 0 }))
             self.object:remove()
             return
         end
@@ -282,14 +294,25 @@ local missile = {
                 end
                 -- deal splash damage to target_units and target_structures here
                 for _, unit in ipairs(target_units) do
-                    -- get the active unit by id and deal damage
+                    local distance = vector.distance(pos, unit:get_pos())
+                    local damage = self._splash_damage * (1 - (distance / self._splash_radius))
+                    local id = unit:get_luaentity()._id
+                    if id ~= nil then
+                        local target = va_units.get_unit_by_id(id)
+                        if target and target.object then
+                            target.object:punch(self.object, 1.0, {
+                                full_punch_interval = 1.0,
+                                damage_groups = { explosion = damage }
+                            }, nil)
+                        end
+                    end
                 end
                 for _, structure in ipairs(target_structures) do
                     local distance = vector.distance(pos, structure:get_pos())
                     local damage = self._splash_damage * (1 - (distance / self._splash_radius))
                     va_structures.get_active_structure_by_id(structure:get_luaentity()._id):damage(damage, "explosion")
                 end
-                    set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
+                set_fire(vector.add(current_node_pos, { x = 0, y = -1, z = 0 }))
 
                 self.object:remove()
                 return
@@ -301,6 +324,7 @@ local missile = {
 core.register_entity("va_weapons:missile", missile)
 
 va_weapons.register_weapon("missile", {
+    base_damage = 80,
     fire = function(shooter, shooter_pos, target_pos, range, base_damage)
         local distance = vector.distance(shooter_pos, target_pos)
         if distance > range then

@@ -12,7 +12,7 @@ va_units.register_unit("vox_light_plasma", {
     selectionbox = { -0.45, 0.0, -0.5, 0.5, 1.6, 0.5 },
     driver_eye_offset = { x = 0, y = 10, z = -16 },
     stepheight = 0.6,
-    hp_max = 10,
+    hp_max = 100,
     nametag = "VLPB-1",
     animations = animations,
     animation_speed = 0.9,
