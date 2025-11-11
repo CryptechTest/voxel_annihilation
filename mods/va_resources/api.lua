@@ -477,6 +477,7 @@ function va_resources.do_reclaim_with_power(reclaim_target, build_power, actor)
                     if not rock_def._degrade(reclaim_target.pos) then
                         meta = core.get_meta(reclaim_target.pos)
                         meta:set_int("claimed", 0)
+                        meta:set_string("infotext", "Claimed: " .. 0 .. "%")
                     end
                     return false
                 end

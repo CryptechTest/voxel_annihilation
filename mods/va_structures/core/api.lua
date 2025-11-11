@@ -319,14 +319,16 @@ local function calculate_player_actor_structures()
         end
         table.insert(owner_structures[structure.owner], structure)
     end
-    for n, structures in pairs(owner_structures) do
-        local actor = player_actors[n]
+    for _, actor in pairs(player_actors) do
         actor.energy_storage = 100
         actor.energy_supply = 0
         actor.energy_demand = 0
         actor.mass_storage = 100
         actor.mass_supply = 0
         actor.mass_demand = 0
+    end
+    for n, structures in pairs(owner_structures) do
+        local actor = player_actors[n]
         for _, s in pairs(structures) do
             if s:can_store_energy() then
                 actor.energy_storage = actor.energy_storage + s:get_data():get_energy_storage()

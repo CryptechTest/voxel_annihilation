@@ -163,7 +163,8 @@ local function register_structure_entity(def)
                 end
                 if prog >= max then
                     self.object:set_properties({
-                        textures = def.textures
+                        textures = def.textures,
+                        use_texture_alpha = false,
                     })
                     self._constructed = true
                     return

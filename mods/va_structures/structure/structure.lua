@@ -861,14 +861,20 @@ function Structure:construct_with_power(actor, build_power, constructor)
     end
     local pos = self.pos
     local meta = core.get_meta(pos)
-    if self.construction_tick >= self.construction_tick_max then
-        self.is_constructed = true
-        meta:set_int('is_constructed', 1)
-        if self.entity_obj then
-            self.entity_obj:set_properties({
-                is_visible = true
-            })
+    local function check_complete()
+        if self.construction_tick >= self.construction_tick_max then
+            self.is_constructed = true
+            meta:set_int('is_constructed', 1)
+            if self.entity_obj then
+                self.entity_obj:set_properties({
+                    is_visible = true
+                })
+            end
+            return true
         end
+        return false
+    end
+    if check_complete() then
         return false
     end
     build_power = build_power or 1
@@ -934,7 +940,7 @@ function Structure:construct_with_power(actor, build_power, constructor)
             va_structures.particle_build_effects(target, source, count)
         end
     end
-    return true
+    return not check_complete()
 end
 
 function Structure:repair_with_power(actor, build_power, constructor)
