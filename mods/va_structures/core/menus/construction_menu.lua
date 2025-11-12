@@ -8,7 +8,8 @@ local build_output_list = {
         ['combat'] = {
             ['va_structures:vox_light_laser_tower'] = {
                 index = 1
-            },},
+            },
+        },
         ['economy'] = {
             ['va_structures:vox_energy_converter'] = {
                 index = 7
@@ -59,6 +60,9 @@ local build_output_list = {
         ['combat'] = {
             ['va_structures:vox_light_laser_tower'] = {
                 index = 1
+            },
+            ['va_structures:vox_medium_beam_tower'] = {
+                index = 2
             },
         },
         ['economy'] = {

@@ -99,6 +99,8 @@ function va_structures.register_structure(def)
             faction = def.faction,
             category = def.category,
             build_time = def.build_time,
+            -- entity collisionbox
+            collisionbox = def.collisionbox,
             -- node def groups
             node_groups = def.node_groups,
             -- structure type flags
@@ -165,9 +167,10 @@ end
 
 local function build_active_structure_cache()
     for k, v in pairs(_active_instances) do
+        local hash = core.hash_node_position(v.pos)
         local id = v:get_id()
-        if id then
-            _active_instances_index[id] = k
+        if id and hash then
+            _active_instances_index[id] = hash
         end
     end
 end
@@ -182,14 +185,15 @@ function va_structures.get_active_structure(pos)
     return _active_instances[hash]
 end
 
+-- FIXME: still issues with this...
 function va_structures.get_active_structure_by_id(id)
     local hash = _active_instances_index[id]
-    if hash then
+    if hash and _active_instances[hash] then
         return _active_instances[hash]
     end
     build_active_structure_cache()
     for _, v in pairs(_active_instances) do
-        if v:get_id() == tostring(id) then
+        if v:get_id() == id then
             return v
         end
     end
@@ -503,6 +507,33 @@ function va_structures.show_construction_menu(player_name, menu_name, unit_id)
     if formspec then
         core.show_formspec(player_name, menu_name, formspec)
     end
+end
+
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+-- collision check
+
+function va_structures.check_collision(pos)
+    -- check for collision with objects
+    local objects = core.get_objects_inside_radius(pos, 1.75)
+    local collides_with = false
+    local colliding_with = nil
+    for _, obj in ipairs(objects) do
+        if obj ~= nil and not obj:is_player() then
+            local ent = obj:get_luaentity()
+            -- check if structure
+            if ent._is_va_structure then
+                local structure = va_structures.get_active_structure(obj:get_pos())
+                -- check collision
+                if structure and structure:collides(pos) then
+                    collides_with = true
+                    colliding_with = obj
+                    break
+                end
+            end
+        end
+    end
+    return collides_with, colliding_with
 end
 
 -----------------------------------------------------------------

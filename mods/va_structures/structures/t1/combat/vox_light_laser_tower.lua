@@ -255,7 +255,7 @@ def.size = {
     y = 1.95,
     z = 1
 }
-def.category = "economy"
+def.category = "combat"
 def.tier = 1
 def.faction = "vox"
 

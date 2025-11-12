@@ -81,6 +81,7 @@ function Structure.new(pos, name, def, do_def_check)
     self.owner = nil -- owner player name
     self.owner_actor = nil -- owner player actor
 
+    self.collisionbox = def.collisionbox or {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
     self.size = def.size or {1, 0, 1} -- structure area size
     local w = (self.size.x * 2) + 1
     local l = (self.size.z * 2) + 1
@@ -285,7 +286,9 @@ function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, 
         constructor_id = unit_owner_id
     }))
     if obj then
-        local observers = { [owner] = true }
+        local observers = {
+            [owner] = true
+        }
         obj:set_observers(observers)
         -- do rotation
         local param2 = core.dir_to_facedir(placer:get_look_dir())
@@ -390,6 +393,34 @@ end
 
 -----------------------------------------------------------------
 -- collision checks
+
+function Structure:collides(pos)
+    local s_def = va_structures.get_registered_structure(self.fqnn)
+    if s_def == nil then
+        core.log("[va_structures] collides() s_def is nil")
+        return false
+    end
+    local colb = s_def.collisionbox
+    if not colb then
+        core.log("[va_structures] collides() no collision box")
+        return false
+    end
+    local pos2 = vector.add(self.pos, {
+        x = colb[1],
+        y = colb[2],
+        z = colb[3]
+    })
+    local pos1 = vector.add(self.pos, {
+        x = colb[4],
+        y = colb[5],
+        z = colb[6]
+    })
+    -- Check if pos is within the bounds of pos1 and pos2
+    local m_x = (pos.x >= pos2.x and pos.x <= pos1.x)
+    local m_y = (pos.y >= pos2.y and pos.y <= pos1.y)
+    local m_z = (pos.z >= pos2.z and pos.z <= pos1.z)
+    return (m_x and m_y and m_z) or false
+end
 
 function Structure:collides_with(pos)
     local pos1 = vector.add(self.pos, self.size)
@@ -592,7 +623,7 @@ end
 
 function Structure:get_id()
     if self.entity_obj then
-        return self.entity_obj._id;
+        return self.entity_obj:get_luaentity()._id;
     end
     return nil
 end
