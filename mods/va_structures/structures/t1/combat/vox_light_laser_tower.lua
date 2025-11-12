@@ -79,18 +79,22 @@ local function do_turret_rotation(structure, target)
     -- building effect turret rotation
     local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
     local pitch, pitch_deg = va_structures.util.calculatePitch(pos, target)
+    pitch_deg = pitch_deg - 5
     local turret = structure.entity_obj:get_bone_override('turret')
     local yawRad = turret.rotation and turret.rotation.vec.y or 0
+    local pitchRad = turret.rotation and turret.rotation.vec.x or 0
     local yawDeg = yaw_deg -- yawDeg = ((yawDeg + (yaw_deg * 1)) / 2) % 360
-    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 3) then
+    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 5) and num_is_close(pitch_deg, math.deg(pitchRad), 5) then
         -- if rotation complete mark as locked
         structure._target_locked = true
     end
-    if structure._last_dir == nil or yaw_deg ~= structure._last_dir then
-        if not num_is_close(yawDeg, math.deg(yawRad), 28) then
+    if structure._last_dir == nil or yaw_deg ~= structure._last_dir.yaw or pitch_deg ~= structure._last_dir.pitch then
+        if not num_is_close(yawDeg, math.deg(yawRad), 28) or not num_is_close(pitch_deg, math.deg(pitchRad), 20) then
             structure._target_locked = false
         end
-        structure._last_dir = yawDeg
+        structure._last_dir = {}
+        structure._last_dir.yaw = yaw_deg
+        structure._last_dir.pitch = pitch_deg
         local rot_turret = {
             x = math.rad(pitch_deg),
             y = math.rad(yawDeg),
@@ -202,7 +206,6 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         if target then
             local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
             local pitch, pitch_deg = va_structures.util.calculatePitch(target, pos)
-
             local turret_end = {
                 x = (0 * 1 / 16) * 0.88,
                 y = (36 * 1 / 16) * 0.50,
@@ -222,7 +225,11 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     local weapon = va_weapons.get_weapon("light_laser")
                     for i = 0, 3, 1 do
                         core.after(0.25 * i, function()
-                            weapon.fire(shooter, o_pos, t_pos, range, damage)
+                            local x = va_structures.util.randFloat(-0.1, 0.1)
+                            local y = va_structures.util.randFloat(-0.1, 0.1)
+                            local z = va_structures.util.randFloat(-0.1, 0.1)
+                            local tr_pos = vector.add(t_pos, vector.new(x, y, z))
+                            weapon.fire(shooter, o_pos, tr_pos, range, damage)
                         end)
                     end
                 end

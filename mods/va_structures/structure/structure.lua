@@ -989,12 +989,16 @@ function Structure:repair_with_power(actor, build_power, constructor)
     end
     if constructor then
         local pos = self.pos
-        local pos2 = vector.add(constructor.pos, {
+        local emitters = constructor.entity_emitters_pos or {{
             x = 0,
-            y = 0.71,
+            y = 0,
             z = 0
-        })
-        va_structures.particle_build_effects(pos, pos2, build_power)
+        }}
+        local count = math.max(3, math.floor(build_power / #emitters))
+        for _, emitter in pairs(emitters) do
+            local source = vector.add(constructor.pos, emitter)
+            va_structures.particle_build_effects(pos, source, count)
+        end
     end
     return true
 end
