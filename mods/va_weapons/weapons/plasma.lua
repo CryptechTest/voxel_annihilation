@@ -180,6 +180,7 @@ local plasma = {
             return
         end
         -- Check for collision with objects
+        local hit_obj = false
         local objects = core.get_objects_inside_radius(pos, 1)
         for _, obj in ipairs(objects) do
             if obj ~= self.object and not obj:is_player() then
@@ -195,10 +196,28 @@ local plasma = {
                     })
                     -- Handle collision (e.g., deal damage)
                     set_fire(vector.add(obj:get_pos(), {x=0, y=-1, z=0}))
-                    self.object:remove()
-                    return
+                    hit_obj = true
                 end
             end
+        end
+
+        -- TODO: handle hit units...
+
+        if not hit_obj then
+            -- structure only check...
+            local collides, colliding = va_structures.check_collision(pos)
+            if collides and colliding then
+                hit_obj = true
+                -- Deal damage to the object
+                colliding:punch(self.object, 1.0, {
+                    full_punch_interval = 1.0,
+                    damage_groups = { laser = self._damage }
+                }, nil)
+            end
+        end
+        if hit_obj then
+            self.object:remove()
+            return
         end
         --check for collision with nodes
         local next_pos = vector.add(pos, vector.multiply(self.object:get_velocity(), dtime))
