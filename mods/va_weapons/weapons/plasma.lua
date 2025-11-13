@@ -179,30 +179,7 @@ local plasma = {
         if not pos then
             return
         end
-        -- Check for collision with objects
         local hit_obj = false
-        local objects = core.get_objects_inside_radius(pos, 1)
-        for _, obj in ipairs(objects) do
-            if obj ~= self.object and not obj:is_player() then
-                local ent = obj:get_luaentity()
-                if ent.name ~= "va_weapons:plasma" then
-                    destroy_effect_particle(pos, 1)
-                    -- more damage is lower pitch
-                    local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
-                    core.sound_play("va_weapons_plasma", {
-                        pos = pos,
-                        gain = 0.15,
-                        pitch = sound_pitch,
-                    })
-                    -- Handle collision (e.g., deal damage)
-                    set_fire(vector.add(obj:get_pos(), {x=0, y=-1, z=0}))
-                    hit_obj = true
-                end
-            end
-        end
-
-        -- TODO: handle hit units...
-
         if not hit_obj then
             -- structure only check...
             local collides, colliding = va_structures.check_collision(pos)
@@ -215,6 +192,31 @@ local plasma = {
                 }, nil)
             end
         end
+        if not hit_obj then
+            -- Check for collision with objects
+            local objects = core.get_objects_inside_radius(pos, 1)
+            for _, obj in ipairs(objects) do
+                if obj ~= self.object and not obj:is_player() then
+                    local ent = obj:get_luaentity()
+                    if ent.name ~= "va_weapons:plasma" then
+                        destroy_effect_particle(pos, 1)
+                        -- more damage is lower pitch
+                        local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
+                        core.sound_play("va_weapons_plasma", {
+                            pos = pos,
+                            gain = 0.15,
+                            pitch = sound_pitch,
+                        })
+                        -- Handle collision (e.g., deal damage)
+                        set_fire(vector.add(obj:get_pos(), {x=0, y=-1, z=0}))
+                        hit_obj = true
+                    end
+                end
+            end
+        end
+
+        -- TODO: handle hit units...
+
         if hit_obj then
             self.object:remove()
             return
