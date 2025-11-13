@@ -21,27 +21,3 @@ for i = 1, 14 do
     })
     
 end
-
-core.register_on_mods_loaded(function()
-    core.after(2, function()
-        for i = 1, 14 do
-            local name = "va_weapons:dummy_light_" .. i
-            -- Scan all loaded mapblocks for this node
-            for _, player in ipairs(core.get_connected_players()) do
-                local pos = vector.round(player:get_pos())
-                -- Scan a 32x32x32 area around each player (adjust as needed)
-                for x = -16, 16 do
-                    for y = -16, 16 do
-                        for z = -16, 16 do
-                            local p = {x = pos.x + x, y = pos.y + y, z = pos.z + z}
-                            local node = core.get_node_or_nil(p)
-                            if node and node.name == name then
-                                core.get_node_timer(p):start(1)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end)
