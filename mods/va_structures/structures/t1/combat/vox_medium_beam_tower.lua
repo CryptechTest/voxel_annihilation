@@ -179,11 +179,6 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
     end
     -- run 
     if run_stage == "main" then
-        local pos_above = vector.add(pos, {
-            x = 0,
-            y = 1,
-            z = 0
-        })
         local recent_hit = false
         if core.get_us_time() - s_obj.last_hit < 13 * 1000 * 1000 then
             recent_hit = true
@@ -233,11 +228,11 @@ local def = {
     mesh = "va_vox_light_laser_tower.gltf",
     textures = {"va_vox_light_laser_tower.png"},
     collisionbox = {-0.45, -0.5, -0.45, 0.45, 1.8, 0.45},
-    max_health = 62,
-    mass_cost = 8.5,
-    energy_cost = 68,
+    max_health = 143,
+    mass_cost = 19,
+    energy_cost = 150,
     energy_consume = 2,
-    build_time = 280,
+    build_time = 480,
     formspec = get_formspec,
     on_receive_fields = on_receive_fields,
     vas_run = vas_run

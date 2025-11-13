@@ -17,34 +17,45 @@ local function destroy_effect_particle(pos, radius)
         pos = pos,
         velocity = vector.new(),
         acceleration = vector.new(),
-        expirationtime = 0.64,
-        size = radius * 16,
+        expirationtime = 0.72,
+        size = radius * 4,
         collisiondetection = false,
         vertical = false,
-        texture ={ name = "va_explosion_boom.png", alpha_tween = { 1, 0.25 } },
+        texture ={ name = "va_explosion_boom.png", alpha_tween = { 1, 0.5 } },
+        glow = 15
+    })
+    core.add_particle({
+        pos = vector.add(pos, {x=0, y=0.1, z=0}),
+        velocity = vector.new(),
+        acceleration = vector.new(),
+        expirationtime = 0.64,
+        size = radius * 8,
+        collisiondetection = false,
+        vertical = false,
+        texture ={ name = "va_explosion_2.png", alpha_tween = { 1, 0.25 } },
         glow = 15
     })
     core.add_particlespawner({
-        amount = 12,
-        time = 0.6,
+        amount = 8,
+        time = 0.3,
         minpos = vector.subtract(pos, radius / 4),
         maxpos = vector.add(pos, radius / 4),
         minvel = {
-            x = -1,
+            x = -0.75,
             y = -0.5,
-            z = -1
+            z = -0.75
         },
         maxvel = {
-            x = 1,
+            x = 0.75,
             y = 1,
-            z = 1
+            z = 0.75
         },
-        minacc = vector.new(),
-        maxacc = vector.new(),
+        minacc = vector.new(0, -0.5, 0),
+        maxacc = vector.new(0, -0.2, 0),
         minexptime = 3,
-        maxexptime = 7,
+        maxexptime = 4,
         minsize = radius * 4,
-        maxsize = radius * 7,
+        maxsize = radius * 6,
         texture = {
             name = "va_explosion_vapor.png",
             blend = "alpha",
@@ -63,27 +74,26 @@ local function destroy_effect_particle(pos, radius)
         glow = 3
     })
     core.add_particlespawner({
-        amount = 16,
-        time = 0.8,
-        minpos = vector.subtract(pos, radius / 3),
-        maxpos = vector.add(pos, radius / 3),
+        amount = 8,
+        time = 0.25,
+        minpos = vector.subtract(pos, radius / 4),
+        maxpos = vector.add(pos, radius / 4),
         minvel = {
-            x = -1,
+            x = -0.45,
             y = -0.5,
-            z = -1
+            z = -0.45
         },
         maxvel = {
-            x = 1,
-            y = 1.25,
-            z = 1
+            x = 0.45,
+            y = 1.0,
+            z = 0.45
         },
-        minacc = vector.new(),
-        maxacc = vector.new(),
+        minacc = vector.new(0, -0.5, 0),
+        maxacc = vector.new(0, -0.2, 0),
         minexptime = 2,
-        maxexptime = 5,
-        minsize = radius * 3,
-        maxsize = radius * 6,
-        -- texture = "tnt_smoke.png",
+        maxexptime = 3,
+        minsize = radius * 2,
+        maxsize = radius * 3,
         texture = {
             name = "va_explosion_smoke.png",
             blend = "alpha",
@@ -102,40 +112,40 @@ local function destroy_effect_particle(pos, radius)
         glow = 5
     })
     core.add_particlespawner({
-        amount = 72,
-        time = 0.45,
-        minpos = vector.subtract(pos, radius / 2),
-        maxpos = vector.add(pos, radius / 2),
+        amount = 57,
+        time = 0.1,
+        minpos = vector.subtract(pos, radius / 5),
+        maxpos = vector.add(pos, radius / 5),
         minvel = {
-            x = -3.5,
-            y = -3.5,
-            z = -3.5
+            x = -1.25,
+            y = 0.25,
+            z = -1.25
         },
         maxvel = {
-            x = 3.5,
-            y = 5.0,
-            z = 3.5
+            x = 1.25,
+            y = 3.51,
+            z = 1.25
         },
         minacc = {
-            x = -0.5,
-            y = -2.0,
-            z = -0.5
+            x = -0.75,
+            y = -3.25,
+            z = -0.75
         },
         maxacc = {
-            x = 0.5,
-            y = 0.5,
-            z = 0.5
+            x = 0.75,
+            y = -1.75,
+            z = 0.75
         },
-        minexptime = 0.5,
-        maxexptime = 2,
-        minsize = radius * 0.2,
-        maxsize = radius * 0.6,
+        minexptime = 0.6,
+        maxexptime = 1.27,
+        minsize = radius * 0.67,
+        maxsize = radius * 0.95,
         texture = {
             name = "va_explosion_spark.png",
             blend = "alpha",
             scale = 1,
             alpha = 1.0,
-            alpha_tween = { 1, 0.5 },
+            alpha_tween = { 1, 0.25 },
             scale_tween = { {
                 x = 1.0,
                 y = 1.0
@@ -173,18 +183,21 @@ local plasma = {
         local objects = core.get_objects_inside_radius(pos, 1)
         for _, obj in ipairs(objects) do
             if obj ~= self.object and not obj:is_player() then
-                destroy_effect_particle(pos, 1)
-                -- more damage is lower pitch
-                local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
-                core.sound_play("va_weapons_plasma", {
-                    pos = pos,
-                    gain = 0.15,
-                    pitch = sound_pitch,
-                })
-                -- Handle collision (e.g., deal damage)
-                set_fire(vector.add(obj:get_pos(), {x=0, y=-1, z=0}))
-                self.object:remove()
-                return
+                local ent = obj:get_luaentity()
+                if ent.name ~= "va_weapons:plasma" then
+                    destroy_effect_particle(pos, 1)
+                    -- more damage is lower pitch
+                    local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
+                    core.sound_play("va_weapons_plasma", {
+                        pos = pos,
+                        gain = 0.15,
+                        pitch = sound_pitch,
+                    })
+                    -- Handle collision (e.g., deal damage)
+                    set_fire(vector.add(obj:get_pos(), {x=0, y=-1, z=0}))
+                    self.object:remove()
+                    return
+                end
             end
         end
         --check for collision with nodes
@@ -237,7 +250,7 @@ local plasma = {
 core.register_entity("va_weapons:plasma", plasma)
 
 va_weapons.register_weapon("plasma", {
-    fire = function(shooter, shooter_pos, target_pos, range, base_damage)
+    fire = function(shooter, shooter_pos, target_pos, range, base_damage, launch_vector)
         local distance = vector.distance(shooter_pos, target_pos)
         if distance > range then
             return false
@@ -258,11 +271,16 @@ va_weapons.register_weapon("plasma", {
             local plasma_entity = core.add_entity(shooter_pos, "va_weapons:plasma")
             if plasma_entity then
                 plasma_entity:get_luaentity()._damage = base_damage
-                local dir = vector.direction(shooter_pos, target_pos)
-                local yaw = core.dir_to_yaw(dir)
-                local entity_pitch = math.atan2(dir.y, math.sqrt(dir.x * dir.x + dir.z * dir.z)) - math.pi/2
-                plasma_entity:set_velocity(vector.multiply(dir, 20))
-                plasma_entity:set_rotation({x = entity_pitch, y = yaw, z = 0})
+                if launch_vector == nil then
+                    local dir = vector.direction(shooter_pos, target_pos)
+                    local yaw = core.dir_to_yaw(dir)
+                    local entity_pitch = math.atan2(dir.y, math.sqrt(dir.x * dir.x + dir.z * dir.z)) - math.pi/2
+                    plasma_entity:set_velocity(vector.multiply(dir, 20))
+                    plasma_entity:set_rotation({x = entity_pitch, y = yaw, z = 0})
+                else
+                    plasma_entity:set_velocity(launch_vector.velocity)
+                    --plasma_entity:set_rotation({x = launch_vector.pitch, y = launch_vector.yaw, z = 0})
+                end
                 local size = math.min(1.5, (base_damage / 100))
                 plasma_entity:set_properties({ visual_size = { x = size, y = size }, collisionbox = { -size/3, -size/3, -size/3, size/3, size/3, size/3 } })
                 local attached = plasma_entity:get_luaentity().object or plasma_entity

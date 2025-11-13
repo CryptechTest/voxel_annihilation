@@ -64,6 +64,12 @@ local build_output_list = {
             ['va_structures:vox_medium_beam_tower'] = {
                 index = 2
             },
+            ['va_structures:vox_heavy_laser_tower'] = {
+                index = 3
+            },
+            ['va_structures:vox_medium_plasma_artillery'] = {
+                index = 4
+            },
         },
         ['economy'] = {
             ['va_structures:vox_energy_converter'] = {
