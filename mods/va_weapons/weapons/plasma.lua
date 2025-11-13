@@ -13,6 +13,28 @@ local function set_fire(pos)
 end
 
 local function destroy_effect_particle(pos, radius)
+    for x = -radius, radius do
+        for y = -radius, radius do
+            for z = -radius, radius do
+                local dist = math.sqrt(x * x + y * y + z * z)
+                if dist <= radius then
+                    local light_pos = vector.round(vector.add(pos, { x = x, y = y, z = z }))
+                    local n = core.get_node(light_pos)
+                    local light_level = math.random(4, 8)
+                    if n and n.name == "air" or n.name == "va_weapons:dummy_light_" .. light_level then
+                        core.set_node(light_pos, {name = "va_weapons:dummy_light_" .. light_level})
+                        -- remove the light node after a short delay
+                        core.after(0.2, function()
+                            n = core.get_node(light_pos)
+                            if n and n.name == "va_weapons:dummy_light_" .. light_level then
+                                core.remove_node(light_pos)
+                            end
+                        end)
+                    end                    
+                end
+            end
+        end
+    end
     core.add_particle({
         pos = pos,
         velocity = vector.new(),
@@ -266,6 +288,20 @@ local plasma = {
                 return
             end
         end
+        local light_pos = vector.round(pos)
+        local n = core.get_node(light_pos)
+        local light_level = math.random(4, 8)
+        if n and n.name ~= "air" and n.name ~= "va_weapons:dummy_light_" .. light_level then
+            return
+        end
+        core.set_node(light_pos, {name = "va_weapons:dummy_light_" .. light_level})
+        -- remove the light node after a short delay
+        core.after(0.1, function()
+            n = core.get_node(light_pos)
+            if n and n.name == "va_weapons:dummy_light_" .. light_level then
+                core.remove_node(light_pos)
+            end
+        end)
     end,
 }
 core.register_entity("va_weapons:plasma", plasma)

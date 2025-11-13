@@ -1,5 +1,6 @@
 local path = core.get_modpath("va_weapons")
 dofile(path .. "/api.lua")
+dofile(path .. "/nodes.lua")
 dofile(path .. "/weapons/beam.lua")
 dofile(path .. "/weapons/emp.lua")
 dofile(path .. "/weapons/explosion.lua")

@@ -35,6 +35,24 @@ for i = 1, 3 do
                 return
             end
             self._lifetime = lifetime
+            -- create light node at current position
+            local pos = self.object:get_pos()
+            if pos then
+                local light_pos = vector.round(pos)
+                local node = core.get_node(light_pos)
+                local light_level = math.random(10, 14)
+                if node and node.name ~= "air" and node.name ~= "va_weapons:dummy_light_" .. light_level then
+                    return
+                end
+                core.set_node(light_pos, {name = "va_weapons:dummy_light_" .. light_level})
+                -- remove the light node after a short delay
+                core.after(0.1, function()
+                    node = core.get_node(light_pos)
+                    if node and node.name == "va_weapons:dummy_light_" .. light_level then
+                        core.remove_node(light_pos)
+                    end
+                end)
+            end
         end,
     }
     core.register_entity("va_weapons:lightning_" .. i, lightning)
