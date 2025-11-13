@@ -199,7 +199,6 @@ local plasma = {
                 if obj ~= self.object and not obj:is_player() then
                     local ent = obj:get_luaentity()
                     if ent.name ~= "va_weapons:plasma" then
-                        destroy_effect_particle(pos, 1)
                         -- more damage is lower pitch
                         local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
                         core.sound_play("va_weapons_plasma", {
@@ -218,6 +217,7 @@ local plasma = {
         -- TODO: handle hit units...
 
         if hit_obj then
+            destroy_effect_particle(pos, 1)
             self.object:remove()
             return
         end

@@ -68,6 +68,78 @@ va_structures.util.deepcopy = deepcopy
 
 -----------------------------------------------------------------
 -----------------------------------------------------------------
+
+local function flip_vector_yz(v)
+    return {x=v.x, y=v.z, z=v.y}
+end
+
+-- helper: normalize a vector (returns a unit vector)
+local function normalize_vector(v)
+    local len = math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+    if len == 0 then
+        return {x = 0, y = 0, z = 0}
+    end
+    return {x = v.x/len, y = v.y/len, z = v.z/len}
+end
+
+-- rotate a vector on the surface of its sphere
+--   v      – {x,y,z}  (original point)
+--   d_phi  – change in azimuth (radians, 0 → +x→+y)
+--   d_theta– change in polar (radians, 0 → +z→-z)
+local function rotate_on_sphere(v, d_phi, d_theta)
+    -- 1. Cartesian → spherical
+    local r   = math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+    local phi = math.atan2(v.y, v.x)          -- azimuth  (-π .. +π)
+    local theta = math.acos(v.z / r)          -- polar     (0 .. π)
+
+    -- 2. Apply the angular offsets
+    phi   = phi   + d_phi
+    theta = theta + d_theta
+
+    -- keep theta inside [0, π]
+    if theta < 0 then theta = -theta end
+    if theta > math.pi then theta = 2*math.pi - theta end
+
+    -- 3. Spherical → Cartesian
+    local sin_t = math.sin(theta)
+    local x = r * sin_t * math.cos(phi)
+    local y = r * sin_t * math.sin(phi)
+    local z = r * math.cos(theta)
+
+    return {x=x, y=y, z=z}
+end
+
+-- rotate vector v around axis k (both normalized) by angle theta (rad)
+local function rotate_vector(v, k, theta)
+    local cos_t = math.cos(theta)
+    local sin_t = math.sin(theta)
+
+    local vx, vy, vz = v.x, v.y, v.z
+    local kx, ky, kz = k.x, k.y, k.z
+
+    -- Rodrigues’ rotation formula
+    local rx = (cos_t + (1-cos_t)*kx*kx) * vx
+            + ((1-cos_t)*kx*ky - sin_t*kz) * vy
+            + ((1-cos_t)*kx*kz + sin_t*ky) * vz
+
+    local ry = ((1-cos_t)*ky*kx + sin_t*kz) * vx
+            + (cos_t + (1-cos_t)*ky*ky) * vy
+            + ((1-cos_t)*ky*kz - sin_t*kx) * vz
+
+    local rz = ((1-cos_t)*kz*kx - sin_t*ky) * vx
+            + ((1-cos_t)*kz*ky + sin_t*kx) * vy
+            + (cos_t + (1-cos_t)*kz*kz) * vz
+
+    return {x=rx, y=ry, z=rz}
+end
+
+va_structures.util.flip_vector_yz = flip_vector_yz
+va_structures.util.normalize_vector = normalize_vector
+va_structures.util.rotate_on_sphere = rotate_on_sphere
+va_structures.util.rotate_vector = rotate_vector
+
+-----------------------------------------------------------------
+-----------------------------------------------------------------
 -- Particles
 -----------------------------------------------------------------
 
