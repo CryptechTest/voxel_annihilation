@@ -12,5 +12,12 @@ for i = 1, 14 do
         diggable = false,
         buildable_to = false,
         drop = "",
+        on_construct = function(pos)
+            core.get_node_timer(pos):start(1) -- Remove after 1 second
+        end,
+        on_timer = function(pos)
+            core.remove_node(pos)
+        end,
     })
+    
 end
