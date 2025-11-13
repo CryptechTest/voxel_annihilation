@@ -201,8 +201,22 @@ local function on_step(self, dtime)
         local hit_pos = vector.add(self._last_pos, vector.new(0,0.05,0))
         local hit_dir = vector.direction(pos, self._last_pos)
         if self.object:get_luaentity().name == "va_weapons:heavy_laser" then
+            local gain = 0.15
+            local sound_pitch = 0.65
+            core.sound_play("va_weapons_laser_hit", {
+                pos = hit_pos,
+                gain = gain,
+                pitch = sound_pitch,
+            })
             hit_effect_particle_heavy(hit_pos, hit_dir, 1.0)
         else
+            local gain = 0.15
+            local sound_pitch = 1.15
+            core.sound_play("va_weapons_laser_hit", {
+                pos = hit_pos,
+                gain = gain,
+                pitch = sound_pitch,
+            })
             hit_effect_particle_light(hit_pos, hit_dir, 0.5)
         end
     end
