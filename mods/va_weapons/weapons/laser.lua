@@ -7,7 +7,7 @@ local function hit_effect_particle_light(pos, dir, radius)
         size = radius * 8,
         collisiondetection = false,
         vertical = false,
-        texture = { name = "va_light_laser_hit.png^[colorize:#ff0000:20", alpha_tween = { 1, 0.25 } },
+        texture = { name = "va_weapons_light_laser_hit.png^[colorize:#ff0000:20", alpha_tween = { 1, 0.25 } },
         glow = 15
     })
     core.add_particlespawner({
@@ -40,7 +40,7 @@ local function hit_effect_particle_light(pos, dir, radius)
         minsize = radius * 0.88,
         maxsize = radius * 1.50,
         texture = {
-            name = "va_explosion_spark.png",
+            name = "va_weapons_explosion_spark.png",
             blend = "alpha",
             scale = 1,
             alpha = 1.0,
@@ -67,7 +67,7 @@ local function hit_effect_particle_heavy(pos, dir, radius)
         size = radius * 8,
         collisiondetection = false,
         vertical = false,
-        texture = { name = "va_heavy_laser_hit.png^[colorize:#00ff00:20", alpha_tween = { 1, 0.5 } },
+        texture = { name = "va_weapons_heavy_laser_hit.png^[colorize:#00ff00:20", alpha_tween = { 1, 0.5 } },
         glow = 15
     })
     core.add_particlespawner({
@@ -100,7 +100,7 @@ local function hit_effect_particle_heavy(pos, dir, radius)
         minsize = radius * 0.88,
         maxsize = radius * 1.60,
         texture = {
-            name = "va_explosion_spark.png^[colorize:#00ff00:alpha",
+            name = "va_weapons_explosion_spark.png^[colorize:#00ff00:alpha",
             blend = "alpha",
             scale = 1,
             alpha = 1.0,

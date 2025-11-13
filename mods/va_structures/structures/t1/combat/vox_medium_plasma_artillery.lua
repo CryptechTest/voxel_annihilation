@@ -71,7 +71,7 @@ local function muzzle_effect_particle(origin, dir)
         size = 2.5,
         collisiondetection = false,
         vertical = false,
-        texture = "va_explosion_2.png",
+        texture = "va_structures_explosion_2.png",
         glow = 13,
     })
     local r = 0.25

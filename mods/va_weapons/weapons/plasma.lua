@@ -21,7 +21,7 @@ local function destroy_effect_particle(pos, radius)
         size = radius * 4,
         collisiondetection = false,
         vertical = false,
-        texture ={ name = "va_explosion_boom.png", alpha_tween = { 1, 0.5 } },
+        texture ={ name = "va_weapons_explosion_boom_1.png", alpha_tween = { 1, 0.5 } },
         glow = 15
     })
     core.add_particle({
@@ -32,7 +32,7 @@ local function destroy_effect_particle(pos, radius)
         size = radius * 8,
         collisiondetection = false,
         vertical = false,
-        texture ={ name = "va_explosion_2.png", alpha_tween = { 1, 0.25 } },
+        texture ={ name = "va_weapons_explosion_boom_2.png", alpha_tween = { 1, 0.25 } },
         glow = 15
     })
     core.add_particlespawner({
@@ -57,7 +57,7 @@ local function destroy_effect_particle(pos, radius)
         minsize = radius * 4,
         maxsize = radius * 6,
         texture = {
-            name = "va_explosion_vapor.png",
+            name = "va_weapons_explosion_vapor.png",
             blend = "alpha",
             scale = 1,
             alpha = 1.0,
@@ -95,7 +95,7 @@ local function destroy_effect_particle(pos, radius)
         minsize = radius * 2,
         maxsize = radius * 3,
         texture = {
-            name = "va_explosion_smoke.png",
+            name = "va_weapons_explosion_smoke.png",
             blend = "alpha",
             scale = 1,
             alpha = 1.0,
@@ -141,7 +141,7 @@ local function destroy_effect_particle(pos, radius)
         minsize = radius * 0.67,
         maxsize = radius * 0.95,
         texture = {
-            name = "va_explosion_spark.png",
+            name = "va_weapons_explosion_spark.png",
             blend = "alpha",
             scale = 1,
             alpha = 1.0,

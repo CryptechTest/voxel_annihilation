@@ -175,7 +175,7 @@ local function build_effect_particles(pos, dist)
     local size = 2
     local count = 28
     local radius = 0.8
-    build_effect_particle(pos, "va_structure_energy_particle.png", dir, dist, size, count, radius, false)
+    build_effect_particle(pos, "va_structures_energy_particle.png", dir, dist, size, count, radius, false)
 end
 
 local function build_effect_particles_halt(pos, dist)
@@ -188,7 +188,7 @@ local function build_effect_particles_halt(pos, dist)
     local size = 2
     local count = 25
     local radius = 0.9
-    build_effect_particle(pos, "va_structure_energy_particle_halt.png", dir, dist, size, count, radius, false)
+    build_effect_particle(pos, "va_structures_energy_particle_halt.png", dir, dist, size, count, radius, false)
 end
 
 local function build_effect_particles_cancel(pos, dist)
@@ -201,7 +201,7 @@ local function build_effect_particles_cancel(pos, dist)
     local size = 2
     local count = 70
     local radius = 0.9
-    build_effect_particle(pos, "va_structure_energy_particle_halt.png^[colorize:#FF0000:200", dir, dist, size, count,
+    build_effect_particle(pos, "va_structures_energy_particle_halt.png^[colorize:#FF0000:200", dir, dist, size, count,
         radius, false)
 end
 
@@ -423,7 +423,7 @@ local function show_build_beam_effect(pos1, pos2, count)
             z = 0.2
         }))
         local dist = vector.distance(cur_pos, pos2)
-        spawn_build_beam_particles(cur_pos, "va_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
+        spawn_build_beam_particles(cur_pos, "va_structures_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
     end)
     return true
 end
@@ -438,7 +438,7 @@ function va_structures.show_reclaim_beam_effect(target, source, count)
             z = 0.2
         }))
         local dist = vector.distance(target, cur_pos)
-        spawn_reclaim_beam_particles(target, "va_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
+        spawn_reclaim_beam_particles(target, "va_structures_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
     end)
 end
 
@@ -453,7 +453,7 @@ local function destroy_effect_particle(pos, radius)
         size = radius * 16,
         collisiondetection = false,
         vertical = false,
-        texture = "va_explosion_boom.png",
+        texture = "va_structures_explosion_2.png",
         glow = 15
     })
     core.add_particlespawner({
