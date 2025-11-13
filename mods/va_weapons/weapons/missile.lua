@@ -318,6 +318,20 @@ local missile = {
                 return
             end
         end
+        local light_pos = vector.round(pos)
+        local n = core.get_node(light_pos)
+        local light_level = math.random(1, 4)
+        if n and n.name ~= "air" and n.name ~= "va_weapons:dummy_light_" .. light_level then
+            return
+        end
+        core.set_node(light_pos, {name = "va_weapons:dummy_light_" .. light_level})
+        -- remove the light node after a short delay
+        core.after(0.1, function()
+            n = core.get_node(light_pos)
+            if n and n.name == "va_weapons:dummy_light_" .. light_level then
+                core.remove_node(light_pos)
+            end
+        end)
     end,
 }
 
