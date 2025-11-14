@@ -256,7 +256,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local shooter = s_obj.entity_obj
         local damage = 10
         local range = 27
-        local target = find_target(s_obj, range)
+        local target = s_obj._last_target or find_target(s_obj, range)
 
         if target then
             s_obj._last_target = target
@@ -306,7 +306,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 do_turret_rotation(s_obj, target)
                 s_obj._fire_index = s_obj._fire_index - 1
                 if s_obj._target_locked and s_obj._fire_index <= 0 then
-                    s_obj._fire_index = 2
+                    s_obj._fire_index = 1
                     net.energy = energy - cost
                     local weapon = va_weapons.get_weapon("heavy_laser")
                     local x = va_structures.util.randFloat(-0.1, 0.1)

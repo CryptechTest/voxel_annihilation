@@ -242,7 +242,7 @@ local function get_spread(spread)
 end
 
 local function calc_plasma_volley(origin, target)
-    local projectile_speed = 1.225
+    local projectile_speed = 1.2
     local projectile_gravity = -9.81
     local spread = 0.175
     local shot_amount = 2;

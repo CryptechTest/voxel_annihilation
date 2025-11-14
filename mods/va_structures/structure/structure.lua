@@ -561,6 +561,11 @@ function Structure:run_pre(run_stage, net)
         self:destroy()
         return false
     end
+    if run_stage == "weapon" then
+        if not self.is_constructed then
+            return false
+        end
+    end
     if run_stage == "main" then
         if self.vas_run_pre then
             if not self.vas_run_pre(self) then
