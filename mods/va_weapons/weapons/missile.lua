@@ -194,6 +194,7 @@ local missile = {
         glow = 3,
         visual_size = { x = 0.5, y = 0.5, z = 0.5 }
     },
+    _is_va_weapon = true,
     _start_pos = nil,
     _range = 12,
     _damage = 1,

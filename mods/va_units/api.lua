@@ -1113,6 +1113,34 @@ function va_units.register_unit(name, def)
             end
             process_queue(self)
             update_visibility(self)
+        end,
+        _collides = function(self, pos)
+            local u_def = va_units.get_unit_def(self.name)
+            if u_def == nil then
+                core.log("[va_units] collides() s_def is nil")
+                return false
+            end
+            local colb = u_def.collisionbox
+            if not colb then
+                core.log("[va_units] collides() no collision box")
+                return false
+            end
+            local o_pos = self.object:get_pos()
+            local pos2 = vector.add(o_pos, {
+                x = colb[1],
+                y = colb[2],
+                z = colb[3]
+            })
+            local pos1 = vector.add(o_pos, {
+                x = colb[4],
+                y = colb[5],
+                z = colb[6]
+            })
+            -- Check if pos is within the bounds of pos1 and pos2
+            local m_x = (pos.x >= pos2.x and pos.x <= pos1.x)
+            local m_y = (pos.y >= pos2.y and pos.y <= pos1.y)
+            local m_z = (pos.z >= pos2.z and pos.z <= pos1.z)
+            return (m_x and m_y and m_z) or false
         end
     })
 
@@ -1189,6 +1217,29 @@ function va_units.detach(player)
             player:set_pos(pos)
         end
     end)
+end
+
+function va_units.check_collision(pos)
+    -- check for collision with objects
+    local objects = core.get_objects_inside_radius(pos, 1.75)
+    local collides_with = false
+    local colliding_with = nil
+    for _, obj in ipairs(objects) do
+        if obj ~= nil and not obj:is_player() then
+            local ent = obj:get_luaentity()
+            -- check if structure
+            if ent._is_va_unit then
+                local unit = va_units.get_unit_by_id(ent._id)
+                -- check collision
+                if unit and unit:_collides(pos) then
+                    collides_with = true
+                    colliding_with = obj
+                    break
+                end
+            end
+        end
+    end
+    return collides_with, colliding_with
 end
 
 function va_units.get_unit_def(unit_name)

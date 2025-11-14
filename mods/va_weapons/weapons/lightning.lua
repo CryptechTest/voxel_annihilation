@@ -27,6 +27,7 @@ for i = 1, 3 do
             glow = 14,
             visual_size = { x = 0.3, y = 1.5, z = 0.3 }
         },
+        _is_va_weapon = true,
         on_step = function(self, dtime)
             local lifetime = self._lifetime or 0
             lifetime = lifetime + dtime

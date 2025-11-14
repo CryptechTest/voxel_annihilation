@@ -264,6 +264,7 @@ local light_laser = {
         glow = 14,
         visual_size = { x = 0.2, y = 1.0, z = 0.2}
     },
+    _is_va_weapon = true,
     _range = 64,
     _damage = 4,
     _start_pos = nil,
@@ -327,6 +328,7 @@ local heavy_laser = {
         glow = 14,
         visual_size = { x = 0.3, y = 1.5, z = 0.3}
     },
+    _is_va_weapon = true,
     _range = 64,
     _damage = 10,
     _start_pos = nil,

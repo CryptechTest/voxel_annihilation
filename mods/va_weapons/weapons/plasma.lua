@@ -180,14 +180,78 @@ local function destroy_effect_particle(pos, radius)
         glow = 15
     })
 end
+
+local function calc_damage(damage_base, dist, max_range)
+    -- calculate damage and falloff
+    local falloff = math.max(0, 1 - (dist / max_range)^2)
+    return math.max(0, math.floor(damage_base * falloff))
+end
+
+local function damage_near(hit_pos, damage_base, radius, damager)
+    local objects = core.get_objects_inside_radius(hit_pos, radius * 2)
+    for _, obj in ipairs(objects) do
+        local pos = obj:get_pos()
+        local distance = vector.distance(hit_pos, pos)
+        if obj ~= damager.object and not obj:is_player() then
+            local ent = obj:get_luaentity()
+            if ent._is_va_weapon then
+                -- ignore other weapon entity
+            elseif ent._is_va_structure then
+                local s = va_structures.get_active_structure(pos)
+                if s and distance <= radius then
+                    local damage = calc_damage(damage_base, distance, radius + 0.5)
+                    if damage > 0 then
+                        s:damage(damage, "plasma")
+                    end
+                end
+            elseif ent._is_va_unit then
+                local damage = calc_damage(damage_base, distance, radius)
+                if damage > 0 and obj.punch then
+                    obj:punch(damager.object, 1.0, {
+                        full_punch_interval = 1.0,
+                        damage_groups = { plasma = damage }
+                    }, nil)
+                end
+            end
+        end
+    end
+end
+
+local function do_plasma_hit_effects(pos, damage)
+    -- show hit effect
+    destroy_effect_particle(pos, 1)
+    -- more damage is lower pitch
+    local sound_pitch = math.max(0.5, 1.25 - (damage / 100))
+    -- play hit sound
+    core.sound_play("va_weapons_plasma", {
+        pos = pos,
+        gain = 0.15,
+        pitch = sound_pitch,
+    })
+end
+
+-- Handle collision (e.g., explode)
+local function do_plasma_hit(pos, node_pos, damager)
+    local damage = damager._damage
+    -- damage near objects
+    damage_near(pos, damage, 1.5, damager)
+    -- do hit effect
+    do_plasma_hit_effects(pos, damage)
+    -- spawn fire
+    set_fire(vector.add(node_pos, {x=0, y=-1, z=0}))
+end
+
 local plasma = {
-    physical = false,
-    collide_with_objects = true,
-    visual = "sprite",
-    textures = {"va_weapons_plasma.png"},
-    glow = 14,
-    visual_size = { x = 0, y = 0 },
+    initial_properties = {
+        physical = false,
+        collide_with_objects = true,
+        visual = "sprite",
+        textures = {"va_weapons_plasma.png"},
+        glow = 14,
+        visual_size = { x = 0, y = 0 },
+    },
     _damage = 0,
+    _is_va_weapon = true,
     on_step = function(self, dtime)
         local lifetime = self._lifetime or 0
         lifetime = lifetime + dtime
@@ -199,48 +263,6 @@ local plasma = {
         physics_api.update_physics(self.object)
         local pos = self.object:get_pos()
         if not pos then
-            return
-        end
-        local hit_obj = false
-        if not hit_obj then
-            -- structure only check...
-            local collides, colliding = va_structures.check_collision(pos)
-            if collides and colliding then
-                hit_obj = true
-                -- Deal damage to the object
-                colliding:punch(self.object, 1.0, {
-                    full_punch_interval = 1.0,
-                    damage_groups = { laser = self._damage }
-                }, nil)
-            end
-        end
-        if not hit_obj then
-            -- Check for collision with objects
-            local objects = core.get_objects_inside_radius(pos, 1)
-            for _, obj in ipairs(objects) do
-                if obj ~= self.object and not obj:is_player() then
-                    local ent = obj:get_luaentity()
-                    if ent.name ~= "va_weapons:plasma" then
-                        -- more damage is lower pitch
-                        local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
-                        core.sound_play("va_weapons_plasma", {
-                            pos = pos,
-                            gain = 0.15,
-                            pitch = sound_pitch,
-                        })
-                        -- Handle collision (e.g., deal damage)
-                        set_fire(vector.add(obj:get_pos(), {x=0, y=-1, z=0}))
-                        hit_obj = true
-                    end
-                end
-            end
-        end
-
-        -- TODO: handle hit units...
-
-        if hit_obj then
-            destroy_effect_particle(pos, 1)
-            self.object:remove()
             return
         end
         --check for collision with nodes
@@ -255,17 +277,34 @@ local plasma = {
             y = math.floor(pos.y + 0.5),
             z = math.floor(pos.z + 0.5)
         }
+        -- unit only hit check
+        local collides_unit, colliding_unit = va_units.check_collision(next_pos)
+        if collides_unit and colliding_unit then
+            -- Deal damage to the object/
+            colliding_unit:punch(self.object, 1.0, {
+                full_punch_interval = 1.0,
+                damage_groups = { plasma = self._damage }
+            }, nil)
+            do_plasma_hit_effects(pos, self._damage)
+            self.object:remove()
+            return
+        end
+        -- structure only hit check...
+        local collides_structure, colliding_structure = va_structures.check_collision(next_pos)
+        if collides_structure and colliding_structure then
+            -- Deal damage to the object/
+            colliding_structure:punch(self.object, 1.0, {
+                full_punch_interval = 1.0,
+                damage_groups = { plasma = self._damage }
+            }, nil)
+            do_plasma_hit_effects(pos, self._damage)
+            self.object:remove()
+            return
+        end
+        -- check node hit
         local node = core.get_node(node_pos)
         if node and core.registered_nodes[node.name] and core.registered_nodes[node.name].walkable and node.name ~= "barrier:barrier" then
-            destroy_effect_particle(pos, 1)
-            -- Handle collision (e.g., explode)
-            local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
-            core.sound_play("va_weapons_plasma", {
-                pos = pos,
-                gain = 0.15,
-                pitch = sound_pitch,
-            })
-            set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
+            do_plasma_hit(pos, node_pos, self)
             self.object:remove()
             return
         end
@@ -275,19 +314,12 @@ local plasma = {
             -- Moved to a new node, check for collision
             local n = core.get_node(current_node_pos)
             if n and core.registered_nodes[n.name] and core.registered_nodes[n.name].walkable and n.name ~= "barrier:barrier" then
-                destroy_effect_particle(pos, 1)
-                -- Handle collision (e.g., explode)
-                local sound_pitch = math.max(0.5, 1.25 - (self._damage / 100))
-                core.sound_play("va_weapons_plasma", {
-                    pos = pos,
-                    gain = 0.15,
-                    pitch = sound_pitch,
-                })
-                set_fire(vector.add(current_node_pos, {x=0, y=-1, z=0}))
+                do_plasma_hit(pos, node_pos, self)
                 self.object:remove()
                 return
             end
         end
+        -- spawn light effect
         local light_pos = vector.round(pos)
         local n = core.get_node(light_pos)
         local light_level = math.random(4, 8)
