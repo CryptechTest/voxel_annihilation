@@ -120,6 +120,7 @@ function Structure.new(pos, name, def, do_def_check)
     self.last_hit = 0 -- last time structure was hit by player
 
     self._out_index = 0 -- unit build tick flag
+    self._fire_index = 0 -- unit fire tick flag
 
     -- validitiy flags
     self._active = false
@@ -1356,7 +1357,7 @@ function Structure:repair(amount)
     if hp >= self:get_hp_max() then
         return false
     end
-    amount = amount or 0.1
+    amount = amount or 0.02
     self:set_hp(hp + amount)
     return true
 end

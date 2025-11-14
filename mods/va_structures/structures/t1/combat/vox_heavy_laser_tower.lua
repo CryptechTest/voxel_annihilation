@@ -79,12 +79,11 @@ local function do_turret_rotation(structure, target)
     -- building effect turret rotation
     local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
     local pitch, pitch_deg = va_structures.util.calculatePitch(pos, target)
-    pitch_deg = pitch_deg - 5
     local turret = structure.entity_obj:get_bone_override('turret')
     local yawRad = turret.rotation and turret.rotation.vec.y or 0
     local pitchRad = turret.rotation and turret.rotation.vec.x or 0
     local yawDeg = yaw_deg -- yawDeg = ((yawDeg + (yaw_deg * 1)) / 2) % 360
-    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 5) and num_is_close(pitch_deg, math.deg(pitchRad), 5) then
+    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 3) and num_is_close(pitch_deg, math.deg(pitchRad), 2) then
         -- if rotation complete mark as locked
         structure._target_locked = true
     end
@@ -105,10 +104,57 @@ local function do_turret_rotation(structure, target)
             rotation = {
                 vec = rot_turret,
                 absolute = true,
-                interpolation = 0.7
+                interpolation = 0.6
             }
         })
     end
+end
+
+local function muzzle_effect_particle(origin, dir)
+    --Fire flash
+    --[[core.add_particle({
+        pos = origin,
+        expirationtime = 0.1,
+        size = 2,
+        collisiondetection = false,
+        vertical = false,
+        texture = "va_structures_explosion_2.png^[colorize:#00ff00:alpha",
+        glow = 13,
+    })]]
+    local r = 0.1
+    local s_vel = vector.multiply(dir, 2.0)
+    local s_vel_min = vector.subtract(s_vel, {x=math.random(-r,r), y=math.random(-r,r), z=math.random(-r,r)})
+    local s_vel_max = vector.add(s_vel, {x=math.random(-r,r), y=math.random(-r,r), z=math.random(-r,r)})
+    local s_pos = {x=origin.x+dir.x*0.01, y=origin.y+dir.y*0.01, z=origin.z+dir.z*0.01}
+    core.add_particlespawner({
+        amount = 15,
+        time = 0.075,
+        minpos = {x=s_pos.x-0.01, y=s_pos.y-0.01, z=s_pos.z-0.01},
+        maxpos = {x=s_pos.x+0.01, y=s_pos.y+0.01, z=s_pos.z+0.01},
+        minvel = s_vel_min,
+        maxvel = s_vel_max,
+        minacc = {x=-0.25, y=-0.28, z=-0.25},
+        maxacc = {x=0.25, y=0.28, z=0.25},
+        minexptime = 0.1,
+        maxexptime = 0.3,
+        minsize = 0.3,
+        maxsize = 0.4,
+        texture = {
+            name = "va_explosion_spark.png^[colorize:#00ff00:alpha",
+            blend = "alpha",
+            scale = 1,
+            alpha = 1.0,
+            alpha_tween = { 1, 0.25 },
+            scale_tween = { {
+                x = 1.5,
+                y = 1.5
+            }, {
+                x = 0.25,
+                y = 0.25
+            } }
+        },
+        glow = 14,
+    })
 end
 
 local function can_see(origin, obj)
@@ -159,21 +205,29 @@ local function find_target(structure, dist)
     return nil
 end
 
-local function rotate_y(vector, angle_yaw, angle_pitch)
-    local cos_a = math.cos(angle_yaw)
-    local sin_a = math.sin(angle_yaw)
-    local sin_p = math.cos(angle_pitch)
-    local cos_p = math.cos(angle_pitch)
-    local x = vector.x * cos_a - vector.z * sin_a
-    local z = vector.x * sin_a + vector.z * cos_a
-    local y = vector.y * cos_p
-    local x1 = x * cos_p - z * sin_p
-    local z1 = x * sin_p + z * cos_p
-    return {
-        x = (x),
-        y = (y),
-        z = -(z)
-    }
+-- Rotate a 3‑D vector `v` first by a yaw around the Y‑axis,
+-- then by a pitch around the X‑axis.
+-- Angles are in radians (positive yaw → rotate toward +Z, positive pitch → toward +Z).
+local function rotate_yaw_pitch(v, yaw, pitch)
+    local cy = math.cos(yaw)
+    local sy = math.sin(yaw)
+    local cp = math.cos(pitch)
+    local sp = math.sin(pitch)
+
+    -- ---------- Yaw (around Y) ----------
+    -- Right‑handed system: x′ = x cosθ + z sinθ
+    --                       z′ = –x sinθ + z cosθ
+    local x1 = v.x * cy + v.z * sy
+    local z1 = -v.x * sy + v.z * cy
+    local y1 = v.y            -- Y is unchanged by yaw
+
+    -- ---------- Pitch (around X) ----------
+    -- y′ = y cosφ – z sinφ
+    -- z′ = y sinφ + z cosφ
+    local y2 = y1 * cp - z1 * sp
+    local z2 = y1 * sp + z1 * cp
+
+    return {x = x1, y = y2, z = z2}
 end
 
 local vas_run = function(pos, node, s_obj, run_stage, net)
@@ -181,52 +235,96 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
     if net == nil then
         return
     end
-    -- run 
-    if run_stage == "main" then
-        local recent_hit = false
-        if core.get_us_time() - s_obj.last_hit < 13 * 1000 * 1000 then
-            recent_hit = true
+    if run_stage == "weapon" then
+        -- weapons run
+        local meta = core.get_meta(pos)
+        if meta:get_int("attack_mode") == 3 then
+            return
         end
-
+        local range = 16
+        local target = s_obj._last_target or find_target(s_obj, range)
+        if target and not s_obj._target_locked then
+            s_obj._last_target = target
+           do_turret_rotation(s_obj, target)
+        end
+    elseif run_stage == "main" then
         local meta = core.get_meta(pos)
         if meta:get_int("attack_mode") == 3 then
             return
         end
 
         local shooter = s_obj.entity_obj
-        local damage = 4
-        local range = 16
+        local damage = 10
+        local range = 27
         local target = find_target(s_obj, range)
 
         if target then
+            s_obj._last_target = target
             local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
-            local pitch, pitch_deg = va_structures.util.calculatePitch(target, pos)
-            local turret_end = {
-                x = (0 * 1 / 16) * 0.88,
-                y = (36 * 1 / 16) * 0.50,
-                z = (24 * 1 / 16) * 0.88
+            local pitch, pitch_deg = va_structures.util.calculatePitch(pos, target)
+            local turret_end_1_a = {
+                x = (-10.5 * 1 / 16) * 0.66,
+                y = (0.0 * 1 / 16) * 0.66,
+                z = (-44 * 1 / 16) * 0.66
+            }
+            local turret_end_1_b = {
+                x = (-10.5 * 1 / 16) * 0.66,
+                y = (0.0 * 1 / 16) * 0.66,
+                z = (-24 * 1 / 16) * 0.66
+            }
+            local turret_end_2_a = {
+                x = (10.5 * 1 / 16) * 0.66,
+                y = (0.0 * 1 / 16) * 0.66,
+                z = (-44 * 1 / 16) * 0.66
+            }
+            local turret_end_2_b = {
+                x = (10.5 * 1 / 16) * 0.66,
+                y = (0.0 * 1 / 16) * 0.66,
+                z = (-24 * 1 / 16) * 0.66
             }
 
-            local turret_end_pos = rotate_y(turret_end, yaw, pitch)
-            local o_pos = vector.add(s_obj.pos, turret_end_pos)
-            local t_pos = vector.add(target, vector.new(0, 0.3, 0))
+            local turret_end_pos_1 = rotate_yaw_pitch(turret_end_1_a, yaw, pitch)
+            local turret_end_pos_1_b = rotate_yaw_pitch(turret_end_1_b, yaw, pitch)
+            local turret_end_pos_2 = rotate_yaw_pitch(turret_end_2_a, yaw, pitch)
+            local turret_end_pos_2_b = rotate_yaw_pitch(turret_end_2_b, yaw, pitch)
+            -- pos 1
+            local o_pos_1 = vector.add(s_obj.pos, turret_end_pos_1)
+            o_pos_1 = vector.add(o_pos_1, {x=0,y=(38.5 * 1 / 16) * 0.66,z=0})
+            local o_pos_1_b = vector.add(s_obj.pos, turret_end_pos_1_b)
+            o_pos_1_b = vector.add(o_pos_1_b, {x=0,y=(38.5 * 1 / 16) * 0.66,z=0})
+            -- pos 2
+            local o_pos_2 = vector.add(s_obj.pos, turret_end_pos_2)
+            o_pos_2 = vector.add(o_pos_2, {x=0,y=(38.5 * 1 / 16) * 0.66,z=0})
+            local o_pos_2_b = vector.add(s_obj.pos, turret_end_pos_2_b)
+            o_pos_2_b = vector.add(o_pos_2_b, {x=0,y=(38.5 * 1 / 16) * 0.66,z=0})
+            -- target pos
+            local t_pos = vector.add(target, vector.new(0, 0.175, 0))
 
             local cost = s_obj:get_data():get_energy_consume()
             local energy = net.energy
             if energy - cost >= 0 then
                 do_turret_rotation(s_obj, target)
-                if s_obj._target_locked then
+                s_obj._fire_index = s_obj._fire_index - 1
+                if s_obj._target_locked and s_obj._fire_index <= 0 then
+                    s_obj._fire_index = 2
                     net.energy = energy - cost
                     local weapon = va_weapons.get_weapon("heavy_laser")
-                    for i = 0, 3, 1 do
-                        core.after(0.25 * i, function()
-                            local x = va_structures.util.randFloat(-0.1, 0.1)
-                            local y = va_structures.util.randFloat(-0.1, 0.1)
-                            local z = va_structures.util.randFloat(-0.1, 0.1)
-                            local tr_pos = vector.add(t_pos, vector.new(x, y, z))
-                            weapon.fire(shooter, o_pos, tr_pos, range, damage)
-                        end)
+                    local x = va_structures.util.randFloat(-0.1, 0.1)
+                    local y = va_structures.util.randFloat(-0.1, 0.1)
+                    local z = va_structures.util.randFloat(-0.1, 0.1)
+                    local tr_pos = vector.add(t_pos, vector.new(x, y, z))
+                    if s_obj._out_index == 0 then
+                        s_obj._out_index = 1
+                        local dir = vector.direction(o_pos_1_b, target)
+                        muzzle_effect_particle(o_pos_1_b, dir)
+                        weapon.fire(shooter, o_pos_1, tr_pos, range, damage)
+                    else
+                        s_obj._out_index = 0
+                        local dir = vector.direction(o_pos_2_b, target)
+                        muzzle_effect_particle(o_pos_2_b, dir)
+                        weapon.fire(shooter, o_pos_2, tr_pos, range, damage)
                     end
+                    s_obj._last_target = nil
                 end
             end
             net.energy_demand = net.energy_demand + cost
@@ -238,7 +336,7 @@ end
 local def = {
     mesh = "va_vox_heavy_laser_tower.gltf",
     textures = {"va_vox_heavy_laser_tower.png"},
-    collisionbox = {-0.45, -0.5, -0.45, 0.45, 1.8, 0.45},
+    collisionbox = {-0.475, -0.5, -0.475, 0.475, 2.15, 0.475},
     max_health = 260,
     mass_cost = 44,
     energy_cost = 470,
@@ -254,7 +352,7 @@ def.name = "heavy_laser_tower"
 def.desc = "Heavy Laser Tower"
 def.size = {
     x = 1,
-    y = 1.95,
+    y = 2.55,
     z = 1
 }
 def.category = "combat"
