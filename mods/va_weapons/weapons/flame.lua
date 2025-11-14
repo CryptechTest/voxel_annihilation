@@ -29,8 +29,12 @@ local fire_def = {
         self._lifetime = lifetime
         --update flame animation frame
         local fps = 8
-        local frame = math.floor(lifetime * fps) % 8
-        self.object:set_sprite({x=0, y=frame}, 8, 1/fps, false)
+        local frame = math.floor(lifetime * fps)
+        if frame > 7 then frame = 7 end
+        if self._last_frame ~= frame then
+            self.object:set_sprite({x=0, y=frame}, 8, 1/fps, false)
+            self._last_frame = frame
+        end
         local pos = self.object:get_pos()
         if not pos then
             return
