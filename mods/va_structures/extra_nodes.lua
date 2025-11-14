@@ -54,10 +54,13 @@ core.register_abm({
     min_y = -10000,
     max_y = 10000,
     action = function(pos, node, active_object_count, active_object_count_wider)
-        local meta = core.get_meta(pos)
-        local last_update = tonumber(meta:get_string("last_update")) or 0
-        if core.get_us_time() - last_update > 5 * 1000 * 1000 then
-            core.remove_node(pos)
+        local g = core.get_node_group(node.name, "va_dummy_light_source")
+        if g == 1 then
+            local meta = core.get_meta(pos)
+            local last_update = tonumber(meta:get_string("last_update")) or 0
+            if core.get_us_time() - last_update > 5 * 1000 * 1000 then
+                core.remove_node(pos)
+            end
         end
     end
 })
