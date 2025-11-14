@@ -575,15 +575,19 @@ local function run_nodes(list, run_stage)
 end
 
 -- structure runner
-va_structures.structures_run = function()
+va_structures.structures_run = function(run_tick)
     local s_pos = {}
     for hash, structure in pairs(_active_instances) do
         table.insert(s_pos, structure.pos)
     end
-    calculate_player_actor_structures()
-    run_nodes(s_pos, "main")
+    if run_tick == 0 then
+        calculate_player_actor_structures()
+        run_nodes(s_pos, "main")
+    elseif run_tick == 1 then
+        run_nodes(s_pos, "weapon")
+    end
     -- core.log("run " .. #s_pos .. " structures")
-end
+end 
 
 -----------------------------------------------------------------
 -- cleanup_assets

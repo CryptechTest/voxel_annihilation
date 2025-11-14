@@ -174,20 +174,21 @@ local function do_turret_rotation(structure, target)
 end
 
 local function can_see(origin, obj)
+    local node_count = 0
     local target_pos = vector.add(obj:get_pos(), vector.new(0, 0.51, 0))
     local ray = core.raycast(origin, target_pos, false, true, nil)
     for pointed_thing in ray do
         if pointed_thing.type == "object" and pointed_thing.ref ~= obj then
             if pointed_thing.ref:get_pos() ~= origin then
-                return false
+                node_count = node_count + 0.5
             end
         elseif pointed_thing.type == "node" and pointed_thing.under ~= target_pos then
             if pointed_thing.under ~= origin then
-                return false
+                node_count = node_count + 1
             end
         end
     end
-    return true
+    return node_count < 8
 end
 
 local function find_target(structure, dist)
@@ -285,13 +286,20 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
     if net == nil then
         return
     end
-    -- run 
-    if run_stage == "main" then
-        local recent_hit = false
-        if core.get_us_time() - s_obj.last_hit < 13 * 1000 * 1000 then
-            recent_hit = true
+    if run_stage == "weapon" then
+        -- weapons run
+        local meta = core.get_meta(pos)
+        if meta:get_int("attack_mode") == 3 then
+            return
         end
-
+        local range = 48
+        local target = s_obj._last_target or find_target(s_obj, range)
+        if target and not s_obj._target_locked then
+            s_obj._last_target = target
+           do_turret_rotation(s_obj, target)
+        end
+    elseif run_stage == "main" then
+        -- main run
         local meta = core.get_meta(pos)
         if meta:get_int("attack_mode") == 3 then
             return

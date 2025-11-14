@@ -181,18 +181,20 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
     if net == nil then
         return
     end
-    -- run 
-    if run_stage == "main" then
-        local pos_above = vector.add(pos, {
-            x = 0,
-            y = 1,
-            z = 0
-        })
-        local recent_hit = false
-        if core.get_us_time() - s_obj.last_hit < 13 * 1000 * 1000 then
-            recent_hit = true
+    if run_stage == "weapon" then
+        -- weapons run
+        local meta = core.get_meta(pos)
+        if meta:get_int("attack_mode") == 3 then
+            return
         end
-
+        local range = 16
+        local target = s_obj._last_target or find_target(s_obj, range)
+        if target and not s_obj._target_locked then
+            s_obj._last_target = target
+           do_turret_rotation(s_obj, target)
+        end
+    elseif run_stage == "main" then
+        -- main run
         local meta = core.get_meta(pos)
         if meta:get_int("attack_mode") == 3 then
             return
@@ -201,9 +203,10 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local shooter = s_obj.entity_obj
         local damage = 4
         local range = 16
-        local target = find_target(s_obj, range)
+        local target = s_obj._last_target or find_target(s_obj, range)
 
         if target then
+            s_obj._last_target = target
             local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
             local pitch, pitch_deg = va_structures.util.calculatePitch(target, pos)
             local turret_end = {
@@ -232,6 +235,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                             weapon.fire(shooter, o_pos, tr_pos, range, damage)
                         end)
                     end
+                    s_obj._last_target = nil
                 end
             end
             net.energy_demand = net.energy_demand + cost

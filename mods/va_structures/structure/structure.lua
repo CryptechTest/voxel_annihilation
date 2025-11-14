@@ -556,36 +556,40 @@ end
 -- run functions
 
 function Structure:run_pre(run_stage, net)
-    -- core.log("structure run_internal() ticked... " .. self.name)
-    if self.vas_run_pre then
-        if not self.vas_run_pre(self) then
-            return false
-        end
-    end
-    if self:get_hp() <= 0 then
+    if self:get_hp() < 0.01 then
         self:destroy()
         return false
     end
-    if self.owner_actor == nil and net ~= nil then
-        self.owner_actor = net
-    end
-    if self:decay() then
-        return false
-    end
-    if self:construct(net) then
-        self:build_assist_reset()
-        return false
-    end
-    if self:do_destruct_self() then
-        return false
+    if run_stage == "main" then
+        if self.vas_run_pre then
+            if not self.vas_run_pre(self) then
+                return false
+            end
+        end
+        if self.owner_actor == nil and net ~= nil then
+            self.owner_actor = net
+        end
+        if self:decay() then
+            return false
+        end
+        if self:construct(net) then
+            self:build_assist_reset()
+            return false
+        end
+        if self:do_destruct_self() then
+            return false
+        end
+        self:repair()
     end
     return true
 end
 
 function Structure:run_post(run_stage, net)
-    self:entity_tick()
-    if self.vas_run_post then
-        self.vas_run_post(self)
+    if run_stage == "main" then
+        self:entity_tick()
+        if self.vas_run_post then
+            self.vas_run_post(self)
+        end
     end
 end
 
@@ -648,6 +652,10 @@ function Structure:get_hp()
 end
 
 function Structure:set_hp(val)
+    if val > self:get_hp_max() then
+        self.meta:set_health(self:get_hp_max())
+        return
+    end
     self.meta:set_health(val)
 end
 
@@ -1336,6 +1344,22 @@ function Structure:build_queue_clear()
 end
 
 -----------------------------------------------------------------
+
+function Structure:repair(amount)
+    if not self.is_constructed then
+        return false
+    end
+    if core.get_us_time() - self.last_hit < 20 * 1000 * 1000 then
+        return false
+    end
+    local hp = self:get_hp()
+    if hp >= self:get_hp_max() then
+        return false
+    end
+    amount = amount or 0.1
+    self:set_hp(hp + amount)
+    return true
+end
 
 -- decay structure after some time if not constructing
 function Structure:decay()
