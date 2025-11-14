@@ -1,14 +1,46 @@
-local function set_fire(pos)
-    local node_under = core.get_node(pos).name
-    local nodedef = core.registered_nodes[node_under]
-    if not nodedef then
-        return
-    end
-    if nodedef.on_ignite then
-        nodedef.on_ignite(pos, nil)
-    elseif core.get_item_group(node_under, "flammable") >= 1
-        and core.get_node(vector.add(pos, {x=0, y=1, z=0})).name == "air" then
-        core.set_node(vector.add(pos, {x=0, y=1, z=0}), { name = "fire:basic_flame" })
+local dirs = {{ -- along x beside
+    x = 1,
+    y = 0,
+    z = 0
+}, {
+    x = -1,
+    y = 0,
+    z = 0
+}, { -- along z beside
+    x = 0,
+    y = 0,
+    z = 1
+}, {
+    x = 0,
+    y = 0,
+    z = -1
+}, { -- nodes on y
+    x = 0,
+    y = 1,
+    z = 0
+}, {
+    x = 0,
+    y = -1,
+    z = 0
+}, { -- self
+    x = 0,
+    y = 0,
+    z = 0
+}}
+
+local function set_fire(hit_pos)
+    for _, dir in pairs(dirs) do
+        local pos = vector.add(hit_pos, dir)
+        local node = core.get_node(pos).name
+        local nodedef = core.registered_nodes[node]
+        if nodedef then
+            if nodedef.on_ignite then
+                nodedef.on_ignite(pos, nil)
+            elseif (core.get_item_group(node, "flammable") >= 1)
+                and core.get_node(vector.add(pos, vector.new(0,1,0))).name == "air" then
+                core.set_node(vector.add(pos, vector.new(0,1,0)), { name = "fire:basic_flame" })
+            end
+        end
     end
 end
 
@@ -238,7 +270,7 @@ local function do_plasma_hit(pos, node_pos, damager)
     -- do hit effect
     do_plasma_hit_effects(pos, damage)
     -- spawn fire
-    set_fire(vector.add(node_pos, {x=0, y=-1, z=0}))
+    set_fire(node_pos)
 end
 
 local plasma = {

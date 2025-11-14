@@ -6,7 +6,7 @@ for i = 1, 14 do
         sunlight_propagates = true,
         tiles = {""},
         light_source = i,
-        groups = {not_in_creative_inventory=1, dig_immediate=3},
+        groups = {not_in_creative_inventory=1, dig_immediate=3, va_dummy_light_source = 2},
         walkable = false,
         pointable = false,
         diggable = false,
