@@ -100,7 +100,7 @@ local function turret_close(structure)
     }
     local loc_turret = {
         x = 0,
-        y = -(22-8) * 0.625,
+        y = -(22 - 8) * 0.625,
         z = 0
     }
 
@@ -196,7 +196,7 @@ local function do_turret_rotation(structure, target)
         -- if rotation complete mark as locked
         structure._target_locked = true
     end
-    if structure._last_dir == nil or yaw_deg ~= structure._last_dir.yaw  then
+    if structure._last_dir == nil or yaw_deg ~= structure._last_dir.yaw then
         if not num_is_close(yawDeg, math.deg(yawRad), 8) then
             structure._target_locked = false
         end
@@ -217,7 +217,6 @@ local function do_turret_rotation(structure, target)
         })
     end
 end
-
 
 local function can_see(origin, obj)
     local target_pos = vector.add(obj:get_pos(), vector.new(0, 0.51, 0))
@@ -350,7 +349,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 return
             end
         end
-        
+
         if s_obj._fire_index > 0 then
             s_obj._fire_index = s_obj._fire_index - 1
         end
