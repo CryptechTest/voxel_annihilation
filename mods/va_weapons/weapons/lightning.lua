@@ -31,7 +31,7 @@ for i = 1, 3 do
         on_step = function(self, dtime)
             local lifetime = self._lifetime or 0
             lifetime = lifetime + dtime
-            if lifetime >= 0.2 then
+            if lifetime >= 0.75 then
                 self.object:remove()
                 return
             end
@@ -60,6 +60,7 @@ for i = 1, 3 do
 end
 
 va_weapons.register_weapon("lightning", {
+    range = 16,
     fire = function(shooter, shooter_pos, target_pos, range, base_damage)
         local distance = vector.distance(shooter_pos, target_pos)
         if distance > range then
@@ -93,8 +94,9 @@ va_weapons.register_weapon("lightning", {
                             local entity_pitch = math.atan2(d.y, math.sqrt(d.x * d.x + d.z * d.z)) - math.pi /
                                 2
                             -- get the length of the distance to target to set the visual size
-                            local dist_to_target = vector.distance(shooter_pos, target_pos)
-                            lightning_entity:set_properties({ visual_size = { x = (dist_to_target * 0.667) / 8, y = (dist_to_target * 0.667) / 16, z = 0.1 } })                            
+                            local end_pos = vector.add(shooter_pos, vector.multiply(dir, range * 4))
+                            local size = vector.distance(shooter_pos, end_pos)
+                            lightning_entity:set_properties({ visual_size = { x = (size * 0.667) / 8, y = (size  * 0.667) / 16, z = 0.1 } })                            
                             local random_yaw = math.random() * math.pi * 2 -- random angle from 0 to 2π
                             lightning_entity:set_rotation({x = entity_pitch, y = random_yaw, z = -random_yaw})
                         end
