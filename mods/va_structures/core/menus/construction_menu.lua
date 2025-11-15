@@ -70,6 +70,9 @@ local build_output_list = {
             ['va_structures:vox_medium_plasma_artillery'] = {
                 index = 4
             },
+            ['va_structures:vox_pop_up_turret'] = {
+                index = 5
+            },
         },
         ['economy'] = {
             ['va_structures:vox_energy_converter'] = {

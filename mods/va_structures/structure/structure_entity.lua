@@ -18,8 +18,8 @@ local function register_structure_entity(def)
             textures = def.textures,
             use_texture_alpha = true,
             visual_size = {
-                x = 0.66,
-                y = 0.66
+                x = 0.667,
+                y = 0.667
             },
             glow = 2,
             type = "va_structure",

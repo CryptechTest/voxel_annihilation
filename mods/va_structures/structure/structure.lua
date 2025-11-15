@@ -549,7 +549,7 @@ function Structure:collides_has_floor(pos)
     local pos2 = vector.subtract(f_pos, size)
     local nodes = core.find_nodes_in_area(pos1, pos2,
         {"group:cracky", "group:crumbly", "group:choppy", "group:soil", "group:sand"})
-    local vol = ((self.size.x * 2) + 1) * ((self.size.z * 2) + 1)
+    local vol = ((self.size.x * 2) + 1) * ((self.size.z * 2) + 1) - 1
     return #nodes >= vol
 end
 
@@ -1114,9 +1114,9 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             -- Rotate build_plate
             local tempX = build_plate.x * cosYaw - build_plate.z * sinYaw
             local tempZ = build_plate.x * sinYaw + build_plate.z * cosYaw
-            build_plate.x = -tempX * 0.66
-            build_plate.z = -tempZ * 0.66
-            build_plate.y = build_plate.y * 0.66
+            build_plate.x = -tempX * 0.667
+            build_plate.z = -tempZ * 0.667
+            build_plate.y = build_plate.y * 0.667
         end
 
         local yaw, _ = self:get_yaw()
@@ -1156,21 +1156,21 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             -- Rotate l_turret
             local tempX = l_turret.x * cosYaw - l_turret.z * sinYaw
             local tempZ = l_turret.x * sinYaw + l_turret.z * cosYaw
-            l_turret.x = -tempX * 0.66
-            l_turret.z = -tempZ * 0.66
-            l_turret.y = l_turret.y * 0.66
+            l_turret.x = -tempX * 0.667
+            l_turret.z = -tempZ * 0.667
+            l_turret.y = l_turret.y * 0.667
             -- Rotate r_turret
             tempX = r_turret.x * cosYaw - r_turret.z * sinYaw
             tempZ = r_turret.x * sinYaw + r_turret.z * cosYaw
-            r_turret.x = -tempX * 0.66
-            r_turret.z = -tempZ * 0.66
-            r_turret.y = r_turret.y * 0.66
+            r_turret.x = -tempX * 0.667
+            r_turret.z = -tempZ * 0.667
+            r_turret.y = r_turret.y * 0.667
             -- Rotate build_plate
             tempX = build_plate.x * cosYaw - build_plate.z * sinYaw
             tempZ = build_plate.x * sinYaw + build_plate.z * cosYaw
-            build_plate.x = -tempX * 0.66
-            build_plate.z = -tempZ * 0.66
-            build_plate.y = build_plate.y * 0.66
+            build_plate.x = -tempX * 0.667
+            build_plate.z = -tempZ * 0.667
+            build_plate.y = build_plate.y * 0.667
         end
 
         local yaw, _ = self:get_yaw()

@@ -236,6 +236,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                         end)
                     end
                     s_obj._last_target = nil
+                    s_obj._target_locked = false
                 end
             end
             net.energy_demand = net.energy_demand + cost

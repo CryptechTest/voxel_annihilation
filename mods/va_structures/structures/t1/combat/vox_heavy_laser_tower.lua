@@ -325,6 +325,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                         weapon.fire(shooter, o_pos_2, tr_pos, range, damage)
                     end
                     s_obj._last_target = nil
+                    s_obj._target_locked = false
                 end
             end
             net.energy_demand = net.energy_demand + cost
