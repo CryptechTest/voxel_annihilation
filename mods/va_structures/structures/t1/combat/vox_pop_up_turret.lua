@@ -31,7 +31,7 @@ local function turret_open(structure)
     }
     local loc_turret = {
         x = 0,
-        y = 8 * 0.625,
+        y = 0 * 0.625,
         z = 0
     }
 
@@ -100,7 +100,7 @@ local function turret_close(structure)
     }
     local loc_turret = {
         x = 0,
-        y = -(22 - 8) * 0.625,
+        y = -(22 - 0) * 0.625,
         z = 0
     }
 
@@ -235,7 +235,12 @@ local function can_see(origin, obj)
     return true
 end
 
-local function find_target(structure, dist)
+local function find_target(structure, dist, net)
+    local cost = structure:get_data():get_energy_consume()
+    local energy = net.energy
+    if energy - cost < 0 then
+        return nil
+    end
     local pos = vector.add(structure.pos, vector.new(0, 1.35, 0))
     local objs = core.get_objects_inside_radius(pos, dist + 0.55)
     local targets = {}
@@ -279,7 +284,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         if meta:get_int("attack_mode") == 3 then
             return
         end
-        local target = s_obj._last_target or find_target(s_obj, range + 1)
+        local target = s_obj._last_target or find_target(s_obj, range + 1, net)
         if target and not s_obj._target_locked then
             s_obj._last_target = target
             if s_obj._out_index > 3 then
@@ -295,7 +300,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             return
         end
 
-        local target = s_obj._last_target or find_target(s_obj, range)
+        local target = s_obj._last_target or find_target(s_obj, range, net)
 
         if s_obj._out_index == 0 then
             s_obj._turret_open = true
@@ -324,7 +329,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 turret_open_gun(s_obj)
                 s_obj._out_index = 3
             end)
-            target = find_target(s_obj, range)
+            target = find_target(s_obj, range, net)
             return
         elseif s_obj._out_index == 2 then
             turret_open_gun(s_obj)
@@ -408,7 +413,7 @@ def.name = "pop_up_turret"
 def.desc = "Pop-up Turret"
 def.size = {
     x = 0.0,
-    y = 1.0,
+    y = 1.65,
     z = 0.0
 }
 def.category = "utility"
