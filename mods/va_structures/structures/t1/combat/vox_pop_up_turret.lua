@@ -266,7 +266,7 @@ local function find_target(structure, dist, net)
         end
     end
     if #targets > 0 then
-        return targets[1]:get_pos()
+        return targets[1]
     end
     return nil
 end
@@ -288,7 +288,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         if target and not s_obj._target_locked then
             s_obj._last_target = target
             if s_obj._out_index > 3 then
-                do_turret_rotation(s_obj, target)
+                do_turret_rotation(s_obj, target:get_pos())
             elseif s_obj._out_index <= -3 then
                 s_obj._out_index = 1
             end
@@ -362,8 +362,8 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         if target and s_obj._out_index > 3 and s_obj._fire_index == 0 then
             s_obj._last_target = target
             s_obj._out_index = 5
-            s_obj._fire_index = 1
-            local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
+            s_obj._fire_index = 2
+            local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target:get_pos())
             local turret_end = {
                 x = (0 * 1 / 16) * 0.66,
                 y = (17 * 1 / 16) * 0.66,
@@ -372,13 +372,13 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
 
             local turret_end_pos = rotate_y(turret_end, yaw)
             local o_pos = vector.add(s_obj.pos, turret_end_pos)
-            local t_pos = vector.add(target, vector.new(0, 0.25, 0))
+            local t_pos = vector.add(target:get_pos(), vector.new(0, 0.25, 0))
             local shooter = s_obj.entity_obj
 
             local cost = s_obj:get_data():get_energy_consume()
             local energy = net.energy
             if energy - cost >= 0 then
-                do_turret_rotation(s_obj, target)
+                do_turret_rotation(s_obj, target:get_pos())
                 if s_obj._target_locked then
                     net.energy = energy - cost
                     local weapon = va_weapons.get_weapon("lightning")
@@ -401,9 +401,10 @@ local def = {
     mesh = "va_vox_pop_up_turret.gltf",
     textures = {"va_vox_pop_up_turret.png"},
     collisionbox = {-0.525, -0.5, -0.525, 0.525, 0.95, 0.525},
-    max_health = 280,
-    mass_cost = 0.8,
-    build_time = 30,
+    max_health = 133,
+    mass_cost = 34,
+    energy_cost = 160,
+    build_time = 465,
     energy_consume = 2,
     vas_run = vas_run
 }
