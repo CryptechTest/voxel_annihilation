@@ -359,7 +359,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             s_obj._fire_index = s_obj._fire_index - 1
         end
 
-        if target and s_obj._out_index > 3 and s_obj._fire_index == 0 then
+        if target and target.get_pos and s_obj._out_index > 3 and s_obj._fire_index == 0 then
             s_obj._last_target = target
             s_obj._out_index = 5
             s_obj._fire_index = 2

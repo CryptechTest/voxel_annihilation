@@ -29,6 +29,7 @@ local function calculatePitch(vector1, vector2)
     local dy = vector2.y - vector1.y
     local dz = vector2.z - vector1.z
     -- Calculate the pitch angle
+    ---@diagnostic disable-next-line: deprecated
     local pitch = math.atan2(dy, math.sqrt(dx * dx + dz * dz))
     -- Optional: Convert pitch from radians to degrees
     -- local pitch_degrees = pitch * 180 / math.pi
@@ -39,6 +40,7 @@ va_structures.util.calculatePitch = calculatePitch
 
 local function calculateYaw(vector1, vector2)
     -- Calculate yaw for each vector
+    ---@diagnostic disable-next-line: deprecated
     local yaw = math.atan2(vector1.x - vector2.x, vector1.z - vector2.z)
     -- Optional: Convert to degrees
     -- local yaw_degrees = yaw * 180 / math.pi
@@ -89,6 +91,7 @@ end
 local function rotate_on_sphere(v, d_phi, d_theta)
     -- 1. Cartesian → spherical
     local r   = math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+    ---@diagnostic disable-next-line: deprecated
     local phi = math.atan2(v.y, v.x)          -- azimuth  (-π .. +π)
     local theta = math.acos(v.z / r)          -- polar     (0 .. π)
 
