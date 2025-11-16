@@ -49,6 +49,8 @@ local function find_path(unit, target_pos, ...)
 end
 
 
+
+
 local function check_for_removal(unit)
     if not unit.object then
         return true
@@ -90,6 +92,27 @@ local function keep_loaded(unit)
     end
 
     unit._current_mapblock = mapblock_pos
+end
+
+local function find_attack_targets(unit, weapon)
+    local targets = {}
+    if not unit._can_attack then
+        return targets
+    end
+    local weapon_range = weapon.range or 8
+    local unit_pos = unit.object:get_pos()
+    for _, other_unit in pairs(active_units) do
+        if other_unit._owner_name ~= unit._owner_name then
+            if other_unit.object and other_unit.object:get_pos() then
+                local other_pos = other_unit.object:get_pos()
+                local distance = vector.distance(unit_pos, other_pos)
+                if distance <= weapon_range then
+                    table.insert(targets, other_unit)
+                end
+            end
+        end
+    end
+    return targets
 end
 
 local function update_visibility(unit)
@@ -775,10 +798,13 @@ function va_units.register_unit(name, def)
         _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
         _driver = nil,
         _target_pos = nil,
+        _attack_targets = {},
+        _weapons = def.weapons or {},
+        _sight_range = def.sight_range or 16,
         _path = nil,
         _timer = 0,
         _timer_run = 0,
-        _marked_for_removal = false,
+        _marked_for_removal = false,    
         _is_constructed = false,
         _jumping = 0,
         _animation = def.animations.stand,
@@ -867,6 +893,41 @@ function va_units.register_unit(name, def)
             if check_for_removal(self) then
                 return
             end
+            -- get attack targets
+            for _, weapon in pairs(self._weapons) do
+                local targets = find_attack_targets(self, weapon)
+                if targets then
+                    self._attack_targets =  targets                      
+                else 
+                    self._attack_targets = {}
+                end 
+                if #self._attack_targets > 0 and (not self._cooldowns or not self._cooldowns[weapon.name] or self._cooldowns[weapon.name] <= 0) then
+                    local shooter = self
+                    local shooter_pos = shooter.object:get_pos()
+                    if weapon.offset then
+                        shooter_pos = vector.add(shooter_pos, weapon.offset)
+                    end
+                    local target = self._attack_targets[1]
+                    local target_pos = target.object:get_pos()
+                    local range = weapon.range or 16
+                    local damage = weapon.damage or 1
+                    local w = va_weapons.get_weapon(weapon.name)
+                    local dir = vector.direction(shooter_pos, target_pos)
+                    local launch_vector = {velocity = vector.multiply(dir, weapon.projectile_speed or 8)}
+                    w.fire(shooter, shooter_pos, target_pos, range, damage, launch_vector)
+                    self._cooldowns = self._cooldowns or {}
+                    self._cooldowns[weapon.name] = weapon.cooldown or 1
+                else 
+                    -- reduce cooldown
+                    if self._cooldowns and self._cooldowns[weapon.name] and self._cooldowns[weapon.name] > 0 then
+                        self._cooldowns[weapon.name] = self._cooldowns[weapon.name] - dtime
+                        if self._cooldowns[weapon.name] < 0 then
+                            self._cooldowns[weapon.name] = 0
+                        end
+                    end
+                end         
+            end
+            
             self.object:set_properties({infotext = def.nametag .. "\n" .. "HP: " .. tostring(self.object:get_hp()) .. "/" .. tostring(def.hp_max) .. ""})
             update_physics(self)
             keep_loaded(self)
