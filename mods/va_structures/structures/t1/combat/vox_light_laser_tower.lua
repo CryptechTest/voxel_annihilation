@@ -70,9 +70,13 @@ end
 
 --- Rotate the build turret to face toward the target
 ---@param structure any
----@param target any
-local function do_turret_rotation(structure, target)
-    if target == nil or structure == nil then
+---@param target_obj any
+local function do_turret_rotation(structure, target_obj)
+    if target_obj == nil or structure == nil then
+        return
+    end
+    local target = target_obj:get_pos()
+    if target == nil then
         return
     end
     local pos = structure.pos
@@ -84,7 +88,7 @@ local function do_turret_rotation(structure, target)
     local yawRad = turret.rotation and turret.rotation.vec.y or 0
     local pitchRad = turret.rotation and turret.rotation.vec.x or 0
     local yawDeg = yaw_deg -- yawDeg = ((yawDeg + (yaw_deg * 1)) / 2) % 360
-    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 5) and num_is_close(pitch_deg, math.deg(pitchRad), 5) then
+    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 10) and num_is_close(pitch_deg, math.deg(pitchRad), 5) then
         -- if rotation complete mark as locked
         structure._target_locked = true
     end
@@ -105,7 +109,7 @@ local function do_turret_rotation(structure, target)
             rotation = {
                 vec = rot_turret,
                 absolute = true,
-                interpolation = 0.7
+                interpolation = 0.6
             }
         })
     end
@@ -154,7 +158,7 @@ local function find_target(structure, dist)
         end
     end
     if #targets > 0 then
-        return targets[1]:get_pos()
+        return targets[1]
     end
     return nil
 end
@@ -205,10 +209,14 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local range = 16
         local target = s_obj._last_target or find_target(s_obj, range)
 
-        if target then
+        if target and target.get_pos then
+            if target:get_pos() == nil then
+                s_obj._last_target = nil
+                return
+            end
             s_obj._last_target = target
-            local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target)
-            local pitch, pitch_deg = va_structures.util.calculatePitch(target, pos)
+            local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target:get_pos())
+            local pitch, pitch_deg = va_structures.util.calculatePitch(target:get_pos(), pos)
             local turret_end = {
                 x = (0 * 1 / 16) * 0.88,
                 y = (36 * 1 / 16) * 0.50,
@@ -217,7 +225,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
 
             local turret_end_pos = rotate_y(turret_end, yaw, pitch)
             local o_pos = vector.add(s_obj.pos, turret_end_pos)
-            local t_pos = vector.add(target, vector.new(0, 0.3, 0))
+            local t_pos = vector.add(target:get_pos(), vector.new(0, 0.25, 0))
 
             local cost = s_obj:get_data():get_energy_consume()
             local energy = net.energy
@@ -228,11 +236,14 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     local weapon = va_weapons.get_weapon("light_laser")
                     for i = 0, 3, 1 do
                         core.after(0.25 * i, function()
-                            local x = va_structures.util.randFloat(-0.1, 0.1)
-                            local y = va_structures.util.randFloat(-0.1, 0.1)
-                            local z = va_structures.util.randFloat(-0.1, 0.1)
-                            local tr_pos = vector.add(t_pos, vector.new(x, y, z))
-                            weapon.fire(shooter, o_pos, tr_pos, range, damage)
+                            if target and target:get_pos() then
+                                local x = va_structures.util.randFloat(-0.1, 0.1)
+                                local y = va_structures.util.randFloat(-0.1, 0.1)
+                                local z = va_structures.util.randFloat(-0.1, 0.1)
+                                t_pos = vector.add(target:get_pos(), vector.new(0, 0.25, 0))
+                                local tr_pos = vector.add(t_pos, vector.new(x, y, z))
+                                weapon.fire(shooter, o_pos, tr_pos, range, damage)
+                            end
                         end)
                     end
                     s_obj._last_target = nil
