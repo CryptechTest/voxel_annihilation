@@ -87,6 +87,12 @@ local function register_structure_entity(def)
             local node = core.get_node(pos)
             if node and (node.name == def.fqnn or node.name == def.fqnn .. "_water") then
                 core.remove_node(pos)
+                if core.get_modpath("naturalslopeslib") then
+                    local pos_below = vector.subtract(pos, vector.new(0,1,0))
+                    local _node = core.get_node(pos_below)
+                    ---@diagnostic disable-next-line: undefined-global
+                    naturalslopeslib.update_shape(pos_below, _node)
+                end
             end
             return true
         end,
@@ -143,6 +149,24 @@ local function register_structure_entity(def)
             end
         end,
 
+        _get_owner_color_texture = function (self, net)
+            local color = net.team_color or "#00ff00"
+            local texture_base = def.textures[1]
+            if def.textures_color then
+                local texture_player = def.textures_color[1]
+                local textures = { texture_base .. "^(" .. texture_player .. "^[colorize:"..color..":alpha" .. ")"}
+                return textures
+            else
+                return { texture_base }
+            end
+        end,
+        _set_owner_color = function (self, net)
+            local textures = self:_get_owner_color_texture(net)
+            self.object:set_properties({
+                textures = textures,
+            })
+        end,
+
         _construct = function(self)
             if self._constructed then
                 return
@@ -161,18 +185,21 @@ local function register_structure_entity(def)
                     })
                     return
                 end
+                local net = va_structures.get_player_actor(self._owner_name)
                 if prog >= max then
                     self.object:set_properties({
                         textures = def.textures,
                         use_texture_alpha = false,
                     })
                     self._constructed = true
+                    self:_set_owner_color(net)
                     return
                 end
                 local opacity = math.min(math.max(10, math.floor((prog / max) * 255)), 255)
                 local prcnt = 255 - math.floor((prog / max) * 255)
+                local texture = self:_get_owner_color_texture(net)[1]
                 local textures =
-                    {def.textures[1] .. "^[colorize:#00FF00:" .. tostring(prcnt) .. "^[colorize:#0000FF:" ..
+                    { texture .. "^[colorize:#00FF00:" .. tostring(prcnt) .. "^[colorize:#0000FF:" ..
                         tostring(math.floor(prcnt * 0.6)) .. "" .. "^[opacity:" .. tostring(opacity)}
                 self.object:set_properties({
                     textures = textures,

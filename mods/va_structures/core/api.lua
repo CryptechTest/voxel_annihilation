@@ -271,10 +271,11 @@ end
 -----------------------------------------------------------------
 -- player actor owners
 
-function va_structures.add_player_actor(owner, faction, team)
+function va_structures.add_player_actor(owner, faction, team, color)
     local actor_default = {
         faction = faction or "vox",
         team = team or 1,
+        team_color = color or "#ff0000",
         energy = 100,
         energy_storage = 100,
         energy_demand = 0,
@@ -282,7 +283,7 @@ function va_structures.add_player_actor(owner, faction, team)
         mass = 100,
         mass_storage = 100,
         mass_demand = 0,
-        mass_supply = 0
+        mass_supply = 0,
     }
     player_actors[owner] = actor_default
 end

@@ -470,9 +470,9 @@ local function process_queue(unit)
                         tick = claimed
                     }
                     if claimed < _reclaim_value.time then
-                        va_structures.show_reclaim_beam_effect(t_reclaim.pos, b_pos, b_power * 0.5)
+                        va_structures.show_reclaim_beam_effect(t_reclaim.pos, b_pos, b_power * 0.5, net.team_color)
                         if not va_resources.do_reclaim_with_power(t_reclaim, b_power, net) then
-                            va_structures.reclaim_effect_particles(t_reclaim.pos, b_power, vector.direction(t_reclaim.pos, pos))
+                            va_structures.reclaim_effect_particles(t_reclaim.pos, b_power, vector.direction(t_reclaim.pos, pos), net.team_color)
                             if not va_resources.get_check_reclaim_val(t_reclaim.pos) then
                                 q_command.process_complete = true
                             end

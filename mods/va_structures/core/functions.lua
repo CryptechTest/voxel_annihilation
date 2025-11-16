@@ -283,10 +283,10 @@ va_structures.particle_build_effect_cancel = build_effect_particles_cancel
 
 -----------------------------------------------------------------
 
-local function particle_build_effects(target, source, count)
+local function particle_build_effects(target, source, count, color)
 
     --beam_effect(source, target, min, count)
-    va_structures.show_build_beam_effect(source, target, count)
+    va_structures.show_build_beam_effect(source, target, count, color)
 
 end
 
@@ -486,7 +486,8 @@ local function spawn_reclaim_beam_particles(pos, texture, _dir, dist, count)
     core.add_particlespawner(def);
 end
 
-local function show_build_beam_effect(pos1, pos2, count)
+local function show_build_beam_effect(pos1, pos2, count, color)
+    color = color or "#00ff00"
     local dir = vector.direction(pos1, pos2)
     core.after(0, function()
         local cur_pos = vector.add(pos1, vector.multiply(dir, {
@@ -495,13 +496,14 @@ local function show_build_beam_effect(pos1, pos2, count)
             z = 0.2
         }))
         local dist = vector.distance(cur_pos, pos2)
-        spawn_build_beam_particles(cur_pos, "va_structures_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
+        spawn_build_beam_particles(cur_pos, "va_structures_effect_build_particle.png^[colorize:"..color..":alpha", dir, dist, count)
     end)
     return true
 end
 va_structures.show_build_beam_effect = show_build_beam_effect
 
-function va_structures.show_reclaim_beam_effect(target, source, count)
+function va_structures.show_reclaim_beam_effect(target, source, count, color)
+    color = color or "#00ff00"
     core.after(0, function()
         local dir = vector.direction(target, source)
         local cur_pos = vector.add(source, vector.multiply(dir, {
@@ -510,7 +512,7 @@ function va_structures.show_reclaim_beam_effect(target, source, count)
             z = 0.2
         }))
         local dist = vector.distance(target, cur_pos)
-        spawn_reclaim_beam_particles(target, "va_structures_effect_build_particle.png^[colorize:#00ff00:alpha", dir, dist, count)
+        spawn_reclaim_beam_particles(target, "va_structures_effect_build_particle.png^[colorize:"..color..":alpha", dir, dist, count)
     end)
 end
 
@@ -809,11 +811,12 @@ local function reclaim_effect_particle(pos, texture, _dir, dist, size, count, r)
     core.add_particlespawner(def);
 end
 
-function va_structures.reclaim_effect_particles(pos, pow, dir)
+function va_structures.reclaim_effect_particles(pos, pow, dir, color)
+    color = color or "#00ff00"
     dir = vector.multiply(dir, 0.5)
     local dist = pow * 0.075 or 0.75
     local size = 0.121
     local count = pow * 15
     local radius = 0.33
-    reclaim_effect_particle(pos, "va_explosion_spark.png^[colorize:#00ff00:alpha", dir, dist, size, count, radius)
+    reclaim_effect_particle(pos, "va_explosion_spark.png^[colorize:"..color..":alpha", dir, dist, size, count, radius)
 end

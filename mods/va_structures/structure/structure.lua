@@ -382,9 +382,15 @@ function Structure:dequeue_materialize_ghost()
     va_structures.add_active_structure(pos, s)
     -- activate structure
     s:activate()
-    -- activate attechments
+    -- activate attachments
     attach_structure_build(s)
     attach_structure_gauge(s)
+    if core.get_modpath("naturalslopeslib") then
+        local pos_below = vector.subtract(pos, vector.new(0,1,0))
+        local node = core.get_node(pos_below)
+        ---@diagnostic disable-next-line: undefined-global
+        naturalslopeslib.update_shape(pos_below, node)
+    end
     core.after(0.5, function()
         -- dispose entity ghost
         ent_ghost:_dispose(true)
@@ -708,6 +714,12 @@ function Structure:dispose()
     else
         core.remove_node(self.pos)
     end
+    if core.get_modpath("naturalslopeslib") then
+        local pos_below = vector.subtract(self.pos, vector.new(0,1,0))
+        local node = core.get_node(pos_below)
+        ---@diagnostic disable-next-line: undefined-global
+        naturalslopeslib.update_shape(pos_below, node)
+    end
 end
 
 function Structure:deactivate()
@@ -982,7 +994,7 @@ function Structure:construct_with_power(actor, build_power, constructor)
         local count = math.max(3, math.floor(build_power / #emitters))
         for _, emitter in pairs(emitters) do
             local source = vector.add(pos2, emitter)
-            va_structures.particle_build_effects(target, source, count)
+            va_structures.particle_build_effects(target, source, count, actor.team_color)
         end
     end
     return not check_complete()
@@ -1011,7 +1023,7 @@ function Structure:repair_with_power(actor, build_power, constructor)
         local count = math.max(3, math.floor(build_power / #emitters))
         for _, emitter in pairs(emitters) do
             local source = vector.add(constructor.pos, emitter)
-            va_structures.particle_build_effects(pos, source, count)
+            va_structures.particle_build_effects(pos, source, count, actor.team_color)
         end
     end
     return true
@@ -1030,7 +1042,7 @@ function Structure:repair_unit_with_power(actor, unit, b_power)
     self:set_hp(hp + amount)
     local pos = unit_obj:get_pos()
     local pos2 = self.pos
-    va_structures.particle_build_effects(pos, pos2, b_power)
+    va_structures.particle_build_effects(pos, pos2, b_power, actor.team_color)
     return true
 end
 
@@ -1128,7 +1140,7 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             y = 0.25,
             z = 0
         })
-        va_structures.particle_build_effects(target, source, build_power / 2)
+        va_structures.particle_build_effects(target, source, build_power / 2, actor.team_color)
     elseif has_resources then
         q.build_time = q.build_time + b_power
         -- va_structures.particle_build_effect(self.pos, 1)
@@ -1178,8 +1190,8 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
         local b_pos = vector.add(self.pos, build_plate)
         local e_l_pos = vector.add(self.pos, l_turret)
         local e_r_pos = vector.add(self.pos, r_turret)
-        va_structures.particle_build_effects(b_pos, e_l_pos, build_power / 2)
-        va_structures.particle_build_effects(b_pos, e_r_pos, build_power / 2)
+        va_structures.particle_build_effects(b_pos, e_l_pos, build_power / 2, actor.team_color)
+        va_structures.particle_build_effects(b_pos, e_r_pos, build_power / 2, actor.team_color)
     end
 
     if q.build_time < q.build_time_max then

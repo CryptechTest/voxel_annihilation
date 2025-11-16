@@ -535,7 +535,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     z = 0
                 })
                 -- core.log("do reclaim with power")
-                va_structures.show_reclaim_beam_effect(t_reclaim.pos, b_pos, b_power * 0.5)
+                va_structures.show_reclaim_beam_effect(t_reclaim.pos, b_pos, b_power * 0.5, net.team_color)
                 -- target locked, do reclaim of target
                 if not va_resources.do_reclaim_with_power(t_reclaim, b_power, net) then
                     va_structures.reclaim_effect_particles(t_reclaim.pos, b_power, vector.direction(t_reclaim.pos, pos))

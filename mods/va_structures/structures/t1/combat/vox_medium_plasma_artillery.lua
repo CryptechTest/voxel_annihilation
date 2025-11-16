@@ -360,6 +360,7 @@ end
 local def = {
     mesh = "va_vox_medium_plasma_artillery.gltf",
     textures = {"va_vox_medium_plasma_artillery.png"},
+    textures_color = {"va_vox_medium_plasma_artillery_team.png"},
     collisionbox = {-0.85, -0.5, -0.85, 0.85, 1.05, 0.85},
     max_health = 305,
     mass_cost = 125,
