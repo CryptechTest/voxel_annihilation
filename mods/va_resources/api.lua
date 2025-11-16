@@ -457,8 +457,10 @@ function va_resources.do_reclaim_with_power(reclaim_target, build_power, actor)
         actor.mass = actor.mass_storage
     end
 
-    actor.mass_supply = actor.mass_supply + mass_cost_rate
-    actor.energy_supply = actor.energy_supply + energy_cost_rate
+    --actor.mass_supply = actor.mass_supply + mass_cost_rate
+    actor:add_mass_supply(mass_cost_rate)
+    --actor.energy_supply = actor.energy_supply + energy_cost_rate
+    actor:add_energy_supply(energy_cost_rate)
 
     local meta = core.get_meta(reclaim_target.pos)
     local claimed = meta:get_int("claimed") or 0
