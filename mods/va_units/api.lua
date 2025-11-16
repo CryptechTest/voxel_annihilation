@@ -219,6 +219,9 @@ local function find_free_ground(unit, target, search_radius)
     local found_pos = nil
 
     local function is_free_pos(pos)
+        if pos == nil then
+            return false
+        end
         local check = {
             { x = 1,  y = 0, z = 1 },
             { x = 1,  y = 0, z = 0 },
@@ -246,6 +249,9 @@ local function find_free_ground(unit, target, search_radius)
     end
 
     local function get_free_pos(pos)
+        if pos == nil then
+            return nil
+        end
         local check = {
             { x = 1,  y = 0, z = 1 },
             { x = 1,  y = 0, z = 0 },
