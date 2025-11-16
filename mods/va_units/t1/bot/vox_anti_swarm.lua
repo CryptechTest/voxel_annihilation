@@ -21,5 +21,25 @@ va_units.register_unit("vox_anti_swarm", {
     item_inventory_image = "va_units_blueprint.png",
     mass_cost = 27,
     energy_cost = 310,
-    build_time = 420
+    build_time = 420,
+    sight_range = 35,
+    can_attack = true,
+    weapons = {
+        {
+            name = "light_laser",
+            cooldown = 0.5,
+            range = 33,
+            base_damage = 4.5,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        },
+        {
+            name = "light_laser",
+            cooldown = 0.5,
+            range = 33,
+            base_damage = 4.5,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        }
+    }
 })

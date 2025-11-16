@@ -23,5 +23,25 @@ va_units.register_unit("vox_light_plasma", {
     item_inventory_image = "va_units_blueprint.png",
     mass_cost = 13,
     energy_cost = 130,
-    build_time = 220
+    build_time = 220,
+    sight_range = 38,
+    can_attack = true,
+    weapons = {
+        {
+            name = "plasma",
+            cooldown = 1,
+            range = 38,
+            base_damage = 3,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        },
+        {
+            name = "plasma",
+            cooldown = 1,
+            range = 38,
+            base_damage = 3,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        }
+    }
 })
