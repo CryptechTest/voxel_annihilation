@@ -32,7 +32,7 @@ va_units.register_unit("vox_commander", {
             cooldown = 0.5,
             range = 33,
             base_damage = 4.5,
-            offset = { x = 0.15, y = 1.6, z = 0.9 },
+            offset = { x = 0.12, y = 1.8, z = 0.9 },
             attack_targets = { "ground"},
         },
         {
@@ -40,7 +40,7 @@ va_units.register_unit("vox_commander", {
             cooldown = 0.5,
             range = 33,
             base_damage = 4.5,
-            offset = { x = -0.15, y = 1.6, z = 0.9 },
+            offset = { x = -0.12, y = 1.8, z = 0.9 },
             attack_targets = { "ground"},
         }
     }
