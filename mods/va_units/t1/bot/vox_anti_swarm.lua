@@ -30,7 +30,7 @@ va_units.register_unit("vox_anti_swarm", {
             cooldown = 0.5,
             range = 33,
             base_damage = 4.5,
-            offset = { x = 0, y = 2.0, z = -3 },
+            offset = { x = 0.50, y = 1.8, z = 0.9 },
             attack_targets = { "ground"},
         },
         {
@@ -38,7 +38,7 @@ va_units.register_unit("vox_anti_swarm", {
             cooldown = 0.5,
             range = 33,
             base_damage = 4.5,
-            offset = { x = 0, y = 2.0, z = -3 },
+            offset = { x = -0.50, y = 1.8, z = 0.9 },
             attack_targets = { "ground"},
         }
     }

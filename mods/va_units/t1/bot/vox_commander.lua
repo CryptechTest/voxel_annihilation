@@ -30,9 +30,17 @@ va_units.register_unit("vox_commander", {
         {
             name = "light_laser",
             cooldown = 0.5,
-            range = 30,
+            range = 33,
             base_damage = 4.5,
-            offset = { x = 0, y = 2.0, z = -3 },
+            offset = { x = 0.15, y = 1.6, z = 0.9 },
+            attack_targets = { "ground"},
+        },
+        {
+            name = "light_laser",
+            cooldown = 0.5,
+            range = 33,
+            base_damage = 4.5,
+            offset = { x = -0.15, y = 1.6, z = 0.9 },
             attack_targets = { "ground"},
         }
     }
