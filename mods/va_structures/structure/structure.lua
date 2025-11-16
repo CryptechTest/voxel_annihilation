@@ -705,6 +705,7 @@ function Structure:dispose()
     end
     self._disposing = true
     va_structures.remove_active_structure(self.pos)
+    va_structures.remove_player_structure(self)
     self._disposed = true
     if self.entity_obj then
         local ent = self.entity_obj:get_luaentity()

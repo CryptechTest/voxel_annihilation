@@ -224,6 +224,10 @@ end
 
 function va_hud.update_hud(player)
     local player_name = player:get_player_name()
+    local player_actor = va_lobby.get_player_actor(player_name)
+    if not player_actor then
+        return
+    end
     local window_info = core.get_player_window_information(player_name)
     local scale = 1.5
     if window_info then
@@ -243,7 +247,6 @@ function va_hud.update_hud(player)
             scale = scale * hud_scaling * gui_scaling
         end
     end
-    local player_actor = va_structures.get_player_actor(player_name)
     local mass = round(player_actor.mass, 2)
     local mass_supply = round(player_actor.mass_supply, 2)
     local mass_demand = round(player_actor.mass_demand, 2)

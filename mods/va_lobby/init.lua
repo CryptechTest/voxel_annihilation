@@ -1,13 +1,17 @@
-local path = minetest.get_modpath("va_lobby")
+local path = core.get_modpath("va_lobby")
 
-core.register_mapgen_script(path .. "/mapgen.lua")
-
+---@diagnostic disable-next-line: lowercase-global
 va_lobby = {}
-local formspecs = {}
-
 va_lobby.lobbies = {}
 va_lobby.player_lobbies = {}
 
+-- load files
+dofile(path .. "/actors" .. "/players.lua")
+
+-- register mapgen
+core.register_mapgen_script(path .. "/mapgen.lua")
+
+local formspecs = {}
 local pages = {}
 pages.main_menu = nil
 

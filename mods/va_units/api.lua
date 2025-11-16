@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: lowercase-global
 va_units = {}
 va_units.registered_models = {}
 
@@ -6,8 +7,8 @@ local player_units = {}
 local active_units = {}
 local loaded_mapblocks = {}
 
-local abs, atan2, cos, floor, max, min, sin, sqrt, pi =
-    math.abs, math.atan2, math.cos, math.floor, math.max, math.min, math.sin, math.sqrt, math.pi
+---@diagnostic disable-next-line: deprecated
+local abs, atan2, cos, floor, max, min, sin, sqrt, pi = math.abs, math.atan2, math.cos, math.floor, math.max, math.min, math.sin, math.sqrt, math.pi
 
 local function find_free_pos(pos)
     local check = {
@@ -431,7 +432,7 @@ local function process_queue(unit)
             local structure = va_structures.get_active_structure(q_command.pos)
             if structure then
                 if not structure.is_constructed then
-                    local net = va_structures.get_player_actor(unit._owner_name)
+                    local net = va_lobby.get_player_actor(unit._owner_name)
                     local constructor = {
                         pos = unit.object:get_pos(),
                         -- TODO: setup offset positions for particle emitters
@@ -469,7 +470,7 @@ local function process_queue(unit)
         else
             unit._target_pos = nil
             local unit_def = units[unit.name]
-            local net = va_structures.get_player_actor(unit._owner_name)
+            local net = va_lobby.get_player_actor(unit._owner_name)
             if unit_def and net then
                 local b_power = unit_def.build_power
                 local pos = unit.object:get_pos()
