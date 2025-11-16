@@ -21,5 +21,17 @@ va_units.register_unit("vox_scout", {
     item_inventory_image = "va_units_blueprint.png",
     mass_cost = 2.1,
     energy_cost = 30,
-    build_time = 80
+    build_time = 80,
+    sight_range = 20,
+    can_attack = true,
+    weapons = {
+        {
+            name = "plasma",
+            cooldown = 0.5,
+            range = 14,
+            base_damage = 2,
+            offset = { x = 0, y = 1.0, z = -1 },
+            attack_targets = { "ground"},
+        }
+    }
 })
