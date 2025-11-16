@@ -23,5 +23,25 @@ va_units.register_unit("vox_fast_infantry", {
     item_inventory_image = "va_units_blueprint.png",
     mass_cost = 5.4,
     energy_cost = 90,
-    build_time = 165
+    build_time = 165,
+    sight_range = 43,
+    can_attack = true,
+    weapons = {
+        {
+            name = "plasma",
+            cooldown = 0.33,
+            range = 18,
+            base_damage = 1.5,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        },
+        {
+            name = "plasma",
+            cooldown = 0.33,
+            range = 18,
+            base_damage = 1.5,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        }
+    }
 })

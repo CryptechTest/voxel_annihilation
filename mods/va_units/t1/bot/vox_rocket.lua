@@ -21,5 +21,17 @@ va_units.register_unit("vox_rocket", {
     item_inventory_image = "va_units_blueprint.png",
     mass_cost = 12,
     energy_cost = 100,
-    build_time = 201
+    build_time = 201,
+    sight_range = 34,
+    can_attack = true,
+    weapons = {
+        {
+            name = "missile",
+            cooldown = 3,
+            range = 32,
+            base_damage = 12,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        }
+    }
 })

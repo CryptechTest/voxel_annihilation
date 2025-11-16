@@ -23,5 +23,17 @@ va_units.register_unit("vox_commander", {
     build_time = 7500,
     build_power = 30,
     can_build = true,
-    can_reclaim = true
+    can_reclaim = true,
+    sight_range = 45,
+    can_attack = true,
+    weapons = {
+        {
+            name = "light_laser",
+            cooldown = 0.5,
+            range = 30,
+            base_damage = 4.5,
+            offset = { x = 0, y = 2.0, z = -3 },
+            attack_targets = { "ground"},
+        }
+    }
 })
