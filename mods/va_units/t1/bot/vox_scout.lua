@@ -8,8 +8,8 @@ va_units.register_unit("vox_scout", {
     mesh = "va_units_vox_scout.gltf",
     texture ="va_units_vox_scout.png",
     visual_size = { x = 1, y = 1},
-    collisionbox = {-0.25, 0.01, -0.2, 0.25, 0.35, 0.25},
-    selectionbox = { -0.25, 0.0, -0.2, 0.25, 0.35, 0.25 },
+    collisionbox = {-0.1, 0.01, -0.2, 0.1, 0.3, 0.05},
+    selectionbox = { -0.1, 0.0, -0.2, 0.1, 0.3, 0.05 },
     driver_eye_offset = { x = 0, y = 2, z = -16 },
     stepheight = 1.0,
     hp_max = 6,
@@ -27,10 +27,12 @@ va_units.register_unit("vox_scout", {
     weapons = {
         {
             name = "plasma",
-            cooldown = 0.5,
+            cooldown = 0.25,
             range = 14,
-            base_damage = 2,
-            offset = { x = 0, y = 1.0, z = -1 },
+            base_damage = 1,
+            offset = { x = 0, y = 0.32, z = 0.05 },
+            -- launch at 45 degree angle up
+            launch_vector = { x = 0, y = 2, z = 2 },
             attack_targets = { "ground"},
         }
     }

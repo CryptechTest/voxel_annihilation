@@ -910,10 +910,12 @@ function va_units.register_unit(name, def)
                     local target = self._attack_targets[1]
                     local target_pos = target.object:get_pos()
                     local range = weapon.range or 16
-                    local damage = weapon.damage or 1
+                    local damage = weapon.base_damage or 1
                     local w = va_weapons.get_weapon(weapon.name)
                     local dir = vector.direction(shooter_pos, target_pos)
-                    local launch_vector = {velocity = vector.multiply(dir, weapon.projectile_speed or 8)}
+                    dir.y = dir.y + 0.33 -- aim slightly upwards
+                    local dist = vector.distance(shooter_pos, target_pos)
+                    local launch_vector = {velocity = vector.multiply(dir, math.min(range, dist)) }
                     w.fire(shooter, shooter_pos, target_pos, range, damage, launch_vector)
                     self._cooldowns = self._cooldowns or {}
                     self._cooldowns[weapon.name] = weapon.cooldown or 1

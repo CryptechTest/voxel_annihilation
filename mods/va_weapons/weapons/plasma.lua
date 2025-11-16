@@ -377,7 +377,7 @@ va_weapons.register_weapon("plasma", {
             return false
         end
         local damage = base_damage
-        local splash_radius = 3
+        local splash_radius = math.max(1, math.floor(base_damage / 2))
         local splash_damage = base_damage * 0.3
         local gain = 1.0
         -- deeper pitch for higher damage
@@ -402,7 +402,8 @@ va_weapons.register_weapon("plasma", {
                     plasma_entity:set_velocity(launch_vector.velocity)
                     --plasma_entity:set_rotation({x = launch_vector.pitch, y = launch_vector.yaw, z = 0})
                 end
-                local size = math.min(1.5, (base_damage / 100))
+                local size = math.max(0.05, math.min(0.667, 0.05 + (base_damage / 100) * (0.667 - 0.05)))
+                core.chat_send_all("base_damage: " .. tostring(base_damage) .. " size:" .. tostring(size))
                 plasma_entity:set_properties({ visual_size = { x = size, y = size }, collisionbox = { -size/3, -size/3, -size/3, size/3, size/3, size/3 } })
                 local attached = plasma_entity:get_luaentity().object or plasma_entity
                 -- DEBUG: spawn particles at shooter's position to verify spawner works

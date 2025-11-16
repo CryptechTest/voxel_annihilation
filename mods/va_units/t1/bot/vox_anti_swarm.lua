@@ -22,22 +22,22 @@ va_units.register_unit("vox_anti_swarm", {
     mass_cost = 27,
     energy_cost = 310,
     build_time = 420,
-    sight_range = 35,
+    sight_range = 17,
     can_attack = true,
     weapons = {
         {
             name = "light_laser",
             cooldown = 0.5,
-            range = 33,
-            base_damage = 4.5,
+            range = 16,
+            base_damage = 3.5,
             offset = { x = 0.15, y = 1.6, z = 0.9 },
             attack_targets = { "ground"},
         },
         {
             name = "light_laser",
             cooldown = 0.5,
-            range = 33,
-            base_damage = 4.5,
+            range = 16,
+            base_damage = 3.5,
             offset = { x = -0.15, y = 1.6, z = 0.9 },
             attack_targets = { "ground"},
         }

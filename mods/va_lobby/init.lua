@@ -298,5 +298,6 @@ core.override_item("bedrock2:bedrock", {light_source = 3, propagates_light = tru
 
 core.register_on_joinplayer(function(player, last_login)
     player:set_lighting({ shadows = { intensity = 0.25 } })
+    player:set_armor_groups({ immortal = 1 })
 end)
 

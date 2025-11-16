@@ -31,16 +31,16 @@ va_units.register_unit("vox_fast_infantry", {
             name = "plasma",
             cooldown = 0.33,
             range = 18,
-            base_damage = 1.5,
-            offset = { x = 0, y = 2.0, z = -3 },
+            base_damage = 1.25,
+            offset = { x = 0.28, y = 0.6, z = 0.4 },
             attack_targets = { "ground"},
         },
         {
             name = "plasma",
             cooldown = 0.33,
             range = 18,
-            base_damage = 1.5,
-            offset = { x = 0, y = 2.0, z = -3 },
+            base_damage = 1.25,
+            offset = { x = -0.28, y = 0.6, z = 0.4 },
             attack_targets = { "ground"},
         }
     }

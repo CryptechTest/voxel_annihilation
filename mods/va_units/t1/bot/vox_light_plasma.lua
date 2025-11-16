@@ -29,18 +29,18 @@ va_units.register_unit("vox_light_plasma", {
     weapons = {
         {
             name = "plasma",
-            cooldown = 1,
-            range = 38,
-            base_damage = 3,
-            offset = { x = 0, y = 2.0, z = -3 },
+            cooldown = 3,
+            range = 18,
+            base_damage = 12,
+            offset = { x = 0.23, y = 1.05, z = 0.49 },
             attack_targets = { "ground"},
         },
         {
             name = "plasma",
-            cooldown = 1,
-            range = 38,
-            base_damage = 3,
-            offset = { x = 0, y = 2.0, z = -3 },
+            cooldown = 3,
+            range = 18,
+            base_damage = 12,
+            offset = { x = -0.23, y = 1.05, z = 0.49 },
             attack_targets = { "ground"},
         }
     }
