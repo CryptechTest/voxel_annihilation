@@ -271,6 +271,46 @@ end
 -----------------------------------------------------------------
 -- player actor owners
 
+local function add_energy_demand(self, amount)
+    if not self.energy_demands then
+        self.energy_demands = {}
+    end
+    table.insert(self.energy_demands, {
+        amount = amount,
+        counted = false
+    })
+end
+
+local function add_energy_supply(self, amount)
+    if not self.energy_supplys then
+        self.energy_supplys = {}
+    end
+    table.insert(self.energy_supplys, {
+        amount = amount,
+        counted = false
+    })
+end
+
+local function add_mass_demand(self, amount)
+    if not self.mass_demands then
+        self.mass_demands = {}
+    end
+    table.insert(self.mass_demands, {
+        amount = amount,
+        counted = false
+    })
+end
+
+local function add_mass_supply(self, amount)
+    if not self.mass_supplys then
+        self.mass_supplys = {}
+    end
+    table.insert(self.mass_supplys, {
+        amount = amount,
+        counted = false
+    })
+end
+
 function va_structures.add_player_actor(owner, faction, team, color)
     local actor_default = {
         faction = faction or "vox",
@@ -279,11 +319,19 @@ function va_structures.add_player_actor(owner, faction, team, color)
         energy = 100,
         energy_storage = 100,
         energy_demand = 0,
+        energy_demands = {},
+        add_energy_demand = add_energy_demand,
         energy_supply = 0,
+        energy_supplys = {},
+        add_energy_supply = add_energy_supply,
         mass = 100,
         mass_storage = 100,
         mass_demand = 0,
+        mass_demands = {},
+        add_mass_demand = add_mass_demand,
         mass_supply = 0,
+        mass_supplys = {},
+        add_mass_supply = add_mass_supply
     }
     player_actors[owner] = actor_default
 end
@@ -311,38 +359,6 @@ function va_structures.get_actors()
         }
     end
     return actors
-end
-
------------------------------------------------------------------
--- player actor calculations
-
-local function calculate_player_actor_structures()
-    local owner_structures = {}
-    for hash, structure in pairs(_active_instances) do
-        if not owner_structures[structure.owner] then
-            owner_structures[structure.owner] = {}
-        end
-        table.insert(owner_structures[structure.owner], structure)
-    end
-    for _, actor in pairs(player_actors) do
-        actor.energy_storage = 100
-        actor.energy_supply = 0
-        actor.energy_demand = 0
-        actor.mass_storage = 100
-        actor.mass_supply = 0
-        actor.mass_demand = 0
-    end
-    for n, structures in pairs(owner_structures) do
-        local actor = player_actors[n]
-        for _, s in pairs(structures) do
-            if s:can_store_energy() then
-                actor.energy_storage = actor.energy_storage + s:get_data():get_energy_storage()
-            end
-            if s:can_store_mass() then
-                actor.mass_storage = actor.mass_storage + s:get_data():get_mass_storage()
-            end
-        end
-    end
 end
 
 -----------------------------------------------------------------
@@ -538,6 +554,77 @@ function va_structures.check_collision(pos)
 end
 
 -----------------------------------------------------------------
+-- player actor calculations
+
+local function calculate_player_actor_structures()
+    -- reset resource counters
+    for _, actor in pairs(player_actors) do
+        actor.energy_storage = 100
+        actor.energy_supply = 0
+        actor.energy_demand = 0
+        actor.mass_storage = 100
+        actor.mass_supply = 0
+        actor.mass_demand = 0
+
+    end
+    -- tally resource demands and supplys
+    for _, actor in pairs(player_actors) do
+        local energy_demands = {}
+        local energy_supplys = {}
+        local mass_demands = {}
+        local mass_supplys = {}
+        for _, demand in ipairs(actor.energy_demands) do
+            if not demand.counted then
+                actor.energy_demand = actor.energy_demand + demand.amount
+                demand.counted = true
+            end
+        end
+        actor.energy_demands = energy_demands
+        for _, supply in ipairs(actor.energy_supplys) do
+            if not supply.counted then
+                actor.energy_supply = actor.energy_supply + supply.amount
+                supply.counted = true
+            end
+        end
+        actor.energy_supplys = energy_supplys
+        for _, demand in ipairs(actor.mass_demands) do
+            if not demand.counted then
+                actor.mass_demand = actor.mass_demand + demand.amount
+                demand.counted = true
+            end
+        end
+        actor.mass_demands = mass_demands
+        for _, supply in ipairs(actor.mass_supplys) do
+            if not supply.counted then
+                actor.mass_supply = actor.mass_supply + supply.amount
+                supply.counted = true
+            end
+        end
+        actor.mass_supplys = mass_supplys
+    end
+    -- iterate over structures and group by owner
+    local owner_structures = {}
+    for _, structure in pairs(_active_instances) do
+        if not owner_structures[structure.owner] then
+            owner_structures[structure.owner] = {}
+        end
+        table.insert(owner_structures[structure.owner], structure)
+    end
+    -- add up storages for each owner
+    for n, structures in pairs(owner_structures) do
+        local actor = player_actors[n]
+        for _, s in pairs(structures) do
+            if s:can_store_energy() then
+                actor.energy_storage = actor.energy_storage + s:get_data():get_energy_storage()
+            end
+            if s:can_store_mass() then
+                actor.mass_storage = actor.mass_storage + s:get_data():get_mass_storage()
+            end
+        end
+    end
+end
+
+-----------------------------------------------------------------
 -- vas_run
 
 local node_vas_run = {}
@@ -570,25 +657,23 @@ local function run_nodes(list, run_stage)
             s:run_post(run_stage, actor)
         end
     end
-    --[[for t, team in pairs(va_teams) do
-        core.log("Team " .. t .. ":  ENERGY= " .. team.energy .. "/" .. team.energy_storage .. "  MASS= " .. team.mass .. "/" .. team.mass_storage)
-    end]]
 end
 
 -- structure runner
 va_structures.structures_run = function(run_tick)
     local s_pos = {}
-    for hash, structure in pairs(_active_instances) do
+    for _, structure in pairs(_active_instances) do
         table.insert(s_pos, structure.pos)
     end
     if run_tick == 0 then
         calculate_player_actor_structures()
+    end
+    if run_tick == 0 then
         run_nodes(s_pos, "main")
     elseif run_tick == 1 then
         run_nodes(s_pos, "weapon")
     end
-    -- core.log("run " .. #s_pos .. " structures")
-end 
+end
 
 -----------------------------------------------------------------
 -- cleanup_assets
