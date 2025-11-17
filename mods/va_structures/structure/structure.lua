@@ -1037,6 +1037,9 @@ function Structure:repair_unit_with_power(actor, unit, b_power)
     if not unit_obj._is_constructed then
         unit_obj._is_constructed = true
     end
+    if not unit_obj then
+        return
+    end
     local hp = unit_obj:get_hp()
     if hp >= unit_obj:get_hp_max() then
         return false
