@@ -13,7 +13,7 @@ core.register_globalstep(function(dtime)
     timer = 0
 
     -- tick actors
-    va_lobby.calculate_player_actors()
+    va_game.calculate_player_actors()
 
     vas_run_tick = vas_run_tick + 1
     if vas_run_tick >= vas_run_tick_max then

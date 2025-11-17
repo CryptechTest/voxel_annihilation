@@ -185,7 +185,7 @@ local function register_structure_entity(def)
                     })
                     return
                 end
-                local net = va_lobby.get_player_actor(self._owner_name)
+                local net = va_game.get_player_actor(self._owner_name)
                 if prog >= max then
                     self.object:set_properties({
                         textures = def.textures,

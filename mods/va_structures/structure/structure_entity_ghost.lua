@@ -143,7 +143,11 @@ local function register_structure_entity_ghost(def)
         end,
 
         on_rightclick = def.on_rightclick or function(self, clicker)
-
+            local pos = self.object:get_pos();
+            if pos then
+                va_structures.remove_pos_from_command_queue(pos, self._constructor_id)
+                self:_dispose(true)
+            end
         end,
 
         on_punch = def.on_punch or function(puncher, time_from_last_punch, tool_capabilities, direction, damage)

@@ -1,7 +1,7 @@
 -- marker particle effect
-local function spawn_particle(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, size, time, amount)
+local function spawn_particle(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, size, time, amount, color)
     local texture = {
-        name = "va_game_marker_1.png",
+        name = "va_game_marker_1.png^[colorize:"..color..":alpha]",
         blend = "alpha",
         scale = 1,
         alpha = 1.0,
@@ -179,7 +179,12 @@ core.register_node("va_game:command_marker", {
                 if commander then
                     commander:get_luaentity()._is_constructed = true
                 end
-                spawn_particle(s_pos, 0.5, 1.25, 0.5, 0, -0.5, 0, 0.4, 3, 60)
+                local color = "#ffffff"
+                if owner then
+                    local actor = va_game.get_player_actor(owner)
+                    color = actor.team_color
+                end
+                spawn_particle(s_pos, 0.5, 1.25, 0.5, 0, -0.5, 0, 0.4, 3, 60, color)
             end
         end
         if do_remove then
@@ -198,7 +203,14 @@ core.register_abm({
     min_y = -10000,
     max_y = 10000,
     action = function(pos, node, active_object_count, active_object_count_wider)
-        spawn_particle(pos, 0, 1.5, 0, 0, -0.25, 0, 0.45, 4, 20)
+        local meta = core.get_meta(pos)
+        local owner = meta:get_string("owner")
+        local color = "#ffffff"
+        if owner then
+            local actor = va_game.get_player_actor(owner)
+            color = actor.team_color
+        end
+        spawn_particle(pos, 0, 1.5, 0, 0, -0.25, 0, 0.45, 4, 20, color)
         --core.remove_node(pos)
     end
 })

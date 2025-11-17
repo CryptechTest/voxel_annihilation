@@ -25,7 +25,6 @@ function GameObject.new(pos, size, mode, name, pass)
     -- player lists
     self.teams = {} -- Table to store teams in the game object
     self.players = {} -- Table to store players in the game object
-    self.players_ready = {}
     self.spectators = {} -- Table to store spectators in the game object
     self.bosses = {} -- Table to store bosses in the game object
     self.victors = {}
@@ -72,6 +71,7 @@ function GameObject:init()
             end
         end
     elseif self.setup_index == 3 then
+        self:create_player_actors()
         if self.created then
             self:send_all_player_msg("Game ready! One moment...")
         end
@@ -81,12 +81,14 @@ function GameObject:init()
             self:player_ctl_init(p.name)
         end
         self:send_all_player_msg("Please choose a landing location for your Commander.")
+        self:send_all_player_sound("va_game_amy_choose_starting_location")
     end
 end
 
 function GameObject:begin()
     if self.start_index == 0 then
         self:send_all_player_msg("Game Started!")
+        self:send_all_player_sound("va_game_amy_battle_started")
     elseif self.start_index == 1 then
         for _, p in pairs(self.players) do
             self:player_ctl_base(p.name)
@@ -116,6 +118,9 @@ function GameObject:check_ready()
     local all_ready = true
     for _, p in pairs(self.players) do
         if not p.placed then
+            all_ready = false
+        end
+        if not p.ready then
             all_ready = false
         end
     end
@@ -292,14 +297,16 @@ end
 
 -- players
 function GameObject:add_player(player_name, team_id, faction, is_boss)
-    table.insert(self.players, {
+    self.players[player_name] = {
         name = player_name,
         team = team_id,
         faction = faction,
         is_boss = is_boss,
         is_spawned = false,
         selected_menu = "none",
-    })
+        placed = false,
+        ready = false,
+    }
 end
 
 function GameObject:remove_player(player_name)
@@ -316,12 +323,7 @@ function GameObject:get_players()
 end
 
 function GameObject:get_player(player_name)
-    for _, player in ipairs(self.players) do
-        if player.name == player_name then
-            return player
-        end
-    end
-    return nil
+    return self.players[player_name]
 end
 
 -- spectators
@@ -363,9 +365,27 @@ end
 
 -----------------------------------------------------------------
 
+function GameObject:create_player_actors()
+    for _, p in pairs(self.players) do
+        va_game.add_player_actor(p.name, p.faction, p.team, nil)
+    end
+end
+
+-----------------------------------------------------------------
+
 function GameObject:send_all_player_msg(msg)
     for _, p in pairs(self.players) do
         core.chat_send_player(p.name, msg)
+    end
+end
+
+function GameObject:send_all_player_sound(sound)
+    for _, p in pairs(self.players) do
+        core.sound_play(sound, {
+            gain = 1.0,
+            pitch = 1.0,
+            to_player = p.name
+        })
     end
 end
 
@@ -379,7 +399,7 @@ function GameObject:tick_ctl()
         local found_repairer = false
         local found_attacker = false
         local found_reclaimer = false
-        for _, selected_entity in ipairs(selected_units) do
+        for _, selected_entity in pairs(selected_units) do
             if selected_entity._can_build then
                 found_builder = true
             end
@@ -427,7 +447,7 @@ function GameObject:player_ctl_init(player_name)
         return
     end
     if g_player.placed then
-        return
+        --return
     end
     if g_player.selected_menu ~= "init" then
         g_player.selected_menu = "init"

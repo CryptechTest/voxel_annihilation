@@ -1,20 +1,25 @@
 -- player tracking...
 local player_actors = {}
 
+local env = {
+    base_mass = 100,
+    base_energy = 100
+}
+
 -----------------------------------------------------------------
 
 local color_index = 1
 local colors = {"#ff0000", "#0000ff", "#00ff00", "#ffff00", "#ff00ff", "#00ffff", "#800080", "#008080", "#c0c0c0", "#a52a2a", "#deb887", "#5f9ea0", "#7fff00", "#dda0dd", "#add8e6", "#9932CC"}
 
 -- TODO: this is temp!
-core.register_on_joinplayer(function(player)
+--[[core.register_on_joinplayer(function(player)
     local name = player:get_player_name()
-    va_lobby.add_player_actor(name, "vox", 1, colors[color_index])
+    va_game.add_player_actor(name, "vox", 1, colors[color_index])
     color_index = color_index + 1
     if color_index > 16 then
         color_index = 1
     end
-end)
+end)]]
 
 -----------------------------------------------------------------
 
@@ -61,12 +66,19 @@ end
 -----------------------------------------------------------------
 -- player actor owners
 
-function va_lobby.add_player_actor(owner, faction, team, color)
+function va_game.add_player_actor(owner, faction, team, color)
+    if not color then
+        color = colors[color_index]
+        color_index = color_index + 1
+        if color_index > 16 then
+            color_index = 1
+        end
+    end
     local actor_default = {
         faction = faction or "vox",
         team = team or 1,
         team_color = color or "#ff0000",
-        energy = 100,
+        energy = env.base_energy,
         energy_storage = 0,
         energy_demand = 0,
         energy_demands = {},
@@ -74,7 +86,7 @@ function va_lobby.add_player_actor(owner, faction, team, color)
         energy_supply = 0,
         energy_supplys = {},
         add_energy_supply = add_energy_supply,
-        mass = 100,
+        mass = env.base_mass,
         mass_storage = 0,
         mass_demand = 0,
         mass_demands = {},
@@ -86,21 +98,21 @@ function va_lobby.add_player_actor(owner, faction, team, color)
     player_actors[owner] = actor_default
 end
 
-function va_lobby.remove_player_actor(owner)
+function va_game.remove_player_actor(owner)
     player_actors[owner] = nil
 end
 
-function va_lobby.get_player_actor(owner)
+function va_game.get_player_actor(owner)
     return player_actors[owner]
 end
 
-function va_lobby.get_player_actors()
+function va_game.get_player_actors()
     return player_actors
 end
 
 -----------------------------------------------------------------
 
-function va_lobby.get_actors()
+function va_game.get_actors()
     local get_player_structures = va_structures.get_player_structures
     local actors = {}
     for p, actor in pairs(player_actors) do
@@ -116,13 +128,13 @@ end
 -----------------------------------------------------------------
 -- player actor calculations
 
-function va_lobby.calculate_player_actors()
-   va_lobby.calculate_player_actors_reset()
-   va_lobby.calculate_player_actor_units()
-   va_lobby.calculate_player_actor_structures()
+function va_game.calculate_player_actors()
+   va_game.calculate_player_actors_reset()
+   va_game.calculate_player_actor_units()
+   va_game.calculate_player_actor_structures()
 end
 
-function va_lobby.calculate_player_actors_reset()
+function va_game.calculate_player_actors_reset()
     -- reset resource counters
     for _, actor in pairs(player_actors) do
         actor.energy_storage = 0
@@ -134,9 +146,9 @@ function va_lobby.calculate_player_actors_reset()
     end
 end
 
-function va_lobby.calculate_player_actor_units(reset)
+function va_game.calculate_player_actor_units(reset)
     if reset then
-        va_lobby.calculate_player_actors_reset()
+        va_game.calculate_player_actors_reset()
     end
     local units = va_units.get_all_units()
     -- iterate over units and group by owner
@@ -171,9 +183,9 @@ function va_lobby.calculate_player_actor_units(reset)
     end
 end
 
-function va_lobby.calculate_player_actor_structures(reset)
+function va_game.calculate_player_actor_structures(reset)
     if reset then
-        va_lobby.calculate_player_actors_reset()
+        va_game.calculate_player_actors_reset()
     end
     -- tally resource demands and supplys
     for _, actor in pairs(player_actors) do

@@ -8,3 +8,7 @@ va_game.games = {}
 dofile(path .. "/src" .. "/game_manager.lua")
 dofile(path .. "/src" .. "/game_marker.lua")
 dofile(path .. "/src" .. "/globalstep.lua")
+
+-- load player actor files
+dofile(path .. "/src/actors" .. "/players.lua")
+dofile(path .. "/src/actors" .. "/globalstep.lua")

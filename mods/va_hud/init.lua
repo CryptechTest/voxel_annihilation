@@ -224,7 +224,7 @@ end
 
 function va_hud.update_hud(player)
     local player_name = player:get_player_name()
-    local player_actor = va_lobby.get_player_actor(player_name)
+    local player_actor = va_game.get_player_actor(player_name)
     if not player_actor then
         return
     end

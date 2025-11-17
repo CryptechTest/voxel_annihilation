@@ -60,16 +60,24 @@ va_commands.register_command("build", {
         end
         local player_name = user:get_player_name()
         local structure = nil
+        local ghost = nil
         if pointed_thing.type == "nothing" then
         elseif pointed_thing.type == "node" then
             structure = va_structures.get_active_structure(pointed_thing.above)
             if not structure then
                 structure = va_structures.get_active_structure(pointed_thing.under)
             end
+            ghost = va_structures.get_unit_command_queue_from_pos(pointed_thing.above)
+            if not ghost then
+                ghost = va_structures.get_unit_command_queue_from_pos(pointed_thing.under)
+            end
         elseif pointed_thing.type == "object" then
             local entity = pointed_thing.ref
             if entity then
                 structure = va_structures.get_active_structure(entity:get_pos())
+            end
+            if not structure and entity then
+                ghost = va_structures.get_unit_command_queue_from_pos(entity:get_pos())
             end
         end
 
@@ -85,7 +93,12 @@ va_commands.register_command("build", {
                 break
             end
         end
-        if found then
+        if found and ghost then
+            if ghost.structure_ghost and ghost.structure_ghost.entity_obj then
+                core.chat_send_player(player_name, "Queued structure cancelled.")
+                ghost.structure_ghost.entity_obj:get_luaentity():on_rightclick(user)
+            end
+        elseif found then
             --core.chat_send_player(player_name, "Queued build command.")
             va_structures.show_construction_menu(player_name, selected_unit_name, selected_unit_id)
         else

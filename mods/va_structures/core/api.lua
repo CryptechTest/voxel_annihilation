@@ -481,7 +481,7 @@ core.register_on_mods_loaded(function()
 end)
 
 local function run_nodes(list, run_stage)
-    local player_actors = va_lobby.get_player_actors()
+    local player_actors = va_game.get_player_actors()
     for _, pos in ipairs(list) do
         local node = core.get_node_or_nil(pos)
         if not node then

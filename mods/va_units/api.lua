@@ -440,7 +440,7 @@ local function process_queue(unit)
             local structure = va_structures.get_active_structure(q_command.pos)
             if structure then
                 if not structure.is_constructed then
-                    local net = va_lobby.get_player_actor(unit._owner_name)
+                    local net = va_game.get_player_actor(unit._owner_name)
                     local constructor = {
                         pos = unit.object:get_pos(),
                         -- TODO: setup offset positions for particle emitters
@@ -478,7 +478,7 @@ local function process_queue(unit)
         else
             unit._target_pos = nil
             local unit_def = units[unit.name]
-            local net = va_lobby.get_player_actor(unit._owner_name)
+            local net = va_game.get_player_actor(unit._owner_name)
             if unit_def and net then
                 local b_power = unit_def.build_power
                 local pos = unit.object:get_pos()
@@ -592,6 +592,19 @@ local function abort_queue(unit)
     end
     va_structures.dispose_unit_command_queue(unit._id)
     unit._command_queue = {}
+end
+
+local function abort_queue_at(unit, pos)
+    for i, qc in ipairs(unit._command_queue) do
+        if qc.command_type == "structure_queued" then
+            if qc.pos.y == pos.y and qc.pos.x == pos.x and qc.pos.z == pos.z then
+                table.remove(unit._command_queue, i)
+                break
+            end
+        elseif qc.command_type == "structure_construct" then
+            -- ignore?
+        end
+    end
 end
 
 local function process_look(driver, unit, horizontal)
@@ -798,6 +811,7 @@ function va_units.register_unit(name, def)
         _can_attack = def.can_attack or false,
         _command_queue = {},
         _command_queue_abort = def.command_abort_queue or abort_queue,
+        _command_queue_abort_at = def.command_abort_queue_at or abort_queue_at,
         _command_queue_add = def.command_queue_add or enqueue_command,
         _id = nil,
         _team = nil,

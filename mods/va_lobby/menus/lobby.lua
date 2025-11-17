@@ -198,7 +198,7 @@ local function get_game_start(lobby_owner, pname, game)
         label[0.5,1.25;Starting in... ]] .. tostring(game.start_index) .. [[]
         button_exit[2.5,2.25;1.5,0.45;close;Close]
     ]]}
-    local ready = game.players_ready[pname] and game.players_ready[pname].ready or false
+    local ready = game.players[pname] and game.players[pname].ready or false
     local p_ready = "checkbox[0.25,2.0;ready_start_" .. pname .. ";Ready;" .. tostring(ready) .. "]"
     table.insert(formspec, p_ready)
     local game_formspec = table.concat(formspec, "")
@@ -471,14 +471,8 @@ core.register_on_player_receive_fields(function(player, formname, fields)
             elseif fields["ready_start_" .. pname] then
                 local game = va_game.get_game_from_lobby(lobby.name)
                 if game then
-                    if not game.players_ready[pname] then
-                        game.players_ready[pname] = {
-                            ready = false,
-                            placed = false
-                        }
-                    end
-                    if game.players_ready[pname].placed == true then
-                        game.players_ready[pname].ready = fields["ready_start_" .. pname] == "true"
+                    if game.players[pname] and game.players[pname].placed == true then
+                        game.players[pname].ready = fields["ready_start_" .. pname] == "true"
                         update_formspec(player)
                     end
                 end
