@@ -864,6 +864,7 @@ function va_units.register_unit(name, def)
             if staticdata ~= nil and staticdata ~= "" then
                 local data = staticdata:split(';')
                 self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
+                self._marked_for_removal = data[2] == "1" and true or false
             end
             self._animation = animations.stand
             self.object:set_animation(self._animation or animations.stand, 1, 0)
@@ -895,7 +896,7 @@ function va_units.register_unit(name, def)
             self.object:set_observers({})
         end,
         get_staticdata = function(self)
-            return self._owner_name or ""
+            return (self._owner_name or "") .. ";" .. (self._marked_for_removal and "1" or "0")
         end,
         on_step = function(self, dtime, moveresult)
 
@@ -1359,4 +1360,12 @@ end)
 
 core.register_on_leaveplayer(function(player)
     force_detach(player)
+end)
+
+
+core.register_on_shutdown(function()
+    for _, unit in pairs(active_units) do
+        --mark for removal on shutdown
+        unit._marked_for_removal = true
+    end
 end)
