@@ -8,4 +8,5 @@ dofile(core.get_modpath("va_commands") .. "/commands/guard.lua")
 dofile(core.get_modpath("va_commands") .. "/commands/stop.lua")
 dofile(core.get_modpath("va_commands") .. "/commands/build.lua")
 dofile(core.get_modpath("va_commands") .. "/commands/reclaim.lua")
-
+dofile(core.get_modpath("va_commands") .. "/commands/capture.lua")
+dofile(core.get_modpath("va_commands") .. "/commands/repair.lua")

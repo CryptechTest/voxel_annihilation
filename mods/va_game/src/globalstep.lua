@@ -1,9 +1,8 @@
 -- the interval between run calls
-local vas_run_interval = 1.0
+local vas_run_interval = 0.25
 local vas_run_tick = 0
-local vas_run_tick_max = 1
+local vas_run_tick_max = 4
 
--- iterate over all collected players and run calculations
 local timer = 0
 core.register_globalstep(function(dtime)
     timer = timer + dtime
@@ -12,8 +11,8 @@ core.register_globalstep(function(dtime)
     end
     timer = 0
 
-    -- tick actors
-    va_lobby.calculate_player_actors()
+    -- tick games
+    va_game.tick_all(vas_run_tick)
 
     vas_run_tick = vas_run_tick + 1
     if vas_run_tick >= vas_run_tick_max then
