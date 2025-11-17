@@ -67,7 +67,7 @@ function va_lobby.add_player_actor(owner, faction, team, color)
         team = team or 1,
         team_color = color or "#ff0000",
         energy = 100,
-        energy_storage = 100,
+        energy_storage = 0,
         energy_demand = 0,
         energy_demands = {},
         add_energy_demand = add_energy_demand,
@@ -75,7 +75,7 @@ function va_lobby.add_player_actor(owner, faction, team, color)
         energy_supplys = {},
         add_energy_supply = add_energy_supply,
         mass = 100,
-        mass_storage = 100,
+        mass_storage = 0,
         mass_demand = 0,
         mass_demands = {},
         add_mass_demand = add_mass_demand,
@@ -116,17 +116,64 @@ end
 -----------------------------------------------------------------
 -- player actor calculations
 
--- TODO: calculate units...
+function va_lobby.calculate_player_actors()
+   va_lobby.calculate_player_actors_reset()
+   va_lobby.calculate_player_actor_units()
+   va_lobby.calculate_player_actor_structures()
+end
 
-function va_lobby.calculate_player_actor_structures()
+function va_lobby.calculate_player_actors_reset()
     -- reset resource counters
     for _, actor in pairs(player_actors) do
-        actor.energy_storage = 100
+        actor.energy_storage = 0
         actor.energy_supply = 0
         actor.energy_demand = 0
-        actor.mass_storage = 100
+        actor.mass_storage = 0
         actor.mass_supply = 0
         actor.mass_demand = 0
+    end
+end
+
+function va_lobby.calculate_player_actor_units(reset)
+    if reset then
+        va_lobby.calculate_player_actors_reset()
+    end
+    local units = va_units.get_all_units()
+    -- iterate over units and group by owner
+    local owner_units = {}
+    for _, unit in pairs(units) do
+        if not owner_units[unit._owner_name] then
+            owner_units[unit._owner_name] = {}
+        end
+        if unit._is_constructed then
+            table.insert(owner_units[unit._owner_name], unit)
+        end
+    end
+    -- add up storages for each owner
+    for n, _units in pairs(owner_units) do
+        local actor = player_actors[n]
+        if actor then
+            for _, u in pairs(_units) do
+                if u._mass_storage > 0 then
+                    actor.mass_storage = actor.mass_storage + u._mass_storage
+                end
+                if u._mass_generate > 0 then
+                    actor:add_mass_supply(u._mass_generate)
+                end
+                if u._energy_storage > 0 then
+                    actor.energy_storage = actor.energy_storage + u._energy_storage
+                end
+                if u._energy_generate > 0 then
+                    actor:add_energy_supply(u._energy_generate)
+                end
+            end
+        end
+    end
+end
+
+function va_lobby.calculate_player_actor_structures(reset)
+    if reset then
+        va_lobby.calculate_player_actors_reset()
     end
     -- tally resource demands and supplys
     for _, actor in pairs(player_actors) do
@@ -170,7 +217,9 @@ function va_lobby.calculate_player_actor_structures()
         if not owner_structures[structure.owner] then
             owner_structures[structure.owner] = {}
         end
-        table.insert(owner_structures[structure.owner], structure)
+        if structure._is_constructed then
+            table.insert(owner_structures[structure.owner], structure)
+        end
     end
     -- add up storages for each owner
     for n, structures in pairs(owner_structures) do

@@ -351,6 +351,9 @@ local function process_queue(unit)
     if not unit._command_queue or #unit._command_queue == 0 then
         return
     end
+    if not unit._is_constructed then
+        return
+    end
     -- check if recently processed
     if core.get_us_time() - unit._timer_run < 1 * 1000 * 1000 then
         return
@@ -361,7 +364,6 @@ local function process_queue(unit)
     if not q_command then
         return
     end
-
 
     if q_command.command_type == "move_to_pos" and not q_command.process_complete then
         q_command.process_started = true
@@ -811,8 +813,13 @@ function va_units.register_unit(name, def)
         _path = nil,
         _timer = 0,
         _timer_run = 0,
-        _marked_for_removal = false,    
+        _marked_for_removal = false,
         _is_constructed = false,
+        _mass_storage = def.mass_storage or 0,
+        _mass_generate = def.mass_generate or 0,
+        _energy_storage = def.energy_storage or 0,
+        _energy_generate = def.energy_generate or 0,
+        _energy_usage = def.energy_usage or 0,
         _jumping = 0,
         _animation = def.animations.stand,
         _animations = def.animations or {},
@@ -891,11 +898,11 @@ function va_units.register_unit(name, def)
             return self._owner_name or ""
         end,
         on_step = function(self, dtime, moveresult)
-            
+
             if not self.object then
                 return
             end
-            
+
             self._timer = self._timer + dtime
             if check_for_removal(self) then
                 return
@@ -904,7 +911,7 @@ function va_units.register_unit(name, def)
             for _, weapon in pairs(self._weapons) do
                 local targets = find_attack_targets(self, weapon)
                 if targets then
-                    self._attack_targets =  targets                      
+                    self._attack_targets =  targets
                 else 
                     self._attack_targets = {}
                 end 
@@ -926,7 +933,7 @@ function va_units.register_unit(name, def)
                     w.fire(shooter, shooter_pos, target_pos, range, damage, launch_vector)
                     self._cooldowns = self._cooldowns or {}
                     self._cooldowns[weapon.name] = weapon.cooldown or 1
-                else 
+                else
                     -- reduce cooldown
                     if self._cooldowns and self._cooldowns[weapon.name] and self._cooldowns[weapon.name] > 0 then
                         self._cooldowns[weapon.name] = self._cooldowns[weapon.name] - dtime
@@ -934,9 +941,9 @@ function va_units.register_unit(name, def)
                             self._cooldowns[weapon.name] = 0
                         end
                     end
-                end         
+                end
             end
-            
+
             self.object:set_properties({infotext = def.nametag .. "\n" .. "HP: " .. tostring(self.object:get_hp()) .. "/" .. tostring(def.hp_max) .. ""})
             update_physics(self)
             keep_loaded(self)

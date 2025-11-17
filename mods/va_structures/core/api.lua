@@ -253,6 +253,9 @@ end
 
 function va_structures.remove_player_structure(structure)
     local owner = structure.owner
+    if not player_structures[owner] then
+        return
+    end
     local index = 0
     for i, s in pairs(player_structures[owner]) do
         if s:hash() == structure:hash() then
@@ -501,9 +504,6 @@ va_structures.structures_run = function(run_tick)
     local s_pos = {}
     for _, structure in pairs(_active_instances) do
         table.insert(s_pos, structure.pos)
-    end
-    if run_tick == 0 then
-        va_lobby.calculate_player_actor_structures()
     end
     if run_tick == 0 then
         run_nodes(s_pos, "main")

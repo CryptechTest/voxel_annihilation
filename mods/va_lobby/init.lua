@@ -7,6 +7,7 @@ va_lobby.player_lobbies = {}
 
 -- load files
 dofile(path .. "/actors" .. "/players.lua")
+dofile(path .. "/actors" .. "/globalstep.lua")
 
 -- register mapgen
 core.register_mapgen_script(path .. "/mapgen.lua")
