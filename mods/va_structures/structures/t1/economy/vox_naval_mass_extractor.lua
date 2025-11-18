@@ -70,7 +70,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 rotation = {
                     vec = rotation,
                     absolute = true,
-                    interpolation = 1.0
+                    interpolation = 1.05
                 }
             })
 
@@ -82,7 +82,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             if core.get_node(pos_above).name == "default:water_source" then
                 va_structures.water_effect_particle(s_obj.entity_obj, 7)
             end
-            
+
         end
     end
 end

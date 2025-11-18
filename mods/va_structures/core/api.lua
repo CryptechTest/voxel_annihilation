@@ -501,13 +501,16 @@ end
 
 -- structure runner
 va_structures.structures_run = function(run_tick)
+    if run_tick % 2 ~= 0 then
+        return
+    end
     local s_pos = {}
     for _, structure in pairs(_active_instances) do
         table.insert(s_pos, structure.pos)
     end
     if run_tick == 0 then
         run_nodes(s_pos, "main")
-    elseif run_tick == 1 then
+    elseif run_tick == 2 then
         run_nodes(s_pos, "weapon")
     end
 end

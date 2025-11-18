@@ -69,7 +69,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 rotation = {
                     vec = rot_rotor,
                     absolute = true,
-                    interpolation = 1.0
+                    interpolation = 1.05
                 }
             })
         end

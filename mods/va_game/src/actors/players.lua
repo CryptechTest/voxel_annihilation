@@ -9,7 +9,8 @@ local env = {
 -----------------------------------------------------------------
 
 local color_index = 1
-local colors = {"#ff0000", "#0000ff", "#00ff00", "#ffff00", "#ff00ff", "#00ffff", "#800080", "#008080", "#c0c0c0", "#a52a2a", "#deb887", "#5f9ea0", "#7fff00", "#dda0dd", "#add8e6", "#9932CC"}
+local colors = {"#ff0000", "#0000ff", "#00ff00", "#ffff00", "#ff00ff", "#00ffff", "#800080", "#008080", "#c0c0c0",
+                "#a52a2a", "#deb887", "#5f9ea0", "#7fff00", "#dda0dd", "#add8e6", "#9932CC"}
 
 -- TODO: this is temp!
 --[[core.register_on_joinplayer(function(player)
@@ -129,18 +130,20 @@ end
 -- player actor calculations
 
 function va_game.calculate_player_actors()
-   va_game.calculate_player_actors_reset()
-   va_game.calculate_player_actor_units()
-   va_game.calculate_player_actor_structures()
+    va_game.calculate_player_actors_reset()
+    va_game.calculate_player_actor_structure_storages()
+    va_game.calculate_player_actor_unit_storages()
+    va_game.calculate_player_actor_units()
+    va_game.calculate_player_actor_structures()
 end
 
 function va_game.calculate_player_actors_reset()
     -- reset resource counters
     for _, actor in pairs(player_actors) do
-        actor.energy_storage = 0
+        actor.energy_storage = 50
         actor.energy_supply = 0
         actor.energy_demand = 0
-        actor.mass_storage = 0
+        actor.mass_storage = 50
         actor.mass_supply = 0
         actor.mass_demand = 0
     end
@@ -166,27 +169,52 @@ function va_game.calculate_player_actor_units(reset)
         local actor = player_actors[n]
         if actor then
             for _, u in pairs(_units) do
-                if u._mass_storage > 0 then
-                    actor.mass_storage = actor.mass_storage + u._mass_storage
-                end
                 if u._mass_generate > 0 then
                     actor:add_mass_supply(u._mass_generate)
-                    if actor.mass + u._mass_generate <= u._mass_storage then
+                    if actor.mass + u._mass_generate <= actor.mass_storage then
                         actor.mass = actor.mass + u._mass_generate
                     else
-                        actor.mass = u._mass_storage
+                        --actor.mass = actor.mass_storage
                     end
-                end
-                if u._energy_storage > 0 then
-                    actor.energy_storage = actor.energy_storage + u._energy_storage
                 end
                 if u._energy_generate > 0 then
                     actor:add_energy_supply(u._energy_generate)
-                    if actor.energy + u._energy_generate <= u._energy_storage then
+                    if actor.energy + u._energy_generate <= actor.energy_storage then
                         actor.energy = actor.energy + u._energy_generate
                     else
-                        actor.energy = u._energy_storage
+                        --actor.energy = actor.energy_storage
                     end
+                end
+            end
+        end
+    end
+end
+
+function va_game.calculate_player_actor_unit_storages(reset)
+    if reset then
+        va_game.calculate_player_actors_reset()
+    end
+    local units = va_units.get_all_units()
+    -- iterate over units and group by owner
+    local owner_units = {}
+    for _, unit in pairs(units) do
+        if not owner_units[unit._owner_name] then
+            owner_units[unit._owner_name] = {}
+        end
+        if unit._is_constructed then
+            table.insert(owner_units[unit._owner_name], unit)
+        end
+    end
+    -- add up storages for each owner
+    for n, _units in pairs(owner_units) do
+        local actor = player_actors[n]
+        if actor then
+            for _, u in pairs(_units) do
+                if u._mass_storage > 0 then
+                    actor.mass_storage = actor.mass_storage + u._mass_storage
+                end
+                if u._energy_storage > 0 then
+                    actor.energy_storage = actor.energy_storage + u._energy_storage
                 end
             end
         end
@@ -231,6 +259,12 @@ function va_game.calculate_player_actor_structures(reset)
             end
         end
         actor.mass_supplys = mass_supplys
+    end
+end
+
+function va_game.calculate_player_actor_structure_storages(reset)
+    if reset then
+        va_game.calculate_player_actors_reset()
     end
     local active_structures = va_structures.get_active_structures()
     -- iterate over structures and group by owner

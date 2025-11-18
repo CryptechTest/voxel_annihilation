@@ -361,7 +361,9 @@ local function do_dipose_game(game)
         local pname = pplayer.name
         local lobby_owner = va_lobby.player_lobbies[pname]
         local lobby = va_lobby.lobbies[lobby_owner]
-        lobby.players_ready[pname] = false
+        if lobby then
+            lobby.players_ready[pname] = false
+        end
         formspecs[pname] = get_lobby(pname)
         local player = core.get_player_by_name(pname)
         if player then

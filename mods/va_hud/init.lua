@@ -335,6 +335,12 @@ core.register_on_leaveplayer(function(player, timed_out)
     saved_huds[player_name] = nil
 end)
 
+function va_hud.tick_player_huds()
+    for _, player in pairs(core.get_connected_players()) do
+        va_hud.update_hud(player)
+    end
+end
+
 local function cyclical_update()
     for _, player in pairs(core.get_connected_players()) do
         va_hud.update_hud(player)
@@ -343,9 +349,9 @@ local function cyclical_update()
 end
 
 
-core.register_on_mods_loaded(function()
+--[[core.register_on_mods_loaded(function()
     core.after(1, cyclical_update)
-end)
+end)]]
 
 
 core.register_allow_player_inventory_action(function(player, action, inventory, inventory_info)

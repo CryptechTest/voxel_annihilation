@@ -20,7 +20,7 @@ va_units.register_unit("vox_constructor", {
     spawn_item_description = "VCB-1 Unit Spawn",
     item_inventory_image = "va_units_blueprint.png",
     mass_cost = 11,
-    mass_storage = 5,
+    mass_storage = 0,
     mass_generate = 0,
     energy_cost = 160,
     energy_storage = 5,

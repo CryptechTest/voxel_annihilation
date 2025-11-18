@@ -11,4 +11,4 @@ dofile(path .. "/src" .. "/globalstep.lua")
 
 -- load player actor files
 dofile(path .. "/src/actors" .. "/players.lua")
-dofile(path .. "/src/actors" .. "/globalstep.lua")
+--dofile(path .. "/src/actors" .. "/globalstep.lua")
