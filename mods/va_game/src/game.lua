@@ -356,7 +356,7 @@ function GameObject:add_player(player_name, team_id, faction, is_boss)
         is_spawned = false,
         selected_menu = "none",
         placed = false,
-        ready = false,
+        ready = false
     }
 end
 
@@ -470,6 +470,10 @@ function GameObject:tick_ctl()
             self:player_ctl_base(p_name)
         elseif found_builder then
             self:player_ctl_unit_build(p_name)
+        elseif found_attacker then
+            self:player_ctl_unit_combat(p_name)
+        elseif found_reclaimer or found_repairer then
+            self:player_ctl_unit_reclaim(p_name)
         end
     end
 end
@@ -495,7 +499,7 @@ function GameObject:check_modes()
     local commanders = {}
     for _, v in pairs(self.players) do
         local has_commander = false
-        --local units = va_units.get_player_units(v.name)
+        -- local units = va_units.get_player_units(v.name)
         local units = va_units.get_all_units()
         for _, unit in pairs(units) do
             if unit._owner_name == v.name then
@@ -545,7 +549,7 @@ function GameObject:player_ctl_init(player_name)
         return
     end
     if g_player.placed then
-        --return
+        -- return
     end
     if g_player.selected_menu ~= "init" then
         g_player.selected_menu = "init"
@@ -645,6 +649,100 @@ function GameObject:player_ctl_unit_build(player_name)
         count = 1
     })
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, capture})
+end
+
+function GameObject:player_ctl_unit_reclaim(player_name)
+    local player = core.get_player_by_name(player_name)
+    local g_player = self:get_player(player_name)
+    if not player or not g_player then
+        return
+    end
+    if not g_player.placed then
+        return
+    end
+    if g_player.selected_menu ~= "build" then
+        g_player.selected_menu = "build"
+    else
+        return
+    end
+    local inv = player:get_inventory()
+    local inv_name = "main"
+    local select = ItemStack({
+        name = "va_commands:select",
+        count = 1
+    })
+    local select_all = ItemStack({
+        name = "va_commands:select_all",
+        count = 1
+    })
+    local stop = ItemStack({
+        name = "va_commands:stop",
+        count = 1
+    })
+    local move = ItemStack({
+        name = "va_commands:move",
+        count = 1
+    })
+    local guard = ItemStack({
+        name = "va_commands:guard",
+        count = 1
+    })
+    local attack_move = ItemStack({
+        name = "va_commands:attack_move",
+        count = 1
+    })
+    local reclaim = ItemStack({
+        name = "va_commands:reclaim",
+        count = 1
+    })
+    local repair = ItemStack({
+        name = "va_commands:repair",
+        count = 1
+    })
+    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, reclaim, repair})
+end
+
+function GameObject:player_ctl_unit_combat(player_name)
+    local player = core.get_player_by_name(player_name)
+    local g_player = self:get_player(player_name)
+    if not player or not g_player then
+        return
+    end
+    if not g_player.placed then
+        return
+    end
+    if g_player.selected_menu ~= "combat" then
+        g_player.selected_menu = "combat"
+    else
+        return
+    end
+    local inv = player:get_inventory()
+    local inv_name = "main"
+    local select = ItemStack({
+        name = "va_commands:select",
+        count = 1
+    })
+    local select_all = ItemStack({
+        name = "va_commands:select_all",
+        count = 1
+    })
+    local stop = ItemStack({
+        name = "va_commands:stop",
+        count = 1
+    })
+    local move = ItemStack({
+        name = "va_commands:move",
+        count = 1
+    })
+    local guard = ItemStack({
+        name = "va_commands:guard",
+        count = 1
+    })
+    local attack_move = ItemStack({
+        name = "va_commands:attack_move",
+        count = 1
+    })
+    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard})
 end
 
 -----------------------------------------------------------------

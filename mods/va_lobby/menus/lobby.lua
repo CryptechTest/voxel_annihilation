@@ -530,11 +530,12 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         local lobby = va_lobby.lobbies[va_lobby.player_lobbies[pname]]
         if lobby then
             local game = va_game.get_game_from_lobby(lobby.name)
-            if game then
-                core.log("got lobby game vote")
-                game.votes_stop[pname] = true
-                formspecs[pname] = get_game_active(va_lobby.player_lobbies[pname], pname, game)
-                update_formspec(player)
+            if game and not game:is_stopped() and not game:is_ended() then
+                if not game.votes_stop[pname] then
+                    game.votes_stop[pname] = true
+                    formspecs[pname] = get_game_active(va_lobby.player_lobbies[pname], pname, game)
+                    update_formspec(player)
+                end
             end
         end
     else
