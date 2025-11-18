@@ -171,12 +171,14 @@ function va_game.calculate_player_actor_units(reset)
                 end
                 if u._mass_generate > 0 then
                     actor:add_mass_supply(u._mass_generate)
+                    actor.mass = actor.mass + u._mass_generate
                 end
                 if u._energy_storage > 0 then
                     actor.energy_storage = actor.energy_storage + u._energy_storage
                 end
                 if u._energy_generate > 0 then
                     actor:add_energy_supply(u._energy_generate)
+                    actor.energy = actor.energy + u._energy_generate
                 end
             end
         end
