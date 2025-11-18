@@ -70,6 +70,153 @@ local function spawn_particle(pos, dir_x, dir_y, dir_z, acl_x, acl_y, acl_z, siz
     })
 end
 
+local function landing_effect_particle(pos, radius, color)
+    core.add_particle({
+        pos = pos,
+        velocity = vector.new(),
+        acceleration = vector.new(),
+        expirationtime = 0.88,
+        size = radius * 4,
+        collisiondetection = false,
+        vertical = false,
+        texture ={ name = "va_energy_flash_1.png", alpha_tween = { 1, 0.5 } },
+        glow = 15
+    })
+    core.add_particle({
+        pos = vector.subtract(pos, {x=0, y=0.1, z=0}),
+        velocity = vector.new(),
+        acceleration = vector.new(),
+        expirationtime = 0.72,
+        size = radius * 8,
+        collisiondetection = false,
+        vertical = false,
+        texture ={ name = "va_energy_flash_1.png", alpha_tween = { 1, 0.25 } },
+        glow = 15
+    })
+    core.add_particlespawner({
+        amount = 8,
+        time = 0.3,
+        minpos = vector.subtract(pos, radius / 4),
+        maxpos = vector.add(pos, radius / 4),
+        minvel = {
+            x = -0.75,
+            y = -0.5,
+            z = -0.75
+        },
+        maxvel = {
+            x = 0.75,
+            y = 1,
+            z = 0.75
+        },
+        minacc = vector.new(0, -0.5, 0),
+        maxacc = vector.new(0, -0.2, 0),
+        minexptime = 3,
+        maxexptime = 4,
+        minsize = radius * 4,
+        maxsize = radius * 6,
+        texture = {
+            name = "va_weapons_explosion_vapor.png",
+            blend = "alpha",
+            scale = 1,
+            alpha = 1.0,
+            alpha_tween = { 1, 0 },
+            scale_tween = { {
+                x = 0.5,
+                y = 0.5
+            }, {
+                x = 5,
+                y = 5
+            } }
+        },
+        collisiondetection = true,
+        glow = 3
+    })
+    core.add_particlespawner({
+        amount = 8,
+        time = 0.25,
+        minpos = vector.subtract(pos, radius / 4),
+        maxpos = vector.add(pos, radius / 4),
+        minvel = {
+            x = -0.45,
+            y = -0.5,
+            z = -0.45
+        },
+        maxvel = {
+            x = 0.45,
+            y = 1.0,
+            z = 0.45
+        },
+        minacc = vector.new(0, -0.5, 0),
+        maxacc = vector.new(0, -0.2, 0),
+        minexptime = 2,
+        maxexptime = 3,
+        minsize = radius * 2,
+        maxsize = radius * 3,
+        texture = {
+            name = "va_weapons_explosion_smoke.png",
+            blend = "alpha",
+            scale = 1,
+            alpha = 1.0,
+            alpha_tween = { 1, 0 },
+            scale_tween = { {
+                x = 0.25,
+                y = 0.25
+            }, {
+                x = 6,
+                y = 5
+            } }
+        },
+        collisiondetection = true,
+        glow = 5
+    })
+    core.add_particlespawner({
+        amount = 64,
+        time = 0.1,
+        minpos = vector.subtract(pos, radius / 2),
+        maxpos = vector.add(pos, radius / 2),
+        minvel = {
+            x = -1.25,
+            y = 0.25,
+            z = -1.25
+        },
+        maxvel = {
+            x = 1.25,
+            y = 3.51,
+            z = 1.25
+        },
+        minacc = {
+            x = -0.75,
+            y = -3.25,
+            z = -0.75
+        },
+        maxacc = {
+            x = 0.75,
+            y = -1.75,
+            z = 0.75
+        },
+        minexptime = 0.88,
+        maxexptime = 1.87,
+        minsize = radius * 0.67,
+        maxsize = radius * 0.95,
+        texture = {
+            name = "va_weapons_explosion_spark.png^[colorize:"..color..":alpha]",
+            blend = "alpha",
+            scale = 1,
+            alpha = 1.0,
+            alpha_tween = { 1, 0.25 },
+            scale_tween = { {
+                x = 1.0,
+                y = 1.0
+            }, {
+                x = 0,
+                y = 0
+            } }
+        },
+        collisiondetection = true,
+        glow = 15
+    })
+end
+
 -- check for valid floor pos
 local function has_floor(pos)
     local rad = 1
@@ -184,7 +331,8 @@ core.register_node("va_game:command_marker", {
                     local actor = va_game.get_player_actor(owner)
                     color = actor.team_color
                 end
-                spawn_particle(s_pos, 1.5, 1.25, 1.5, 0, -0.5, 0, 0.4, 7, 80, color)
+                landing_effect_particle(s_pos, 4, color)
+                -- TODO: sound effect
             end
         end
         if do_remove then
