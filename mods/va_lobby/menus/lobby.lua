@@ -210,6 +210,19 @@ local function get_game_active(lobby_owner, pname, game)
     if lobby == nil then
         return pages.main_menu
     end
+    local game_act = "Game is Active!"
+    if game:is_stopped() then
+        game_act = "Game Stopped!"
+    elseif game:is_ended() then
+        game_act = "Game has Ended!"
+    end
+    local vote_stop = 0
+    for _, vote in pairs(game.votes_stop) do
+        if vote then
+            vote_stop = vote_stop + 1
+        end
+    end
+    local vote_stop_max = math.max(1, math.ceil(#game.players / 2))
     local formspec = {"size[8,8]", [[
         no_prepend[]
         formspec_version[10]
@@ -217,13 +230,21 @@ local function get_game_active(lobby_owner, pname, game)
         style_type[label;font_size=22;font=bold]
         label[0,0;]] .. lobby.name .. [[]
         style_type[label;font_size=16;font=normal]
-        label[0.05,0.5;Game is Active...]
+        label[0.05,0.5;]] .. game_act .. [[]
         style_type[label;font_size=18;font=bold]
-        style[quit;bgcolor=#ff0000]
-        button[0.25,7.5;2,0.5;quit;Quit Game]
+        style[vote_stop;bgcolor=#ff1f00]
+        button[0.25,6.5;2,0.5;vote_stop;Vote Stop]
+        label[2.5,6.425;Votes: ]] .. vote_stop .. "/" .. vote_stop_max .. [[]
+        style[quit_game;bgcolor=#ff0000]
+        button[0.25,7.5;2,0.5;quit_game;Quit Game]
         style[close;bgcolor=#ff9f00]
         button_exit[6.5,7.5;1.5,0.45;close;Close]
     ]]}
+    if game._disposing then
+        table.insert(formspec, "style_type[label;font_size=18;font=bold;fgcolor=" .. "#F5BE28" .. "]")
+        table.insert(formspec,
+            "label[5.0,0;Game Closes in " .. (game.dispose_tick_max - game.dispose_tick) .. " seconds...]")
+    end
     local game_formspec = table.concat(formspec, "")
     return game_formspec
 end
@@ -307,6 +328,49 @@ local update_lobby_setup = function(lobby, game)
 end
 
 -----------------------------------------------------------------
+--- callbacks...
+
+local function do_update_lobby(game)
+    if not game then
+        return
+    end
+    if game._disposed then
+        return
+    end
+    if game:is_started() then
+        for _, pplayer in pairs(game.players) do
+            local pname = pplayer.name
+            local lobby_owner = va_lobby.player_lobbies[pname]
+            formspecs[pname] = get_game_active(lobby_owner, pname, game)
+            local player = core.get_player_by_name(pname)
+            if player then
+                update_formspec(player)
+            end
+            if game.dispose_tick == 1 then
+                core.show_formspec(pname, "", formspecs[pname])
+            end
+        end
+    end
+end
+
+local function do_dipose_game(game)
+    if not game then
+        return
+    end
+    for _, pplayer in pairs(game.players) do
+        local pname = pplayer.name
+        local lobby_owner = va_lobby.player_lobbies[pname]
+        local lobby = va_lobby.lobbies[lobby_owner]
+        lobby.players_ready[pname] = false
+        formspecs[pname] = get_lobby(pname)
+        local player = core.get_player_by_name(pname)
+        if player then
+            update_formspec(player)
+        end
+    end
+end
+
+-----------------------------------------------------------------
 
 local function split(str)
     local result = {}
@@ -385,7 +449,9 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                 [pname] = true
             },
             game_position = pos,
-            board_size = size
+            board_size = size,
+            update_lobby = do_update_lobby,
+            dipose_game = do_dipose_game
         }
         va_lobby.player_lobbies[pname] = pname
         formspecs[pname] = get_lobby(pname)
@@ -421,7 +487,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
             end
         end
 
-    elseif fields.leave then
+    elseif fields.leave or fields.quit_game then
         local lobby = va_lobby.lobbies[va_lobby.player_lobbies[pname]]
         if lobby then
             for i, player_name in ipairs(lobby.players) do
@@ -453,6 +519,24 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         formspecs[pname] = pages.main_menu
         update_lobby(lobby)
         update_formspec(player)
+        if fields.quit_game then
+            local game = va_game.get_game_from_lobby(lobby.name)
+            if game then
+                game:remove_player(pname)
+                game:send_all_player_msg("Player " .. pname .. " has left the match.")
+            end
+        end
+    elseif fields.vote_stop then
+        local lobby = va_lobby.lobbies[va_lobby.player_lobbies[pname]]
+        if lobby then
+            local game = va_game.get_game_from_lobby(lobby.name)
+            if game then
+                core.log("got lobby game vote")
+                game.votes_stop[pname] = true
+                formspecs[pname] = get_game_active(va_lobby.player_lobbies[pname], pname, game)
+                update_formspec(player)
+            end
+        end
     else
         for lobby_owner, lobby in pairs(va_lobby.lobbies) do
             if fields["join_" .. lobby_owner] then
@@ -473,6 +557,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                 if game then
                     if game.players[pname] and game.players[pname].placed == true then
                         game.players[pname].ready = fields["ready_start_" .. pname] == "true"
+                        formspecs[pname] = get_game_start(lobby_owner, pname, game)
                         update_formspec(player)
                     end
                 end

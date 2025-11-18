@@ -809,6 +809,7 @@ function va_units.register_unit(name, def)
         _can_reclaim = def.can_reclaim or false,
         _can_repair = def.can_repair or false,
         _can_attack = def.can_attack or false,
+        _is_commander = def.is_commander or false,
         _command_queue = {},
         _command_queue_abort = def.command_abort_queue or abort_queue,
         _command_queue_abort_at = def.command_abort_queue_at or abort_queue_at,
@@ -1371,15 +1372,20 @@ core.register_globalstep(function(...)
     va_units.globalstep(...)
 end)
 
-
 core.register_on_leaveplayer(function(player)
     force_detach(player)
 end)
 
+---------------------------------
 
-core.register_on_shutdown(function()
+function va_units.cleanup_assets()
     for _, unit in pairs(active_units) do
-        --mark for removal on shutdown
+        --mark for removal
         unit._marked_for_removal = true
     end
+end
+
+core.register_on_shutdown(function()
+    --mark for removal on shutdown
+    va_units.cleanup_assets()
 end)

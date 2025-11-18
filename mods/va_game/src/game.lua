@@ -22,18 +22,29 @@ function GameObject.new(pos, size, mode, name, pass)
         name = "wave_defense",
         difficulty = "easy"
     }
+    self.update_lobby_ui = nil
+    self.dipose_lobby_game = nil
     -- player lists
     self.teams = {} -- Table to store teams in the game object
     self.players = {} -- Table to store players in the game object
     self.spectators = {} -- Table to store spectators in the game object
     self.bosses = {} -- Table to store bosses in the game object
     self.victors = {}
+    self.votes_stop = {}
+    -- timers
+    self.start_time = 0
+    self.run_time = 0
     -- tick counter
     self.run_tick = 0
     self.run_tick_max = 4
     -- setup
     self.setup_index = 10 -- index of the setup step for the game
     self.start_index = 61 -- index of the start step for the game
+    -- cleanup
+    self.dispose_tick = 0
+    self.dispose_tick_max = 30
+    self._disposing = false
+    self._disposed = false
     -- flags
     self.created = false -- game board is created
     self.ready_start = false -- all players are ready for start
@@ -50,7 +61,7 @@ end
 function GameObject:init()
     if self.setup_index == 9 then
         -- setup the game board....
-        self:send_all_player_msg("Game board is being created... Please wait.")
+        self:send_all_player_msg("Battlefield is being created... Please wait!")
 
     elseif self.setup_index == 7 then
         -- move players to board
@@ -73,7 +84,7 @@ function GameObject:init()
     elseif self.setup_index == 3 then
         self:create_player_actors()
         if self.created then
-            self:send_all_player_msg("Game ready! One moment...")
+            self:send_all_player_msg("Battlefield ready! One moment...")
         end
     elseif self.setup_index == 1 then
         -- give command marker to players
@@ -82,12 +93,15 @@ function GameObject:init()
         end
         self:send_all_player_msg("Please choose a landing location for your Commander.")
         self:send_all_player_sound("va_game_amy_choose_starting_location")
+    elseif self.setup_index == 0 then
+        self.start_time = core.get_us_time()
     end
 end
 
 function GameObject:begin()
     if self.start_index == 0 then
-        self:send_all_player_msg("Game Started!")
+        self.start_time = core.get_us_time()
+        self:send_all_player_msg("Battle Started!")
         self:send_all_player_sound("va_game_amy_battle_started")
     elseif self.start_index == 1 then
         for _, p in pairs(self.players) do
@@ -135,12 +149,42 @@ function GameObject:check_ready()
     end
 end
 
+function GameObject:dispose()
+    self._disposed = true
+    self:dipose_lobby_game()
+    for _, pplayer in pairs(self.players) do
+        va_game.remove_player_actor(pplayer.name)
+    end
+    va_units.cleanup_assets()
+    va_structures.cleanup_assets()
+    for index, value in ipairs(va_game.games) do
+        if value:get_id() == self:get_id() then
+            table.remove(va_game.games, index)
+        end
+    end
+end
+
 function GameObject:tick(tick_index)
+    if self._disposed then
+        return
+    end
     if self.run_tick <= 0 then
         self.run_tick = self.run_tick_max
     end
     if tick_index == 0 then
         self.run_tick = self.run_tick - 1
+    end
+    ---------------------------------
+    --- tick for game dispose
+    if self._disposing then
+        if self.dispose_tick >= self.dispose_tick_max then
+            self:dispose()
+        end
+        if tick_index == 0 then
+            self.dispose_tick = self.dispose_tick + 1
+        end
+        self:update_lobby_ui()
+        return
     end
     ---------------------------------
     -- tick game setup
@@ -174,17 +218,23 @@ function GameObject:tick(tick_index)
         return
     end
     ---------------------------------
-    if self.paused then
-        -- game is paused...
+    if self.stopped or self.ended then
+        self:send_all_player_sound("va_game_amy_battle_ended")
+        self:update_lobby_ui()
+        -- dispose game
+        self._disposing = true
         return
     end
-    if self.stopped or self.ended then
-        -- dispose game
+    if self.paused then
+        -- game is paused...
         return
     end
     ---------------------------------
     -- tick game...
     self:tick_ctl()
+    if tick_index == 0 then
+        self:check_modes()
+    end
 end
 
 -----------------------------------------------------------------
@@ -313,6 +363,7 @@ function GameObject:remove_player(player_name)
     for i, player in ipairs(self.players) do
         if player.name == player_name then
             table.remove(self.players, i)
+            va_game.remove_player_actor(player.name)
             break
         end
     end
@@ -399,7 +450,7 @@ function GameObject:tick_ctl()
         local found_repairer = false
         local found_attacker = false
         local found_reclaimer = false
-        for _, selected_entity in pairs(selected_units) do
+        for _, selected_entity in ipairs(selected_units) do
             if selected_entity._can_build then
                 found_builder = true
             end
@@ -418,6 +469,51 @@ function GameObject:tick_ctl()
         elseif found_builder then
             self:player_ctl_unit_build(p_name)
         end
+    end
+end
+
+function GameObject:check_modes()
+    if core.get_us_time() - self.start_time < 3 * 1000 * 1000 then
+        return
+    end
+    local vote_stop_max = math.max(1, math.ceil(#self.players / 2))
+    local vote_stop = 0
+    for _, vote in pairs(self.votes_stop) do
+        if vote then
+            vote_stop = vote_stop + 1
+        end
+    end
+    if vote_stop >= vote_stop_max then
+        self:send_all_player_msg("> Stop vote passed!")
+        self:send_all_player_msg(core.colorize("#FF1A1A", "Battle Ended."))
+        self:set_stopped(true)
+        return
+    end
+    local remaining = 0
+    local commanders = {}
+    for _, v in pairs(self.players) do
+        local has_commander = false
+        --local units = va_units.get_player_units(v.name)
+        local units = va_units.get_all_units()
+        for _, unit in pairs(units) do
+            if unit._owner_name == v.name then
+                if unit.object:get_luaentity()._is_commander == true then
+                    has_commander = true
+                    commanders[unit._owner_name] = true
+                end
+            end
+        end
+        if has_commander then
+            remaining = remaining + 1
+        end
+    end
+    if remaining <= 1 and #self.players > 1 then
+        for key, value in pairs(commanders) do
+            if value then
+                table.insert(self.victors, key)
+            end
+        end
+        self:set_ended(true)
     end
 end
 

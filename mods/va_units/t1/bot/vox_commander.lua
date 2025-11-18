@@ -30,6 +30,7 @@ va_units.register_unit("vox_commander", {
     can_reclaim = true,
     sight_range = 32,
     can_attack = true,
+    is_commander = true,
     weapons = {
         {
             name = "light_laser",

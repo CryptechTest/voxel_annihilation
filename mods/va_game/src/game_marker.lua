@@ -184,7 +184,7 @@ core.register_node("va_game:command_marker", {
                     local actor = va_game.get_player_actor(owner)
                     color = actor.team_color
                 end
-                spawn_particle(s_pos, 0.5, 1.25, 0.5, 0, -0.5, 0, 0.4, 3, 60, color)
+                spawn_particle(s_pos, 1.5, 1.25, 1.5, 0, -0.5, 0, 0.4, 7, 80, color)
             end
         end
         if do_remove then

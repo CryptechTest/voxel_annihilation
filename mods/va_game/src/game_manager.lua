@@ -25,6 +25,9 @@ function va_game.init_game_from_lobby(lobby)
     -- create a new game instance
     local game = GameObject.new(pos, size, mode, lobby.name, lobby.password)
 
+    game.update_lobby_ui = lobby.update_lobby
+    game.dipose_lobby_game = lobby.dipose_game
+
     -- add teams to the game object
     for _, team in ipairs(lobby.teams) do
         game:add_team(team)
@@ -46,6 +49,17 @@ function va_game.init_game_from_lobby(lobby)
     return game
 end
 
+function va_game.terminate_game(game)
+    if not game then
+        return
+    end
+    for index, value in ipairs(va_game.games) do
+        if value:get_id() == game:get_id() then
+            table.remove(va_game.games, index)
+        end
+    end
+end
+
 function va_game.tick_all(run_tick)
     for _, game in pairs(va_game.games) do
         game:tick(run_tick)
@@ -59,7 +73,7 @@ end
 function va_game.get_game_from_lobby(lobby_name)
     for _, game in pairs(va_game.games) do
         if game:get_name() == lobby_name then
-            return game
+            return va_game.games[game:get_id()]
         end
     end
     return nil
@@ -69,7 +83,7 @@ function va_game.get_game_from_player(player_name)
     for _, game in pairs(va_game.games) do
         for _, p in pairs(game.players) do
             if p.name == player_name then
-                return game
+                return va_game.games[game:get_id()]
             end
         end
     end
