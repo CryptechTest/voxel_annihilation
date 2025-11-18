@@ -47,6 +47,7 @@ function GameObject.new(pos, size, mode, name, pass)
     self._disposed = false
     -- flags
     self.created = false -- game board is created
+    self.setup = false -- game is setup
     self.ready_start = false -- all players are ready for start
     self.started = false -- game has started
     self.stopped = false -- game has stoppped (no victor)
@@ -190,13 +191,13 @@ function GameObject:tick(tick_index)
     -- tick game setup
     if self.setup_index > 0 and tick_index == 0 then
         -- setup game...
-        self:init()
         self.setup_index = self.setup_index - 1
         if self.setup_index <= 0 then
-            self.created = true
+            self.setup = true
         end
+        self:init()
     end
-    if not self.created then
+    if not self.created or not self.setup then
         return
     end
     if not self.ready_start then
@@ -420,6 +421,7 @@ function GameObject:create_player_actors()
     for _, p in pairs(self.players) do
         va_game.add_player_actor(p.name, p.faction, p.team, nil)
     end
+    self.created = true
 end
 
 -----------------------------------------------------------------

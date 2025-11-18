@@ -241,9 +241,9 @@ local function get_game_active(lobby_owner, pname, game)
         button_exit[6.5,7.5;1.5,0.45;close;Close]
     ]]}
     if game._disposing then
-        table.insert(formspec, "style_type[label;font_size=18;font=bold;fgcolor=" .. "#F5BE28" .. "]")
+        table.insert(formspec, "style_type[label;font_size=16;font=bold;textcolor=" .. "#F5BE28" .. "]")
         table.insert(formspec,
-            "label[5.0,0;Game Closes in " .. (game.dispose_tick_max - game.dispose_tick) .. " seconds...]")
+            "label[4.25,0;Game Closes in " .. (game.dispose_tick_max - game.dispose_tick) .. " seconds..]")
     end
     local game_formspec = table.concat(formspec, "")
     return game_formspec

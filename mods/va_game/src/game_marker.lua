@@ -174,7 +174,7 @@ core.register_node("va_game:command_marker", {
                 core.log("game not found...")
             elseif game:is_started() then
                 do_remove = true
-                local s_pos = vector.add(pos, vector.new(0, 0.5, 0))
+                local s_pos = vector.add(pos, vector.new(0, 0.05, 0))
                 local commander = va_units.spawn_unit("va_units:vox_commander", owner, s_pos)
                 if commander then
                     commander:get_luaentity()._is_constructed = true
