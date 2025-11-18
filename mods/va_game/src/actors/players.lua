@@ -229,7 +229,7 @@ function va_game.calculate_player_actor_structures(reset)
         if not owner_structures[structure.owner] then
             owner_structures[structure.owner] = {}
         end
-        if structure._is_constructed then
+        if structure.is_constructed then
             table.insert(owner_structures[structure.owner], structure)
         end
     end
