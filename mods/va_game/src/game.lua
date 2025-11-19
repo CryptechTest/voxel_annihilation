@@ -475,6 +475,7 @@ function GameObject:tick_ctl()
         local found_repairer = false
         local found_attacker = false
         local found_reclaimer = false
+        local found_commander = false
         for _, selected_entity in ipairs(selected_units) do
             if selected_entity._can_build then
                 found_builder = true
@@ -488,9 +489,14 @@ function GameObject:tick_ctl()
             if selected_entity._can_reclaim then
                 found_reclaimer = true
             end
+            if selected_entity._is_commander then
+                found_commander = true
+            end
         end
         if #selected_units == 0 then
             self:player_ctl_base(p_name)
+        elseif found_commander then
+            self:player_ctl_unit_commander(p_name)
         elseif found_builder then
             self:player_ctl_unit_build(p_name)
         elseif found_attacker then
@@ -586,6 +592,8 @@ function GameObject:player_ctl_init(player_name)
         count = 1
     })
     inv:set_list(inv_name, {marker_item})
+    player:hud_set_hotbar_itemcount(1)
+    player:hud_set_hotbar_image("va_hud_hotbar_1.png")
 end
 
 function GameObject:player_ctl_base(player_name)
@@ -613,6 +621,69 @@ function GameObject:player_ctl_base(player_name)
         count = 1
     })
     inv:set_list(inv_name, {select, select_all})
+    player:hud_set_hotbar_itemcount(2)
+    player:hud_set_hotbar_image("va_hud_hotbar_2.png")
+end
+
+function GameObject:player_ctl_unit_commander(player_name)
+    local player = core.get_player_by_name(player_name)
+    local g_player = self:get_player(player_name)
+    if not player or not g_player then
+        return
+    end
+    if not g_player.placed then
+        return
+    end
+    if g_player.selected_menu ~= "commander" then
+        g_player.selected_menu = "commander"
+    else
+        return
+    end
+    local inv = player:get_inventory()
+    local inv_name = "main"
+    local select = ItemStack({
+        name = "va_commands:select",
+        count = 1
+    })
+    local select_all = ItemStack({
+        name = "va_commands:select_all",
+        count = 1
+    })
+    local stop = ItemStack({
+        name = "va_commands:stop",
+        count = 1
+    })
+    local move = ItemStack({
+        name = "va_commands:move",
+        count = 1
+    })
+    local guard = ItemStack({
+        name = "va_commands:guard",
+        count = 1
+    })
+    local attack_move = ItemStack({
+        name = "va_commands:attack_move",
+        count = 1
+    })
+    local build = ItemStack({
+        name = "va_commands:build",
+        count = 1
+    })
+    local reclaim = ItemStack({
+        name = "va_commands:reclaim",
+        count = 1
+    })
+    local repair = ItemStack({
+        name = "va_commands:repair",
+        count = 1
+    })
+    local attack = ItemStack({
+        name = "va_commands:attack",
+        count = 1
+    })
+    player:hud_set_hotbar_itemcount(10)
+    player:hud_set_hotbar_image("va_hud_hotbar_10.png")
+    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, attack})
 end
 
 function GameObject:player_ctl_unit_build(player_name)
@@ -671,6 +742,8 @@ function GameObject:player_ctl_unit_build(player_name)
         name = "va_commands:capture",
         count = 1
     })
+    player:hud_set_hotbar_itemcount(10)
+    player:hud_set_hotbar_image("va_hud_hotbar_10.png")
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, capture})
 end
 
@@ -723,6 +796,8 @@ function GameObject:player_ctl_unit_reclaim(player_name)
         count = 1
     })
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, reclaim, repair})
+    player:hud_set_hotbar_itemcount(8)
+    player:hud_set_hotbar_image("va_hud_hotbar_8.png")
 end
 
 function GameObject:player_ctl_unit_combat(player_name)
@@ -761,11 +836,17 @@ function GameObject:player_ctl_unit_combat(player_name)
         name = "va_commands:guard",
         count = 1
     })
+    local attack = ItemStack({
+        name = "va_commands:attack",
+        count = 1
+    })
     local attack_move = ItemStack({
         name = "va_commands:attack_move",
         count = 1
     })
-    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard})
+    inv:set_list(inv_name, {select, select_all, stop, move, guard, attack_move, attack })
+    player:hud_set_hotbar_itemcount(7)
+    player:hud_set_hotbar_image("va_hud_hotbar_7.png")
 end
 
 -----------------------------------------------------------------
