@@ -580,7 +580,7 @@ core.register_on_joinplayer(function(player)
         breathbar = false,
         crosshair = true,
         wielditem = false,
-        hotbar = true,
+        hotbar = false,
         minimap = false,
         minimap_radar = false
     })
