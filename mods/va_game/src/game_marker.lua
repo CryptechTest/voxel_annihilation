@@ -72,22 +72,26 @@ end
 
 local function landing_effect_particle(pos, radius, color)
     core.add_particle({
-        pos = pos,
+        pos = vector.add(pos, {
+            x = 0,
+            y = 0.5,
+            z = 0
+        }),
         velocity = vector.new(),
         acceleration = vector.new(),
-        expirationtime = 0.88,
+        expirationtime = 1.08,
         size = radius * 4,
         collisiondetection = false,
         vertical = false,
         texture = {
             name = "va_energy_flash_1.png",
-            alpha_tween = {1, 0.25},
+            alpha_tween = {1, 0.05},
             scale_tween = {{
                 x = 1.0,
                 y = 1.0
             }, {
-                x = 3,
-                y = 2
+                x = 3.25,
+                y = 2.50
             }}
         },
         glow = 15
@@ -106,20 +110,20 @@ local function landing_effect_particle(pos, radius, color)
         vertical = false,
         texture = {
             name = "va_energy_flash_1.png",
-            alpha_tween = {1, 0.5},
+            alpha_tween = {1, 0.40},
             scale_tween = {{
                 x = 1.0,
                 y = 1.0
             }, {
-                x = 2.0,
-                y = 1.5
+                x = 2.00,
+                y = 1.75
             }}
         },
         glow = 15
     })
     core.add_particlespawner({
-        amount = 8,
-        time = 0.3,
+        amount = 10,
+        time = 0.37,
         minpos = vector.subtract(pos, radius / 4),
         maxpos = vector.add(pos, radius / 4),
         minvel = {
@@ -200,12 +204,12 @@ local function landing_effect_particle(pos, radius, color)
         maxpos = vector.add(pos, radius / 5),
         minvel = {
             x = -1.75,
-            y = 0.25,
+            y = 1.50,
             z = -1.75
         },
         maxvel = {
             x = 1.75,
-            y = 4.51,
+            y = 4.76,
             z = 1.75
         },
         minacc = {
@@ -218,16 +222,16 @@ local function landing_effect_particle(pos, radius, color)
             y = -1.75,
             z = 0.75
         },
-        minexptime = 2.28,
-        maxexptime = 3.87,
+        minexptime = 2.48,
+        maxexptime = 4.21,
         minsize = radius * 0.27,
-        maxsize = radius * 0.45,
+        maxsize = radius * 0.35,
         texture = {
             name = "va_weapons_explosion_spark.png^[colorize:" .. color .. ":alpha]",
             blend = "alpha",
             scale = 1,
             alpha = 1.0,
-            alpha_tween = {1, 0.25},
+            alpha_tween = {1, 0.2},
             scale_tween = {{
                 x = 1.0,
                 y = 1.0
@@ -241,43 +245,85 @@ local function landing_effect_particle(pos, radius, color)
     })
 end
 
+local dirs = {{ -- along x beside
+    x = 1,
+    y = 0,
+    z = 0
+}, {
+    x = -1,
+    y = 0,
+    z = 0
+}, { -- along z beside
+    x = 0,
+    y = 0,
+    z = 1
+}, {
+    x = 0,
+    y = 0,
+    z = -1
+}, { -- nodes on y
+    x = 0,
+    y = 1,
+    z = 0
+}, {
+    x = 0,
+    y = -1,
+    z = 0
+}, { -- self
+    x = 0,
+    y = 0,
+    z = 0
+}}
+
+local function set_fire(hit_pos)
+    for _, dir in pairs(dirs) do
+        local pos = vector.add(hit_pos, dir)
+        local node = core.get_node(pos).name
+        local nodedef = core.registered_nodes[node]
+        if nodedef then
+            if nodedef.on_ignite then
+                nodedef.on_ignite(pos, nil)
+                break
+            elseif (core.get_item_group(node, "flammable") >= 1) and
+                core.get_node(vector.add(pos, vector.new(0, 1, 0))).name == "air" then
+                core.set_node(vector.add(pos, vector.new(0, 1, 0)), {
+                    name = "fire:basic_flame"
+                })
+                break
+            elseif core.get_node(pos).name == "air" then
+                core.set_node(pos, {
+                    name = "fire:basic_flame"
+                })
+                break
+            end
+        end
+    end
+end
+
 local function do_landing_area(loc)
-    local r = 4.0
-    local pos1 = vector.add(loc, vector.new(r, r, r))
+    local r = 4.05
+    local pos1 = vector.add(loc, vector.new(r, r + 1, r))
     local pos2 = vector.subtract(loc, vector.new(r, r, r))
     local nodes = core.find_nodes_in_area(pos1, pos2, {"group:flammable", "group:flora", "group:grass", "group:leaves",
                                                        "group:tree", "va_rocks"})
     for _, pos in pairs(nodes) do
         core.log("found flammable!")
-        if vector.distance(loc, pos) <= 1.5 then
+        if vector.distance(loc, pos) <= 1.75 then
             core.remove_node(pos)
-        elseif vector.distance(loc, pos) < r - 2 then
+        elseif vector.distance(loc, pos) < r - 1 then
             local node = core.get_node(pos).name
             local nodedef = core.registered_nodes[node]
             if nodedef then
                 if nodedef.on_ignite then
                     nodedef.on_ignite(pos, nil)
                 elseif (core.get_item_group(node, "flammable") >= 1) then
-                    core.set_node(pos, {
-                        name = "fire:basic_flame"
-                    })
+                    set_fire(pos)
                 else
                     core.remove_node(pos)
                 end
             end
         elseif vector.distance(loc, pos) < r then
-            local node = core.get_node(pos).name
-            local nodedef = core.registered_nodes[node]
-            if nodedef then
-                if nodedef.on_ignite then
-                    nodedef.on_ignite(pos, nil)
-                elseif (core.get_item_group(node, "flammable") >= 1) and
-                    core.get_node(vector.add(pos, vector.new(0, 1, 0))).name == "air" then
-                    core.set_node(vector.add(pos, vector.new(0, 1, 0)), {
-                        name = "fire:basic_flame"
-                    })
-                end
-            end
+            set_fire(pos)
         end
     end
 end
@@ -303,7 +349,7 @@ core.register_node("va_game:command_marker", {
     tiles = {"water_thin.png"},
     use_texture_alpha = "blend",
     paramtype = "light",
-    light_source = 10,
+    light_source = 7,
     walkable = false,
     pointable = true,
     diggable = true,
@@ -319,7 +365,7 @@ core.register_node("va_game:command_marker", {
     },
     selection_box = {
         type = "fixed",
-        fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
+        fixed = {-0.25, -0.5, -0.25, 0.25, 0.75, 0.25}
     },
     collision_box = {
         type = "fixed",
@@ -428,8 +474,19 @@ core.register_node("va_game:command_marker", {
                     color = actor.team_color
                 end
                 do_landing_area(pos)
-                landing_effect_particle(vector.add(pos, vector.new(0, 0.25, 0)), 5, color)
-                -- TODO: sound effect
+                landing_effect_particle(vector.subtract(pos, vector.new(0, 0.05, 0)), 5, color)
+                core.sound_play("va_weapons_missile", {
+                    pos = pos,
+                    gain = 5,
+                    pitch = 0.1,
+                    max_hear_distance = 32
+                })
+                core.sound_play("va_weapons_railgun", {
+                    pos = pos,
+                    gain = 2,
+                    pitch = 0.4,
+                    max_hear_distance = 32
+                })
             end
         end
         if do_remove then

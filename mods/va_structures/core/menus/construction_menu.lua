@@ -374,11 +374,18 @@ local function on_receive_fields(unit_id, player, formname, fields)
                 name = name,
                 count = 1
             })
+            local build_cancel = ItemStack({
+                name = "va_commands:build_cancel",
+                count = 1
+            })
             local s_meta = stack:get_meta()
             s_meta:set_string("constructor_id", unit_id)
             s_meta:set_string("constructor_owner", player:get_player_name())
+            player:hud_set_hotbar_itemcount(11)
+            player:hud_set_hotbar_image("va_hud_hotbar_11.png")
             -- swap the "build" item in player hotbar with this itemstack
-            inventory:set_stack("main", build_command_slot, stack)
+            inventory:set_stack("main", build_command_slot, build_cancel)
+            inventory:set_stack("main", 11, stack)
             -- close formspec
             core.close_formspec(player:get_player_name(), formname)
             return false

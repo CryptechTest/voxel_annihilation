@@ -252,8 +252,9 @@ function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, 
         for i, stack in ipairs(inv_list) do
             if not stack:is_empty() then
                 if stack:get_name() == itemstack:get_name() then
-                    found_index = i
                     found_stack = stack
+                elseif stack:get_name() == "va_commands:build_cancel" then
+                    found_index = i
                 end
             end
         end
@@ -262,6 +263,8 @@ function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, 
         end
         -- take item
         itemstack:take_item(1)
+        placer:hud_set_hotbar_itemcount(10)
+        placer:hud_set_hotbar_image("va_hud_hotbar_10.png")
         core.after(0, function()
             -- update build item
             inv:set_stack(inv_name, found_index, build_item)

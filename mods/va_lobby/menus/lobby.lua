@@ -268,10 +268,12 @@ local update_lobby_start = function(game)
         local pname = pplayer.name
         local lobby_owner = va_lobby.player_lobbies[pname]
         formspecs[pname] = get_game_start(lobby_owner, pname, game)
-        if game.start_index == 60 or game.setup_index == 1 then
-            core.show_formspec(pname, "", formspecs[pname])
+        if game.start_index == 11 then
+            if not pplayer.ready then
+                core.show_formspec(pname, "", formspecs[pname])
+            end
         end
-        if game.start_index <= 1 then
+        if game.start_index <= 0 then
             core.close_formspec(pname, "")
             formspecs[pname] = get_game_active(lobby_owner, pname, game)
         end
@@ -319,7 +321,7 @@ local update_lobby_setup = function(lobby, game)
             update_formspec(player)
         end
         if game.setup_index == 0 then
-            core.close_formspec(pname, "")
+            --core.close_formspec(pname, "")
         end
     end
     if game.setup_index == 0 then
