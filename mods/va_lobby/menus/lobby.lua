@@ -584,6 +584,10 @@ core.register_on_joinplayer(function(player)
         minimap = false,
         minimap_radar = false
     })
+    player:hud_set_hotbar_itemcount(0)
+    local inv = player:get_inventory()
+    local inv_name = "main"
+    inv:set_list(inv_name, {})
     player:set_observers({
         [player:get_player_name()] = true
     })

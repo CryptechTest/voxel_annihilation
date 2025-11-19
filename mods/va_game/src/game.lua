@@ -569,6 +569,7 @@ function GameObject:player_ctl_clear(player_name)
     local inv_name = "main"
     -- local inv_list = inv:get_list(inv_name)
     inv:set_list(inv_name, {})
+    player:hud_set_flags({hotbar = false})
 end
 
 function GameObject:player_ctl_init(player_name)
@@ -594,6 +595,7 @@ function GameObject:player_ctl_init(player_name)
     inv:set_list(inv_name, {marker_item})
     player:hud_set_hotbar_itemcount(1)
     player:hud_set_hotbar_image("va_hud_hotbar_1.png")
+    player:hud_set_flags({hotbar = true})
 end
 
 function GameObject:player_ctl_base(player_name)
@@ -623,6 +625,7 @@ function GameObject:player_ctl_base(player_name)
     inv:set_list(inv_name, {select, select_all})
     player:hud_set_hotbar_itemcount(2)
     player:hud_set_hotbar_image("va_hud_hotbar_2.png")
+    player:hud_set_flags({hotbar = true})
 end
 
 function GameObject:player_ctl_unit_commander(player_name)
@@ -684,6 +687,7 @@ function GameObject:player_ctl_unit_commander(player_name)
     player:hud_set_hotbar_itemcount(10)
     player:hud_set_hotbar_image("va_hud_hotbar_10.png")
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, attack})
+    player:hud_set_flags({hotbar = true})
 end
 
 function GameObject:player_ctl_unit_build(player_name)
@@ -745,6 +749,7 @@ function GameObject:player_ctl_unit_build(player_name)
     player:hud_set_hotbar_itemcount(10)
     player:hud_set_hotbar_image("va_hud_hotbar_10.png")
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, capture})
+    player:hud_set_flags({hotbar = true})
 end
 
 function GameObject:player_ctl_unit_reclaim(player_name)
@@ -798,6 +803,7 @@ function GameObject:player_ctl_unit_reclaim(player_name)
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, reclaim, repair})
     player:hud_set_hotbar_itemcount(8)
     player:hud_set_hotbar_image("va_hud_hotbar_8.png")
+    player:hud_set_flags({hotbar = true})
 end
 
 function GameObject:player_ctl_unit_combat(player_name)
@@ -847,6 +853,7 @@ function GameObject:player_ctl_unit_combat(player_name)
     inv:set_list(inv_name, {select, select_all, stop, move, guard, attack_move, attack })
     player:hud_set_hotbar_itemcount(7)
     player:hud_set_hotbar_image("va_hud_hotbar_7.png")
+    player:hud_set_flags({hotbar = true})
 end
 
 -----------------------------------------------------------------
