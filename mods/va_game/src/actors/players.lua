@@ -94,7 +94,8 @@ function va_game.add_player_actor(owner, faction, team, color)
         add_mass_demand = add_mass_demand,
         mass_supply = 0,
         mass_supplys = {},
-        add_mass_supply = add_mass_supply
+        add_mass_supply = add_mass_supply,
+        last_time_sound_played =  {}
     }
     player_actors[owner] = actor_default
 end
@@ -130,6 +131,25 @@ end
 -- player actor calculations
 
 function va_game.calculate_player_actors()
+    for player_name, actor in pairs(player_actors) do
+        local sound = nil
+        if actor.energy < 50 then
+            sound = "va_game_amy_low_power"
+        --todo: overflow and wasting
+        end
+        local current_time = core.get_gametime()
+        if sound then
+            local last_time_sound_played = actor.last_time_sound_played[sound] or 0
+            if current_time - last_time_sound_played > 15 then
+                core.sound_play(sound, {
+                    play_to = player_name,
+                    gain = 1.0,
+                    pitch = 1.0,
+                })
+                actor.last_time_sound_played[sound] = current_time
+            end
+        end
+    end
     va_game.calculate_player_actors_reset()
     va_game.calculate_player_actor_structure_storages()
     va_game.calculate_player_actor_unit_storages()
