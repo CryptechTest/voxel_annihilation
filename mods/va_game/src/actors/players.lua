@@ -95,7 +95,8 @@ function va_game.add_player_actor(owner, faction, team, color)
         mass_supply = 0,
         mass_supplys = {},
         add_mass_supply = add_mass_supply,
-        last_time_sound_played =  {}
+        last_sound = nil,
+        sound_last_played =  {}
     }
     player_actors[owner] = actor_default
 end
@@ -139,14 +140,21 @@ function va_game.calculate_player_actors()
         end
         local current_time = core.get_gametime()
         if sound then
-            local last_time_sound_played = actor.last_time_sound_played[sound] or 0
-            if current_time - last_time_sound_played > 15 then
+            local last_sound = actor.last_sound or  nil
+            local last_sound_last_played = 0
+            if last_sound ~= nil then
+                last_sound_last_played = actor.sound_last_played[last_sound] or 0
+            end
+            local sound_last_played = actor.sound_last_played[sound] or 0
+
+            if current_time - last_sound_last_played >= 5 and current_time - sound_last_played >= 30 then
                 core.sound_play(sound, {
                     play_to = player_name,
                     gain = 1.0,
                     pitch = 1.0,
                 })
-                actor.last_time_sound_played[sound] = current_time
+                actor.sound_last_played[sound] = current_time
+                actor.last_sound = sound
             end
         end
     end
