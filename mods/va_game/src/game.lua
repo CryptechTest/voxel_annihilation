@@ -236,6 +236,12 @@ function GameObject:tick(tick_index)
     if self.stopped or self.ended then
         self:send_all_player_sound("va_game_amy_battle_ended")
         self:update_lobby_ui()
+        for _, p in pairs(self.players) do
+            local player = core.get_player_by_name(p.name)
+            if player then
+                self:player_ctl_clear(p.name)
+            end
+        end
         -- dispose game
         self._disposing = true
         return
@@ -684,9 +690,9 @@ function GameObject:player_ctl_unit_commander(player_name)
         name = "va_commands:attack",
         count = 1
     })
+    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, attack})
     player:hud_set_hotbar_itemcount(10)
     player:hud_set_hotbar_image("va_hud_hotbar_10.png")
-    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, attack})
     player:hud_set_flags({hotbar = true})
 end
 
@@ -746,9 +752,9 @@ function GameObject:player_ctl_unit_build(player_name)
         name = "va_commands:capture",
         count = 1
     })
+    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, capture})
     player:hud_set_hotbar_itemcount(10)
     player:hud_set_hotbar_image("va_hud_hotbar_10.png")
-    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, capture})
     player:hud_set_flags({hotbar = true})
 end
 
