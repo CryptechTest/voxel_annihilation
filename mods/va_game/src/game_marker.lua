@@ -242,18 +242,29 @@ local function landing_effect_particle(pos, radius, color)
 end
 
 local function do_landing_area(loc)
-    local r = 5
-    local pos1 = vector.add(loc, vector.new(r, r - 1, r))
-    local pos2 = vector.subtract(loc, vector.new(r, -3, r))
+    local r = 4.0
+    local pos1 = vector.add(loc, vector.new(r, r, r))
+    local pos2 = vector.subtract(loc, vector.new(r, r, r))
     local nodes = core.find_nodes_in_area(pos1, pos2, {"group:flammable", "group:flora", "group:grass", "group:leaves",
-                                                       "group:tree"})
+                                                       "group:tree", "va_rocks"})
     for _, pos in pairs(nodes) do
-        if vector.distance(loc, pos) <= 1 then
+        core.log("found flammable!")
+        if vector.distance(loc, pos) <= 1.5 then
             core.remove_node(pos)
         elseif vector.distance(loc, pos) < r - 2 then
-            core.set_node(pos, {
-                name = "fire:basic_flame"
-            })
+            local node = core.get_node(pos).name
+            local nodedef = core.registered_nodes[node]
+            if nodedef then
+                if nodedef.on_ignite then
+                    nodedef.on_ignite(pos, nil)
+                elseif (core.get_item_group(node, "flammable") >= 1) then
+                    core.set_node(pos, {
+                        name = "fire:basic_flame"
+                    })
+                else
+                    core.remove_node(pos)
+                end
+            end
         elseif vector.distance(loc, pos) < r then
             local node = core.get_node(pos).name
             local nodedef = core.registered_nodes[node]

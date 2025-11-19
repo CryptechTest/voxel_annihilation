@@ -115,7 +115,7 @@ function GameObject:begin()
             local player = core.get_player_by_name(p.name)
             if player then
                 self:player_ctl_clear(p.name)
-                player:move_to(p.spawn_pos)
+                --player:move_to(p.spawn_pos)
             end
         end
     elseif self.start_index == 3 then
