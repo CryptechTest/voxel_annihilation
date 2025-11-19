@@ -252,7 +252,6 @@ local function do_landing_area(loc)
     local nodes = core.find_nodes_in_area(pos1, pos2, {"group:flammable", "group:flora", "group:grass", "group:leaves",
                                                        "group:tree", "group:va_rocks", "group:va_gems"})
     for _, pos in pairs(nodes) do
-        core.log("found flammable!")
         if vector.distance(loc, pos) <= 1.75 then
             core.remove_node(pos)
         elseif vector.distance(loc, pos) < r - 1 then
@@ -406,6 +405,7 @@ core.register_node("va_game:command_marker", {
                 do_remove = true
                 local s_pos = vector.add(pos, vector.new(0, 0.05, 0))
                 if (core.get_modpath("lightning")) then
+                    ---@diagnostic disable-next-line: undefined-global
                     lightning.strike(s_pos)
                 end
                 local commander = va_units.spawn_unit("va_units:vox_commander", owner, s_pos)

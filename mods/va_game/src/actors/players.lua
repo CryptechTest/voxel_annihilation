@@ -149,7 +149,7 @@ function va_game.calculate_player_actors()
 
             if current_time - last_sound_last_played >= 5 and current_time - sound_last_played >= 30 then
                 core.sound_play(sound, {
-                    play_to = player_name,
+                    to_player = player_name,
                     gain = 1.0,
                     pitch = 1.0,
                 })

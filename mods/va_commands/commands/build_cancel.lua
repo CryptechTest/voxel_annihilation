@@ -44,9 +44,9 @@ va_commands.register_command("build_cancel", {
             if not stack:is_empty() then
                 local g = core.get_item_group(stack:get_name(), "va_structure")
                 if g > 0 then
-                    found_stack = stack
-                elseif stack:get_name() == "va_commands:build_cancel" then
                     found_index = i
+                elseif stack:get_name() == "va_commands:build_cancel" then
+                    found_stack = stack
                 end
             end
         end

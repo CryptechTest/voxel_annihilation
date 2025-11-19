@@ -37,7 +37,7 @@ local function get_lobby_setup(owner)
     field[0.75,4.6;3.5,1;game_position;Lobby Position;]] .. math.floor(pos.x) .. [[ ]] .. math.floor(pos.y) .. [[ ]] ..
         math.floor(pos.z) .. [[]
     label[4,4.025;Map Size]
-    dropdown[4,4.3655;3.5;game_board_size;256,512,768,1024;1;true]
+    dropdown[4,4.3655;3.5;game_board_size;256,384,512,640,768,896,1024;1;true]
     style[cancel;bgcolor=#ff0000]
     button_exit[5.5,7.5;2,0.5;cancel;Cancel]
     style[save;bgcolor=#00ff00]
@@ -54,6 +54,7 @@ local function get_lobby(owner)
     if lobby == nil then
         return pages.main_menu
     end
+    local mode = lobby.mode
     local function update_lobby_players(formspec)
         local x_min = 0.25
         local y_min = 1.0
@@ -99,19 +100,51 @@ local function get_lobby(owner)
         table.insert(formspec, "style[start;bgcolor=" .. bgcolor .. "]")
         table.insert(formspec, "button[0.5,7.5;2,0.5;start;Start]")
     end
-    local formspec = {"size[8,8]", [[
-        no_prepend[]
-        formspec_version[10]
-        bgcolor[#101010;]
-        style_type[label;font_size=22;font=bold]
-        label[0,0;]] .. lobby.name .. [[]
-        style[leave;bgcolor=#ff0000]
-        button_exit[5.5,7.5;2,0.5;leave;Leave]
-        ]]}
-    update_lobby_players(formspec)
-    add_start(formspec)
-    local lobby_formspec = table.concat(formspec, "")
-    return lobby_formspec
+    local function add_spectate(formspec)
+        local bgcolor = "#00FFEA"
+        table.insert(formspec, "style[spectate_start;bgcolor=" .. bgcolor .. "]")
+        table.insert(formspec, "button[2.75,7.5;2,0.5;spectate_start;Spectate]")
+    end
+
+    if mode == 1 or mode == "1" then
+        local formspec = {"size[8,8]", [[
+            no_prepend[]
+            formspec_version[10]
+            bgcolor[#101010;]
+            style_type[label;font_size=22;font=bold]
+            label[0,0;]] .. lobby.name .. [[]
+            style[leave;bgcolor=#ff0000]
+            button_exit[5.5,7.5;2,0.5;leave;Leave]
+            ]]}
+        update_lobby_players(formspec)
+        local game = va_game.get_game_from_lobby(lobby.name)
+        if not game or (game and game:is_started()) then
+            add_start(formspec)
+        end
+        add_spectate(formspec)
+        local lobby_formspec = table.concat(formspec, "")
+        return lobby_formspec
+    elseif mode == 2 or mode == "2" then
+        local formspec = {"size[8,8]", [[
+            no_prepend[]
+            formspec_version[10]
+            bgcolor[#101010;]
+            style_type[label;font_size=22;font=bold]
+            label[0,0;]] .. lobby.name .. [[]
+            style[leave;bgcolor=#ff0000]
+            button_exit[5.5,7.5;2,0.5;leave;Leave]
+            ]]}
+        update_lobby_players(formspec)
+        local game = va_game.get_game_from_lobby(lobby.name)
+        if not game or (game and game:is_started()) then
+            add_start(formspec)
+        end
+        add_spectate(formspec)
+        local lobby_formspec = table.concat(formspec, "")
+        return lobby_formspec
+    else
+        core.log("mode not found?")
+    end
 end
 
 --- get all lobbies
@@ -140,6 +173,8 @@ local function get_lobbies()
                 difficulty = "Extreme"
             end
             mode = "Wave Def" .. "(" .. difficulty .. ")"
+        elseif lobby.mode == 2 or lobby.mode == "2" then
+            mode = "Annihilation"
         end
         local lobby_display = ""
         if #lobby.name > 25 then
@@ -476,18 +511,20 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         else
             local game = va_game.init_game_from_lobby(lobby)
             if game then
-                local function do_update_check()
-                    update_lobby_setup(lobby, game)
-                    if game.setup_index <= 0 then
-                        return
+                if not game:is_started() then
+                    local function do_update_check()
+                        update_lobby_setup(lobby, game)
+                        if game.setup_index <= 0 then
+                            return
+                        end
+                        if game.setup_index >= 0 then
+                            core.after(1, function()
+                                do_update_check()
+                            end)
+                        end
                     end
-                    if game.setup_index >= 0 then
-                        core.after(1, function()
-                            do_update_check()
-                        end)
-                    end
+                    do_update_check()
                 end
-                do_update_check()
             end
         end
 

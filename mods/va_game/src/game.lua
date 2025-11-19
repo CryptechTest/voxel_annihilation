@@ -47,6 +47,7 @@ function GameObject.new(pos, size, mode, name, pass)
     self._disposed = false
     -- flags
     self.created = false -- game board is created
+    self.loaded = false -- game board is loaded
     self.setup = false -- game is setup
     self.ready_start = false -- all players are ready for start
     self.started = false -- game has started
@@ -63,8 +64,12 @@ end
 function GameObject:init()
     if self.setup_index == 8 then
         -- setup the game board....
+        self:load_battlefield()
 
     elseif self.setup_index == 7 then
+        self:setup_bounding_box()
+
+    elseif self.setup_index == 6 then
         self:send_all_player_msg("Battlefield is being created... Please wait!")
         -- move players to board
         for _, p in pairs(self.players) do
@@ -115,7 +120,7 @@ function GameObject:begin()
             local player = core.get_player_by_name(p.name)
             if player then
                 self:player_ctl_clear(p.name)
-                --player:move_to(p.spawn_pos)
+                -- player:move_to(p.spawn_pos)
             end
         end
     elseif self.start_index == 3 then
@@ -162,6 +167,7 @@ end
 
 function GameObject:dispose()
     self._disposed = true
+    self:dipose_bounding_box()
     self:dipose_lobby_game()
     for _, pplayer in pairs(self.players) do
         va_game.remove_player_actor(pplayer.name)
@@ -204,10 +210,12 @@ function GameObject:tick(tick_index)
     ---------------------------------
     -- tick game setup
     if self.setup_index > 0 and tick_index == 0 then
-        -- setup game...
-        self.setup_index = self.setup_index - 1
-        if self.setup_index <= 0 then
-            self.setup = true
+        if self.loaded then
+            -- setup game...
+            self.setup_index = self.setup_index - 1
+            if self.setup_index <= 0 then
+                self.setup = true
+            end
         end
         self:init()
     end
@@ -430,6 +438,265 @@ end
 
 -----------------------------------------------------------------
 
+local _last_emerge_times = {}
+
+local _emerge_tick_length = 5
+local _emerge_tick_avg_max = 16
+
+local function emerge_callback(pos, action, num_calls_remaining, context)
+    -- On first call, record number of blocks
+    if not context.total_blocks then
+        context.total_blocks = num_calls_remaining + 1
+        context.loaded_blocks = 0
+    end
+
+    -- Increment number of blocks loaded
+    context.loaded_blocks = context.loaded_blocks + 1
+
+    if context.loaded_blocks == 1 then
+        local msg = core.colorize("#ffdd5fff", ">> ")
+        msg = msg .. core.colorize("#00f13cff", "Mapblock emerge area has started!")
+        msg = msg .. "  " .. core.colorize("#979797ff", "Battlefield is warming up; Please wait...")
+        context.game:send_all_player_msg(msg)
+    end
+
+    local now = core.get_us_time()
+
+    -- Send progress message
+    if context.total_blocks == context.loaded_blocks then
+        local t_length = (now - context.t_us_start) * 0.000001
+        local t_avg_rate = context.loaded_blocks / t_length
+        local msg = string.format("> Total Blocks:  %d\n" .. "> Time Taken:    %.2f Sec\n" ..
+                                      "> Load Time Avg: %.1f Blk/s\n", context.loaded_blocks, t_length, t_avg_rate)
+        msg = core.colorize("#6fa4ffff", msg)
+        msg = core.colorize("#16bcc2ff", "-------------------------------\n" .. msg)
+        msg = core.colorize("#14aa5fff", "Finished loading Battlefield!!!\n") .. msg
+        context.game:send_all_player_msg(msg)
+        context.game.loaded = true
+
+    elseif now - context._time_last_msg > 1000 * 1000 * _emerge_tick_length then
+        context._tick_end_count = context.loaded_blocks - context._tick_start_count
+        local t_length = (now - context.t_us_last) * 0.000001
+        local _t_rate = t_length > 0 and context._tick_end_count / t_length or 0
+        local t_rate = math.max(5, _t_rate)
+
+        if now - context.t_us_start > 1000 * 1000 * (27) then
+            table.insert(_last_emerge_times, t_rate)
+        end
+        local t_rate_total = 0
+        for _, v in pairs(_last_emerge_times) do
+            t_rate_total = t_rate_total + v
+        end
+        local t_rate_avg = #_last_emerge_times > 0 and t_rate_total / #_last_emerge_times or 0
+        local t_eta = (context.total_blocks - context.loaded_blocks) / (t_rate_avg)
+
+        local perc = 100 * context.loaded_blocks / context.total_blocks
+        local msg_est = ""
+        if now - context.t_us_start > 1000 * 1000 * (40) then
+            msg_est = " - " .. core.colorize("#ebac00ff", string.format("Est Time: ~%.1f Sec", t_eta))
+        end
+        local msg = core.colorize("#ebac00ff", "[Emerge] ") .. "Loading Battlefield: " ..
+                        string.format("%d / %d (%.3f%%) ", context.loaded_blocks, context.total_blocks, perc) ..
+                        core.colorize("#6fa4ffff", string.format("%.1f Blk/s ", t_rate)) .. "- " ..
+                        (t_rate_avg and t_rate_avg > 0 and
+                            core.colorize("#3668beff", string.format("(Avg %.1f b / %i s) ", t_rate_avg,
+                    _emerge_tick_avg_max * _emerge_tick_length)) or "") ..
+                        core.colorize("#6fa4ffff", string.format("RUN= %.1f sec", t_length)) .. msg_est
+        context.game:send_all_player_msg(msg)
+        context.t_us_last = now
+        context._time_last_msg = now
+        context._tick_start_count = context.loaded_blocks
+
+        if #_last_emerge_times > _emerge_tick_avg_max then
+            table.remove(_last_emerge_times, 1)
+        end
+
+    end
+end
+
+local function do_emerge(self, radius)
+    local pos = self:get_pos()
+    if not radius or radius < 16 then
+        radius = 16
+    end
+    -- load mapblock area of radius, based from position 0,0
+    local minpos = vector.new(-radius / 1, -radius / 1, -radius / 1)
+    local maxpos = vector.new(radius / 1, radius / 1, radius / 1)
+
+    minpos = vector.add(minpos, pos)
+    maxpos = vector.add(maxpos, pos)
+
+    if minpos.y < -32 then
+        minpos.y = -32
+    end
+    if maxpos.y > 128 then
+        maxpos.y = 128
+    end
+
+    local now = core.get_us_time()
+    local context = {
+        game = self,
+        t_us_start = now,
+        t_us_last = now,
+        _tick_start_count = 0,
+        _tick_end_count = 0,
+        _time_last_msg = now
+    }
+    core.emerge_area(minpos, maxpos, emerge_callback, context)
+end
+
+function GameObject:load_battlefield()
+    local radius = self.size.width / 2
+    self.loaded = false
+    do_emerge(self, radius)
+end
+
+function GameObject:setup_bounding_box()
+    local minY = self.position.y - 32
+    local maxY = self.position.y + self.size.height
+    local minX = self.position.x - self.size.width / 2
+    local maxX = self.position.x + self.size.width / 2
+    local minZ = self.position.z - self.size.depth / 2
+    local maxZ = self.position.z + self.size.depth / 2
+    -- Create a hollow cube using the bounds
+    for y = minY, maxY do
+        if y == minY or y == maxY then
+            for x = minX, maxX do
+                for z = minZ, maxZ do
+                    local pos = {
+                        x = x,
+                        y = y,
+                        z = z
+                    }
+                    if core.get_node(pos).name == "air" then
+                        core.set_node(pos, {
+                            name = "barrier:barrier"
+                        })
+                    end
+                end
+            end
+        elseif y > minY and y < maxY then
+            for x = minX, maxX do
+                local pos1 = {
+                    x = x,
+                    y = y,
+                    z = minZ
+                }
+                local pos2 = {
+                    x = x,
+                    y = y,
+                    z = maxZ
+                }
+                if core.get_node(pos1).name == "air" then
+                    core.set_node(pos1, {
+                        name = "barrier:barrier"
+                    })
+                end
+                if core.get_node(pos2).name == "air" then
+                    core.set_node(pos2, {
+                        name = "barrier:barrier"
+                    })
+                end
+            end
+            for z = minZ + 1, maxZ - 1 do
+                local pos3 = {
+                    x = minX,
+                    y = y,
+                    z = z
+                }
+                local pos4 = {
+                    x = maxX,
+                    y = y,
+                    z = z
+                }
+                if core.get_node(pos3).name == "air" then
+                    core.set_node(pos3, {
+                        name = "barrier:barrier"
+                    })
+                end
+                if core.get_node(pos4).name == "air" then
+                    core.set_node(pos4, {
+                        name = "barrier:barrier"
+                    })
+                end
+            end
+        end
+    end
+end
+
+function GameObject:dipose_bounding_box()
+    local minY = self.position.y - 32
+    local maxY = self.position.y + self.size.height
+    local minX = self.position.x - self.size.width / 2
+    local maxX = self.position.x + self.size.width / 2
+    local minZ = self.position.z - self.size.depth / 2
+    local maxZ = self.position.z + self.size.depth / 2
+    -- Create a hollow cube using the bounds
+    for y = minY, maxY do
+        if y == minY or y == maxY then
+            for x = minX, maxX do
+                for z = minZ, maxZ do
+                    local pos = {
+                        x = x,
+                        y = y,
+                        z = z
+                    }
+                    if core.get_node(pos).name == "barrier:barrier" then
+                        core.set_node(pos, {
+                            name = "air"
+                        })
+                    end
+                end
+            end
+        elseif y > minY and y < maxY then
+            for x = minX, maxX do
+                local pos1 = {
+                    x = x,
+                    y = y,
+                    z = minZ
+                }
+                local pos2 = {
+                    x = x,
+                    y = y,
+                    z = maxZ
+                }
+                if core.get_node(pos1).name == "barrier:barrier" then
+                    core.set_node(pos1, {
+                        name = "air"
+                    })
+                end
+                if core.get_node(pos2).name == "barrier:barrier" then
+                    core.set_node(pos2, {
+                        name = "air"
+                    })
+                end
+            end
+            for z = minZ + 1, maxZ - 1 do
+                local pos3 = {
+                    x = minX,
+                    y = y,
+                    z = z
+                }
+                local pos4 = {
+                    x = maxX,
+                    y = y,
+                    z = z
+                }
+                if core.get_node(pos3).name == "barrier:barrier" then
+                    core.set_node(pos3, {
+                        name = "air"
+                    })
+                end
+                if core.get_node(pos4).name == "barrier:barrier" then
+                    core.set_node(pos4, {
+                        name = "air"
+                    })
+                end
+            end
+        end
+    end
+end
+
 -- check if position is within game bounds
 function GameObject:is_within_bounds(pos)
     local x = pos.x
@@ -534,8 +801,8 @@ function GameObject:check_modes()
     local commanders = {}
     for _, v in pairs(self.players) do
         local has_commander = false
-        -- local units = va_units.get_player_units(v.name)
-        local units = va_units.get_all_units()
+        local units = va_units.get_player_units(v.name)
+        --local units = va_units.get_all_units()
         for _, unit in pairs(units) do
             if unit._owner_name == v.name then
                 if unit.object:get_luaentity()._is_commander == true then
@@ -575,7 +842,9 @@ function GameObject:player_ctl_clear(player_name)
     local inv_name = "main"
     -- local inv_list = inv:get_list(inv_name)
     inv:set_list(inv_name, {})
-    player:hud_set_flags({hotbar = false})
+    player:hud_set_flags({
+        hotbar = false
+    })
 end
 
 function GameObject:player_ctl_init(player_name)
@@ -601,7 +870,9 @@ function GameObject:player_ctl_init(player_name)
     inv:set_list(inv_name, {marker_item})
     player:hud_set_hotbar_itemcount(1)
     player:hud_set_hotbar_image("va_hud_hotbar_1.png")
-    player:hud_set_flags({hotbar = true})
+    player:hud_set_flags({
+        hotbar = true
+    })
 end
 
 function GameObject:player_ctl_base(player_name)
@@ -631,7 +902,9 @@ function GameObject:player_ctl_base(player_name)
     inv:set_list(inv_name, {select, select_all})
     player:hud_set_hotbar_itemcount(2)
     player:hud_set_hotbar_image("va_hud_hotbar_2.png")
-    player:hud_set_flags({hotbar = true})
+    player:hud_set_flags({
+        hotbar = true
+    })
 end
 
 function GameObject:player_ctl_unit_commander(player_name)
@@ -693,7 +966,9 @@ function GameObject:player_ctl_unit_commander(player_name)
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, attack})
     player:hud_set_hotbar_itemcount(10)
     player:hud_set_hotbar_image("va_hud_hotbar_10.png")
-    player:hud_set_flags({hotbar = true})
+    player:hud_set_flags({
+        hotbar = true
+    })
 end
 
 function GameObject:player_ctl_unit_build(player_name)
@@ -755,7 +1030,9 @@ function GameObject:player_ctl_unit_build(player_name)
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, build, reclaim, repair, capture})
     player:hud_set_hotbar_itemcount(10)
     player:hud_set_hotbar_image("va_hud_hotbar_10.png")
-    player:hud_set_flags({hotbar = true})
+    player:hud_set_flags({
+        hotbar = true
+    })
 end
 
 function GameObject:player_ctl_unit_reclaim(player_name)
@@ -809,7 +1086,9 @@ function GameObject:player_ctl_unit_reclaim(player_name)
     inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, reclaim, repair})
     player:hud_set_hotbar_itemcount(8)
     player:hud_set_hotbar_image("va_hud_hotbar_8.png")
-    player:hud_set_flags({hotbar = true})
+    player:hud_set_flags({
+        hotbar = true
+    })
 end
 
 function GameObject:player_ctl_unit_combat(player_name)
@@ -856,10 +1135,12 @@ function GameObject:player_ctl_unit_combat(player_name)
         name = "va_commands:attack_move",
         count = 1
     })
-    inv:set_list(inv_name, {select, select_all, stop, move, guard, attack_move, attack })
+    inv:set_list(inv_name, {select, select_all, stop, move, guard, attack_move, attack})
     player:hud_set_hotbar_itemcount(7)
     player:hud_set_hotbar_image("va_hud_hotbar_7.png")
-    player:hud_set_flags({hotbar = true})
+    player:hud_set_flags({
+        hotbar = true
+    })
 end
 
 -----------------------------------------------------------------
