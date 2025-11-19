@@ -245,67 +245,12 @@ local function landing_effect_particle(pos, radius, color)
     })
 end
 
-local dirs = {{ -- along x beside
-    x = 1,
-    y = 0,
-    z = 0
-}, {
-    x = -1,
-    y = 0,
-    z = 0
-}, { -- along z beside
-    x = 0,
-    y = 0,
-    z = 1
-}, {
-    x = 0,
-    y = 0,
-    z = -1
-}, { -- nodes on y
-    x = 0,
-    y = 1,
-    z = 0
-}, {
-    x = 0,
-    y = -1,
-    z = 0
-}, { -- self
-    x = 0,
-    y = 0,
-    z = 0
-}}
-
-local function set_fire(hit_pos)
-    for _, dir in pairs(dirs) do
-        local pos = vector.add(hit_pos, dir)
-        local node = core.get_node(pos).name
-        local nodedef = core.registered_nodes[node]
-        if nodedef then
-            if nodedef.on_ignite then
-                nodedef.on_ignite(pos, nil)
-                break
-            elseif (core.get_item_group(node, "flammable") >= 1) and
-                core.get_node(vector.add(pos, vector.new(0, 1, 0))).name == "air" then
-                core.set_node(vector.add(pos, vector.new(0, 1, 0)), {
-                    name = "fire:basic_flame"
-                })
-                break
-            elseif core.get_node(pos).name == "air" then
-                core.set_node(pos, {
-                    name = "fire:basic_flame"
-                })
-                break
-            end
-        end
-    end
-end
-
 local function do_landing_area(loc)
-    local r = 4.05
+    local r = 5.25
     local pos1 = vector.add(loc, vector.new(r, r + 1, r))
     local pos2 = vector.subtract(loc, vector.new(r, r, r))
     local nodes = core.find_nodes_in_area(pos1, pos2, {"group:flammable", "group:flora", "group:grass", "group:leaves",
-                                                       "group:tree", "va_rocks"})
+                                                       "group:tree", "group:va_rocks", "group:va_gems"})
     for _, pos in pairs(nodes) do
         core.log("found flammable!")
         if vector.distance(loc, pos) <= 1.75 then
@@ -316,14 +261,10 @@ local function do_landing_area(loc)
             if nodedef then
                 if nodedef.on_ignite then
                     nodedef.on_ignite(pos, nil)
-                elseif (core.get_item_group(node, "flammable") >= 1) then
-                    set_fire(pos)
                 else
                     core.remove_node(pos)
                 end
             end
-        elseif vector.distance(loc, pos) < r then
-            set_fire(pos)
         end
     end
 end
@@ -486,7 +427,7 @@ core.register_node("va_game:command_marker", {
                 })
                 core.sound_play("va_weapons_railgun", {
                     pos = pos,
-                    gain = 2,
+                    gain = 4,
                     pitch = 0.4,
                     max_hear_distance = 32
                 })
