@@ -166,11 +166,11 @@ local function get_game_setup(owner, game)
     if lobby == nil then
         return pages.main_menu
     end
+    -- allow_close[false]
     local formspec = {"size[4,2]", [[
         no_prepend[]
         formspec_version[10]
         bgcolor[#101010;]
-        allow_close[false]
         style_type[label;font_size=22;font=bold]
         label[0,0;]] .. lobby.name .. [[]
         style_type[label;font_size=19;font=bold]
@@ -222,7 +222,7 @@ local function get_game_active(lobby_owner, pname, game)
             vote_stop = vote_stop + 1
         end
     end
-    local vote_stop_max = math.max(1, math.ceil(#game.players / 2))
+    local vote_stop_max = math.max(1, math.ceil((game:get_player_count() / 2) + 0.5))
     local formspec = {"size[8,8]", [[
         no_prepend[]
         formspec_version[10]
@@ -268,10 +268,10 @@ local update_lobby_start = function(game)
         local pname = pplayer.name
         local lobby_owner = va_lobby.player_lobbies[pname]
         formspecs[pname] = get_game_start(lobby_owner, pname, game)
-        if game.start_index == 60 then
+        if game.start_index == 60 or game.setup_index == 1 then
             core.show_formspec(pname, "", formspecs[pname])
         end
-        if game.start_index == 0 then
+        if game.start_index <= 1 then
             core.close_formspec(pname, "")
             formspecs[pname] = get_game_active(lobby_owner, pname, game)
         end
@@ -537,6 +537,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                     game.votes_stop[pname] = true
                     formspecs[pname] = get_game_active(va_lobby.player_lobbies[pname], pname, game)
                     update_formspec(player)
+                    do_update_lobby(game)
                 end
             end
         end

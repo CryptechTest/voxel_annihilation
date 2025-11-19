@@ -20,7 +20,7 @@ core.register_globalstep(function(dtime)
 
     va_structures.structures_run(vas_run_tick)
 
-    if vas_run_tick == 0 then
+    if vas_run_tick == 3 then
         va_hud.tick_player_huds()
     end
 

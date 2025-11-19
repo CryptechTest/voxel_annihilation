@@ -38,7 +38,7 @@ function GameObject.new(pos, size, mode, name, pass)
     self.run_tick = 0
     self.run_tick_max = 4
     -- setup
-    self.setup_index = 10 -- index of the setup step for the game
+    self.setup_index = 8 -- index of the setup step for the game
     self.start_index = 61 -- index of the start step for the game
     -- cleanup
     self.dispose_tick = 0
@@ -58,13 +58,14 @@ end
 
 -----------------------------------------------------------------
 -----------------------------------------------------------------
+--- tick run functions
 
 function GameObject:init()
-    if self.setup_index == 9 then
+    if self.setup_index == 8 then
         -- setup the game board....
-        self:send_all_player_msg("Battlefield is being created... Please wait!")
 
     elseif self.setup_index == 7 then
+        self:send_all_player_msg("Battlefield is being created... Please wait!")
         -- move players to board
         for _, p in pairs(self.players) do
             local player = core.get_player_by_name(p.name)
@@ -83,18 +84,19 @@ function GameObject:init()
             end
         end
     elseif self.setup_index == 3 then
+        self:send_all_player_msg("Battlefield loaded! One moment...")
+    elseif self.setup_index == 1 then
         self:create_player_actors()
         if self.created then
-            self:send_all_player_msg("Battlefield ready! One moment...")
+            self:send_all_player_msg("Battlefield Ready!")
         end
-    elseif self.setup_index == 1 then
+    elseif self.setup_index == 0 then
         -- give command marker to players
         for _, p in pairs(self.players) do
             self:player_ctl_init(p.name)
         end
         self:send_all_player_msg("Please choose a landing location for your Commander.")
         self:send_all_player_sound("va_game_amy_choose_starting_location")
-    elseif self.setup_index == 0 then
         self.start_time = core.get_us_time()
     end
 end
@@ -107,6 +109,14 @@ function GameObject:begin()
     elseif self.start_index == 1 then
         for _, p in pairs(self.players) do
             self:player_ctl_base(p.name)
+        end
+        -- move players to their spawn
+        for _, p in pairs(self.players) do
+            local player = core.get_player_by_name(p.name)
+            if player then
+                self:player_ctl_clear(p.name)
+                player:move_to(p.spawn_pos)
+            end
         end
     elseif self.start_index == 3 then
         self:send_all_player_msg("Game Starting in 3 seconds...")
@@ -164,6 +174,10 @@ function GameObject:dispose()
         end
     end
 end
+
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+--- tick
 
 function GameObject:tick(tick_index)
     if self._disposed then
@@ -356,7 +370,8 @@ function GameObject:add_player(player_name, team_id, faction, is_boss)
         is_spawned = false,
         selected_menu = "none",
         placed = false,
-        ready = false
+        ready = false,
+        spawn_pos = self:get_pos()
     }
 end
 
@@ -376,6 +391,14 @@ end
 
 function GameObject:get_player(player_name)
     return self.players[player_name]
+end
+
+function GameObject:get_player_count()
+    local count = 0
+    for _, player in pairs(self.players) do
+        count = count + 1
+    end
+    return count
 end
 
 -- spectators
@@ -482,7 +505,7 @@ function GameObject:check_modes()
     if core.get_us_time() - self.start_time < 3 * 1000 * 1000 then
         return
     end
-    local vote_stop_max = math.max(1, math.ceil(#self.players / 2))
+    local vote_stop_max = math.max(1, math.ceil((self:get_player_count() / 2) + 0.5))
     local vote_stop = 0
     for _, vote in pairs(self.votes_stop) do
         if vote then

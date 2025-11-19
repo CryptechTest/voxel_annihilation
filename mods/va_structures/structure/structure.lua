@@ -1040,15 +1040,20 @@ function Structure:repair_unit_with_power(actor, unit, b_power)
     if not unit_obj then
         return
     end
-    local hp = unit_obj:get_hp()
-    if hp >= unit_obj:get_hp_max() then
-        return false
-    end
-    local amount = math.floor(b_power)
-    self:set_hp(hp + amount)
-    local pos = unit_obj:get_pos()
-    local pos2 = self.pos
-    va_structures.particle_build_effects(pos, pos2, b_power, actor.team_color)
+
+    -- FIXME: handle unit healing
+
+    --[[if unit.object and unit.object.get_hp then
+        local hp = unit_obj.object:get_hp()
+        if hp >= unit_obj.object:get_hp_max() then
+            return false
+        end
+        local amount = math.floor(b_power)
+        self:set_hp(hp + amount)
+        local pos = unit_obj:get_pos()
+        local pos2 = self.pos
+        va_structures.particle_build_effects(pos, pos2, b_power, actor.team_color)
+    end]]
     return true
 end
 
