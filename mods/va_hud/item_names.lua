@@ -16,6 +16,7 @@ local function set_hud(player)
 			alignment = {x=0, y=-1},
 			number = 0xFFFFFF,
 			text = "",
+			style = 1
 		}),
 		index = 1,
 		itemname = ""

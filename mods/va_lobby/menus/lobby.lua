@@ -591,6 +591,7 @@ core.register_on_joinplayer(function(player)
     player:set_observers({
         [player:get_player_name()] = true
     })
+    player:hud_set_hotbar_selected_image("va_hud_hotbar_selected.png")
     -- va_hud.update_hud(player)
 end)
 
