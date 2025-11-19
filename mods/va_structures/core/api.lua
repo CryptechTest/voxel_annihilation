@@ -329,6 +329,9 @@ function va_structures.get_unit_command_queue(unit_id)
 end
 
 function va_structures.remove_pos_from_command_queue(pos, unit_id)
+    if not pos then
+        return
+    end
     pos = {
         x = math.floor(pos.x),
         y = math.floor(pos.y + 0.5),

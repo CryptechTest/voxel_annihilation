@@ -44,7 +44,9 @@ local function register_structure_entity_ghost(def)
         -- dispose of instance, enitity, and node
         _dispose = function(self, removal)
             self._valid = false
-            va_structures.remove_pos_from_command_queue(self.object:get_pos(), self._constructor_id)
+            if self.object and self.object:get_pos() then
+                va_structures.remove_pos_from_command_queue(self.object:get_pos(), self._constructor_id)
+            end
             if removal then
                 self.object:remove()
             end
