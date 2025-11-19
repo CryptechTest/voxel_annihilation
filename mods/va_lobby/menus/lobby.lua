@@ -29,18 +29,18 @@ local function get_lobby_setup(owner)
     label[0,0;Setup Lobby]
     field[0.75,1.3;7,1;game_name;Lobby Name;]
     pwdfield[0.75,2.4;7,1;password;Password (optional)]
-    style[cancel;bgcolor=#ff0000]
-    style[save;bgcolor=#00ff00]
     style_type[label;font_size=16;font=bold]
     label[0.5,2.9;Mode]
-    dropdown[0.465,3.3;3.5;mode;Wave Defense;1;true]
+    dropdown[0.465,3.3;3.5;mode;Wave Defense,Assasination;1;true]
     label[4,2.9;Difficulty]
     dropdown[4,3.3;3.5;wd_difficulty;Easy,Medium,Hard,Extreme;1;true]
     field[0.75,4.6;3.5,1;game_position;Lobby Position;]] .. math.floor(pos.x) .. [[ ]] .. math.floor(pos.y) .. [[ ]] ..
         math.floor(pos.z) .. [[]
     label[4,4.025;Map Size]
     dropdown[4,4.3655;3.5;game_board_size;256,512,768,1024;1;true]
+    style[cancel;bgcolor=#ff0000]
     button_exit[5.5,7.5;2,0.5;cancel;Cancel]
+    style[save;bgcolor=#00ff00]
     button[0.5,7.5;2,0.5;save;Save]
     ]]}
     return table.concat(setup, "")

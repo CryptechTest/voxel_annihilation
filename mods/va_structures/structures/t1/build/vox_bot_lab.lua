@@ -351,11 +351,6 @@ local def = {
             index = 6,
             desc = "Repair Bot",
             image = ""
-        },
-        ['va_units:vox_commander'] = {
-            index = 15,
-            desc = "Commander TEST DEMO",
-            image = ""
         }
     },
     formspec = get_formspec,
