@@ -15,6 +15,7 @@ local function register_structure_entity(def)
             hp_max = def.max_health,
             visual = "mesh",
             mesh = def.mesh,
+            static_save = true,
             textures = def.textures,
             use_texture_alpha = true,
             visual_size = {
@@ -54,7 +55,7 @@ local function register_structure_entity(def)
         -- va structure vars
         _owner_hash = nil,
         _owner_name = nil,
-        _team_id = def.team_id,
+        _team_uuid = nil,
         -- internal
         _animations = def.entity_animations or nil,
         -- _animation = def.entity_animations and def.entity_animations.idle or nil,
@@ -237,7 +238,8 @@ local function register_structure_entity(def)
         get_staticdata = function(self)
             return core.write_json({
                 owner = self._owner_name,
-                hash = self._owner_hash
+                hash = self._owner_hash,
+                team_uuid = self._team_uuid
             })
         end,
 
@@ -248,13 +250,17 @@ local function register_structure_entity(def)
             self:_is_valid();
             local owner = nil
             local hash = nil
+            local team_uuid = ""
             if staticdata ~= nil and staticdata ~= "" then
                 local data = core.parse_json(staticdata)
                 if data then
                     owner = data.owner
                     hash = data.hash
+                    team_uuid = data.team_uuid
                 end
             end
+            self._owner_name = owner
+            self._team_uuid = team_uuid
             local pos = self.object:get_pos()
             local s = va_structures.get_active_structure(pos)
             if s then

@@ -77,7 +77,7 @@ function va_game.add_player_actor(owner, faction, team, color)
     end
     local actor_default = {
         faction = faction or "vox",
-        team = team or 1,
+        team = team or nil,
         team_color = color or "#ff0000",
         energy = env.base_energy,
         energy_storage = 0,

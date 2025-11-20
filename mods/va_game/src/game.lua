@@ -19,7 +19,7 @@ function GameObject.new(pos, size, mode, name, pass)
     self.name = name or "Default Game"
     self.password = pass or ""
     self.mode = mode or {
-        name = "wave_defense",
+        id = 1,
         difficulty = "easy"
     }
     self.update_lobby_ui = nil
@@ -39,7 +39,7 @@ function GameObject.new(pos, size, mode, name, pass)
     self.run_tick = 0
     self.run_tick_max = 4
     -- setup
-    self.setup_index = 8 -- index of the setup step for the game
+    self.setup_index = 10 -- index of the setup step for the game
     self.start_index = 61 -- index of the start step for the game
     -- cleanup
     self.dispose_tick = 0
@@ -63,15 +63,15 @@ end
 --- tick run functions
 
 function GameObject:init()
-    if self.setup_index == 8 then
+    if self.setup_index == 10 then
+        self:send_all_player_msg("Battlefield is being created... Please wait!")
         -- setup the game board....
         self:load_battlefield()
-
-    elseif self.setup_index == 7 then
+    elseif self.setup_index == 8 then
         self:setup_bounding_box()
-
+    elseif self.setup_index == 7 then
+        self:send_all_player_msg("Battlefield loading...  Preparing Game...")
     elseif self.setup_index == 6 then
-        self:send_all_player_msg("Battlefield is being created... Please wait!")
         -- move players to board
         for _, p in pairs(self.players) do
             local player = core.get_player_by_name(p.name)
@@ -243,8 +243,10 @@ function GameObject:tick(tick_index)
     end
     ---------------------------------
     if self.stopped or self.ended then
-        self:send_all_player_sound("va_game_amy_battle_ended")
-        self:update_lobby_ui()
+        core.after(5, function ()
+            self:send_all_player_sound("va_game_amy_battle_ended")
+            self:update_lobby_ui()
+        end)
         for _, p in pairs(self.players) do
             local player = core.get_player_by_name(p.name)
             if player then
@@ -357,18 +359,50 @@ end
 
 -----------------------------------------------------------------
 
+local function generate_uuid()
+    local random = math.random
+    local template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return string.gsub(template, '[xy]', function(c)
+        local v = (c == 'x') and random(0, 0xf) or random(8, 0xb)
+        return string.format('%x', v)
+    end)
+end
+
 -- teams
-function GameObject:add_team(team)
-    table.insert(self.teams, team)
+function GameObject:add_team(id, _players)
+    local uuid = generate_uuid()
+    local players = {}
+    for pname, v in pairs(_players) do
+        if v then
+            table.insert(players, pname)
+        end
+    end
+    table.insert(self.teams, {
+        id = id,
+        players = players,
+        uuid = uuid
+    })
+    core.log("added new team: " .. uuid)
 end
 
 function GameObject:remove_team(team_id)
     for i, team in ipairs(self.teams) do
-        if team.id == team_id then
+        if team.uuid == team_id then
             table.remove(self.teams, i)
             break
         end
     end
+end
+
+function GameObject:get_team_from_player(pname)
+    for _, team in pairs(self.teams) do
+        for _, p in pairs(team.players) do
+            if pname == p then
+                return team
+            end
+        end
+    end
+    return nil
 end
 
 function GameObject:get_teams()
@@ -376,10 +410,10 @@ function GameObject:get_teams()
 end
 
 -- players
-function GameObject:add_player(player_name, team_id, faction, is_boss)
+function GameObject:add_player(player_name, team_uuid, faction, is_boss)
     self.players[player_name] = {
         name = player_name,
-        team = team_id,
+        team = team_uuid,
         faction = faction,
         is_boss = is_boss,
         is_spawned = false,
@@ -468,10 +502,10 @@ local function emerge_callback(pos, action, num_calls_remaining, context)
         local t_length = (now - context.t_us_start) * 0.000001
         local t_avg_rate = context.loaded_blocks / t_length
         local msg = string.format("> Total Blocks:  %d\n" .. "> Time Taken:    %.2f Sec\n" ..
-                                      "> Load Time Avg: %.1f Blk/s\n", context.loaded_blocks, t_length, t_avg_rate)
+                                      "> Load Time Avg: %.1f Blk/s", context.loaded_blocks, t_length, t_avg_rate)
         msg = core.colorize("#6fa4ffff", msg)
-        msg = core.colorize("#16bcc2ff", "-------------------------------\n" .. msg)
-        msg = core.colorize("#14aa5fff", "Finished loading Battlefield!!!") .. msg
+        msg = core.colorize("#16bcc2ff", "-------------------------------\n") .. msg
+        msg = core.colorize("#14aa5fff", "Finished loading Battlefield!!!\n") .. msg
         context.game:send_all_player_msg(msg)
         context.game.loaded = true
 
@@ -554,10 +588,19 @@ end
 
 function GameObject:setup_bounding_box()
     local function add_map_object(pos)
+        if not pos then
+            return
+        end
         local node = core.get_node(pos)
         local hash = core.hash_node_position(pos)
-        self.map_objects[hash] = { pos = pos, name = node.name, param2 = node.param2}
-        core.set_node(pos, {name = "bedrock2:bedrock"})
+        self.map_objects[hash] = {
+            pos = pos,
+            name = node.name,
+            param2 = node.param2
+        }
+        core.set_node(pos, {
+            name = "bedrock2:bedrock"
+        })
         local meta = core:get_meta(pos)
         meta:set_string("game_id", self.id)
     end
@@ -776,7 +819,10 @@ function GameObject:dipose_bounding_box()
         local pos = core.get_position_from_hash(hash)
         core.load_area(pos)
         if pos and core.get_node(pos).name == "bedrock2:bedrock" then
-            core.set_node(pos, {name = node.name, param2 = node.param2})
+            core.set_node(pos, {
+                name = node.name,
+                param2 = node.param2
+            })
         end
     end
     self.map_objects = {}
@@ -882,17 +928,21 @@ function GameObject:check_modes()
         self:set_stopped(true)
         return
     end
+    local player_count = 0
     local remaining = 0
     local commanders = {}
+    local teams = {}
     for _, v in pairs(self.players) do
+        player_count = player_count + 1
         local has_commander = false
         local units = va_units.get_player_units(v.name)
-        --local units = va_units.get_all_units()
+        -- local units = va_units.get_all_units()
         for _, unit in pairs(units) do
             if unit._owner_name == v.name then
                 if unit.object:get_luaentity()._is_commander == true then
                     has_commander = true
                     commanders[unit._owner_name] = true
+                    teams[unit._team_uuid] = true
                 end
             end
         end
@@ -900,13 +950,55 @@ function GameObject:check_modes()
             remaining = remaining + 1
         end
     end
-    if remaining <= 1 and #self.players > 1 then
-        for key, value in pairs(commanders) do
-            if value then
-                table.insert(self.victors, key)
+    if self.mode.id == 1 then
+        if remaining <= 1 and player_count > 1 then
+            for key, value in pairs(commanders) do
+                if value then
+                    table.insert(self.victors, key)
+                end
+            end
+            self:set_ended(true)
+        end
+    elseif self.mode.id == 2 then
+        local team_count = 0
+        for uuid, v in pairs(teams) do
+            if v then
+                team_count = team_count + 1
             end
         end
-        self:set_ended(true)
+        if player_count == 0 then
+            self:set_ended(true)
+        elseif team_count <= 1 then
+            for key, value in pairs(commanders) do
+                if value then
+                    table.insert(self.victors, key)
+                end
+            end
+            self:set_ended(true)
+        end
+    end
+end
+
+function GameObject:commander_destroy_alert(team_uuid)
+    for _, team in pairs(self.teams) do
+        for _, pname in pairs(team.players) do
+            local player = core.get_player_by_name(pname)
+            if player then
+                if team.id == team_uuid then
+                    core.sound_play("va_game_amy_friendly_commander_died", {
+                        gain = 1.0,
+                        pitch = 1.0,
+                        to_player = pname
+                    })
+                else
+                    core.sound_play("va_game_amy_enemy_commander_died", {
+                        gain = 1.0,
+                        pitch = 1.0,
+                        to_player = pname
+                    })
+                end
+            end
+        end
     end
 end
 

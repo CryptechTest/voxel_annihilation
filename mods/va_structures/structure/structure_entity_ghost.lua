@@ -37,6 +37,7 @@ local function register_structure_entity_ghost(def)
         _owner_hash = nil,
         _owner_name = nil,
         _constructor_id = nil,
+        _team_uuid = nil,
         -- internal
         _timer = 1,
         _valid = false,
@@ -103,7 +104,8 @@ local function register_structure_entity_ghost(def)
             return core.write_json({
                 owner = self._owner_name or "",
                 hash = self._owner_hash or "",
-                constructor_id = self._constructor_id
+                constructor_id = self._constructor_id or "",
+                team_uuid = self._team_uuid or ""
             })
         end,
 
@@ -115,18 +117,21 @@ local function register_structure_entity_ghost(def)
             local owner = nil
             local hash = nil
             local constructor_id = nil
+            local team_uuid = ""
             if staticdata ~= nil and staticdata ~= "" then
                 local data = core.parse_json(staticdata)
                 if data then
                     owner = data.owner
                     hash = data.hash
                     constructor_id = data.constructor_id
+                    team_uuid = data.team_uuid
                 end
             end
             --core.log(tostring(owner) .. " " .. tostring(constructor_id))
             --local pos = self.object:get_pos()
             self._owner_name = owner
             self._constructor_id = constructor_id
+            self._team_uuid = team_uuid
             va_structures.keep_loaded(self)
         end,
 

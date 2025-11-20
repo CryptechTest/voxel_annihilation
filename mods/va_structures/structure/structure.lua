@@ -80,6 +80,7 @@ function Structure.new(pos, name, def, do_def_check)
     self.faction = def.faction -- faction teams: 'vox' and 'cube'
     self.owner = nil -- owner player name
     self.owner_actor = nil -- owner player actor
+    self.team_uuid = nil -- team uuid
 
     self.collisionbox = def.collisionbox or {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
     self.size = def.size or {1, 0, 1} -- structure area size
@@ -233,6 +234,10 @@ function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, 
     local s = Structure.new(pos, def.name, def, true)
     -- set structure owner
     s.owner = owner
+    local actor = va_game.get_player_actor(owner)
+    if actor then
+        s.team_uuid = actor.team
+    end
     -- check if structure placement is valid
     if not s:queue_placement(placer, pos) then
         return itemstack
@@ -287,7 +292,8 @@ function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, 
     -- summon entity...
     local obj = core.add_entity(e_pos, def.entity_name .. "_ghost", core.write_json({
         owner = owner,
-        constructor_id = unit_owner_id
+        constructor_id = unit_owner_id,
+        team_uuid = s.team_uuid
     }))
     if obj then
         local observers = {
@@ -305,6 +311,7 @@ function Structure.queue_ghost(itemstack, placer, pointed_thing, nonce) -- pos, 
         obj:set_rotation(rot)
         local ent = obj:get_luaentity()
         ent._owner_name = s.owner
+        ent._team_uuid = s.team_uuid
         ent._param2 = param2
         obj:set_properties({
             is_visible = true
@@ -380,6 +387,10 @@ function Structure:dequeue_materialize_ghost()
     local s = Structure.new(pos, def.name, def, true)
     s:set_hp(1)
     s.owner = owner
+    local actor = va_game.get_player_actor(owner)
+    if actor then
+        s.team_uuid = actor.team
+    end
     -- add to tracking lists
     va_structures.add_player_structure(s)
     va_structures.add_active_structure(pos, s)
@@ -389,7 +400,7 @@ function Structure:dequeue_materialize_ghost()
     attach_structure_build(s)
     attach_structure_gauge(s)
     if core.get_modpath("naturalslopeslib") then
-        local pos_below = vector.subtract(pos, vector.new(0,1,0))
+        local pos_below = vector.subtract(pos, vector.new(0, 1, 0))
         local node = core.get_node(pos_below)
         ---@diagnostic disable-next-line: undefined-global
         naturalslopeslib.update_shape(pos_below, node)
@@ -719,7 +730,7 @@ function Structure:dispose()
         core.remove_node(self.pos)
     end
     if core.get_modpath("naturalslopeslib") then
-        local pos_below = vector.subtract(self.pos, vector.new(0,1,0))
+        local pos_below = vector.subtract(self.pos, vector.new(0, 1, 0))
         local node = core.get_node(pos_below)
         ---@diagnostic disable-next-line: undefined-global
         naturalslopeslib.update_shape(pos_below, node)
@@ -752,7 +763,10 @@ function Structure:activate(visible)
     local hash = core.hash_node_position(self.pos)
     local meta = core.get_meta(self.pos)
     meta:set_int("active", 1)
-    local obj = core.add_entity(e_pos, self.entity_name, nil)
+    local obj = core.add_entity(e_pos, self.entity_name, core.write_json({
+        owner = self.owner,
+        team_uuid = self.team_uuid
+    }))
     if obj then
         local yawRad, rotation = self:get_yaw()
         local rot = {
@@ -764,6 +778,10 @@ function Structure:activate(visible)
         local ent = obj:get_luaentity()
         ent._owner_hash = tostring(hash)
         ent._owner_name = self.owner
+        local actor = va_game.get_player_actor(self.owner)
+        if actor then
+            ent._team_uuid = actor.team
+        end
         if not self.is_constructed then
             visible = false
         end
@@ -961,11 +979,11 @@ function Structure:construct_with_power(actor, build_power, constructor)
             has_resources = true
         end
         if energy - energy_cost_rate >= 0 then
-            --actor.mass_demand = actor.mass_demand + mass_cost_rate
+            -- actor.mass_demand = actor.mass_demand + mass_cost_rate
             actor:add_mass_demand(mass_cost_rate)
         end
         if mass - mass_cost_rate >= 0 then
-            --actor.energy_demand = actor.energy_demand + energy_cost_rate
+            -- actor.energy_demand = actor.energy_demand + energy_cost_rate
             actor:add_energy_demand(energy_cost_rate)
         end
     end
@@ -1083,10 +1101,10 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             z = 0
         })
 
-        local unit = va_units.spawn_unit(unit_name, owner, pos)
-        q.unit_id = unit and unit:get_guid() or nil
-        self:attach_child(unit)
-        add_construction_gauge(self, unit)
+        local s_unit = va_units.spawn_unit(unit_name, owner, pos, self.team_uuid)
+        q.unit_id = s_unit and s_unit:get_guid() or nil
+        self:attach_child(s_unit)
+        add_construction_gauge(self, s_unit)
     end
 
     local build_power = b_power or 10
@@ -1110,11 +1128,11 @@ function Structure:build_unit_with_power(actor, unit, b_power, constructor)
             has_resources = true
         end
         if energy - energy_cost_rate >= 0 then
-            --actor.mass_demand = actor.mass_demand + mass_cost_rate
+            -- actor.mass_demand = actor.mass_demand + mass_cost_rate
             actor:add_mass_demand(mass_cost_rate)
         end
         if mass - mass_cost_rate >= 0 then
-            --actor.energy_demand = actor.energy_demand + energy_cost_rate
+            -- actor.energy_demand = actor.energy_demand + energy_cost_rate
             actor:add_energy_demand(energy_cost_rate)
         end
     end
@@ -1551,7 +1569,10 @@ function Structure:entity_tick()
         if not self.entity_obj then
             self.entity_obj = nil
         end
-        local obj = core.add_entity(e_pos, self.entity_name, nil)
+        local obj = core.add_entity(e_pos, self.entity_name, core.write_json({
+            owner = self.owner,
+            team_uuid = self.team_uuid
+        }))
         local rot = {
             x = 0,
             y = yawRad,

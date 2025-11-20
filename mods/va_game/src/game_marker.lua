@@ -410,34 +410,38 @@ core.register_node("va_game:command_marker", {
                 core.log("game not found...")
             elseif game:is_started() then
                 do_remove = true
+                core.remove_node(pos)
                 local s_pos = vector.add(pos, vector.new(0, 0.05, 0))
                 if (core.get_modpath("lightning")) then
                     ---@diagnostic disable-next-line: undefined-global
                     lightning.strike(s_pos)
                 end
-                local commander = va_units.spawn_unit("va_units:vox_commander", owner, s_pos)
-                if commander then
-                    commander:get_luaentity()._is_constructed = true
+                local actor = va_game.get_player_actor(owner)
+                if actor then
+                    local commander = va_units.spawn_unit("va_units:vox_commander", owner, s_pos, actor.team)
+                    if commander then
+                        commander:get_luaentity()._is_constructed = true
+                    end
+                    local color = "#ffffff"
+                    if actor.team_color then
+                        color = actor.team_color
+                    end
+                    do_landing_area(pos)
+                    landing_effect_particle(vector.subtract(pos, vector.new(0, 0.05, 0)), 5, color)
+                    core.sound_play("va_weapons_missile", {
+                        pos = pos,
+                        gain = 10,
+                        pitch = 0.1,
+                        max_hear_distance = 48
+                    })
+                    core.sound_play("va_weapons_railgun", {
+                        pos = pos,
+                        gain = 8,
+                        pitch = 0.4,
+                        max_hear_distance = 48
+                    })
+                    return
                 end
-                local color = "#ffffff"
-                if owner then
-                    local actor = va_game.get_player_actor(owner)
-                    color = actor.team_color
-                end
-                do_landing_area(pos)
-                landing_effect_particle(vector.subtract(pos, vector.new(0, 0.05, 0)), 5, color)
-                core.sound_play("va_weapons_missile", {
-                    pos = pos,
-                    gain = 5,
-                    pitch = 0.1,
-                    max_hear_distance = 32
-                })
-                core.sound_play("va_weapons_railgun", {
-                    pos = pos,
-                    gain = 4,
-                    pitch = 0.4,
-                    max_hear_distance = 32
-                })
             end
         end
         if do_remove then
@@ -461,7 +465,9 @@ core.register_abm({
         local color = "#ffffff"
         if owner then
             local actor = va_game.get_player_actor(owner)
-            color = actor.team_color
+            if actor then
+                color = actor.team_color
+            end
         end
         spawn_particle(pos, 0, 1.5, 0, 0, -0.25, 0, 0.45, 3, 30, color)
         -- core.remove_node(pos)

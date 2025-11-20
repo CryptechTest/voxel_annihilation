@@ -103,12 +103,22 @@ local function find_attack_targets(unit, weapon)
     local weapon_range = weapon.range or 8
     local unit_pos = unit.object:get_pos()
     for _, other_unit in pairs(active_units) do
-        if other_unit._owner_name ~= unit._owner_name then
+        if other_unit._team_uuid ~= unit._team_uuid then
             if other_unit.object and other_unit.object:get_pos() then
                 local other_pos = other_unit.object:get_pos()
                 local distance = vector.distance(unit_pos, other_pos)
                 if distance <= weapon_range then
                     table.insert(targets, other_unit)
+                end
+            end
+        end
+    end
+    local structures = va_structures.get_active_structures()
+    for _, other_structure in pairs(structures) do
+        if not other_structure._disposed and other_structure.pos then
+            if other_structure.team_uuid ~= unit._team_uuid then
+                if vector.distance(unit_pos, other_structure.pos) <= weapon_range then
+                    table.insert(targets, {object = other_structure.entity_obj})
                 end
             end
         end
@@ -815,7 +825,7 @@ function va_units.register_unit(name, def)
         _command_queue_abort_at = def.command_abort_queue_at or abort_queue_at,
         _command_queue_add = def.command_queue_add or enqueue_command,
         _id = nil,
-        _team = nil,
+        _team_uuid = nil,
         _desc = def.nametag,
         _player_rotation = def.player_rotation or { x = 0, y = 0, z = 0 },
         _driver_attach_at = def.driver_attach_at or { x = 0, y = 0, z = 0 },
@@ -844,7 +854,7 @@ function va_units.register_unit(name, def)
         _current_mapblock = nil,
         _forceloaded_block = nil,
         _movement_type = def.movement_type or "ground",
-        on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage) 
+        on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
             local hp = self.object:get_hp()
             local punch_damage = 0
 
@@ -870,6 +880,16 @@ function va_units.register_unit(name, def)
 
             -- Remove unit if HP is zero or less
             if self.object:get_hp() <= 0 then
+                core.log("Unit removing...")
+                if self._is_commander then
+                    core.log("is_commander")
+                    local owner = self._owner_name
+                    local game = va_game.get_game_from_player(owner)
+                    if game then
+                        core.log("destroy alert!")
+                        game:commander_destroy_alert(self._team_uuid)
+                    end
+                end
                 self.object:remove()
                 -- Optionally, play a death effect or sound here
             end
@@ -880,6 +900,7 @@ function va_units.register_unit(name, def)
                 local data = staticdata:split(';')
                 self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
                 self._marked_for_removal = data[2] == "1" and true or false
+                self._team_uuid = data[3] and data[3] or ""
             end
             self._animation = animations.stand
             self.object:set_animation(self._animation or animations.stand, 1, 0)
@@ -911,7 +932,7 @@ function va_units.register_unit(name, def)
             self.object:set_observers({})
         end,
         get_staticdata = function(self)
-            return (self._owner_name or "") .. ";" .. (self._marked_for_removal and "1" or "0")
+            return (self._owner_name or "") .. ";" .. (self._marked_for_removal and "1" or "0") .. ";" .. (self._team_uuid or "")
         end,
         on_step = function(self, dtime, moveresult)
 
@@ -1256,7 +1277,13 @@ function va_units.register_unit(name, def)
                 and not core.is_protected(pos, placer:get_player_name()) then
                 pos.y = pos.y + 1
 
-                va_units.spawn_unit("va_units:" .. name, placer:get_player_name(), pos, placer:get_look_horizontal())
+                local team_uuid = nil
+                local actor = va_game.get_player_actor(place:get_player_name())
+                if actor then
+                    team_uuid = actor.team
+                end
+
+                va_units.spawn_unit("va_units:" .. name, placer:get_player_name(), pos, team_uuid)
                 itemstack:take_item()
             end
 
@@ -1265,12 +1292,12 @@ function va_units.register_unit(name, def)
     })
 end
 
-function va_units.spawn_unit(unit_name, owner_name, pos)
+function va_units.spawn_unit(unit_name, owner_name, pos, team_uuid)
     local registered_def = units[unit_name]
     if not registered_def then
         return nil
     end
-    local obj = core.add_entity(pos, unit_name, owner_name)
+    local obj = core.add_entity(pos, unit_name, owner_name .. ";" .. "0" .. ";" .. team_uuid)
     return obj
 end
 

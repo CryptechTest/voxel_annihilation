@@ -31,7 +31,7 @@ local function get_lobby_setup(owner)
     pwdfield[0.75,2.4;7,1;password;Password (optional)]
     style_type[label;font_size=16;font=bold]
     label[0.5,2.9;Mode]
-    dropdown[0.465,3.3;3.5;mode;Wave Defense,Assasination;1;true]
+    dropdown[0.465,3.3;3.5;mode;Wave Defense,Assassination;1;true]
     label[4,2.9;Difficulty]
     dropdown[4,3.3;3.5;wd_difficulty;Easy,Medium,Hard,Extreme;1;true]
     field[0.75,4.6;3.5,1;game_position;Lobby Position;]] .. math.floor(pos.x) .. [[ ]] .. math.floor(pos.y) .. [[ ]] ..
@@ -55,33 +55,56 @@ local function get_lobby(owner)
         return pages.main_menu
     end
     local mode = lobby.mode
-    local function update_lobby_players(formspec)
-        local x_min = 0.25
-        local y_min = 1.0
+    local function update_lobby_players(formspec, x_min, y_min, teamid)
+        local team_player_count = 0
+        for _, player in ipairs(lobby.players) do
+            if lobby.teams[teamid][player] then
+                team_player_count = team_player_count + 1
+            end
+        end
+        x_min = x_min or 0.25
+        y_min = y_min or 1.0
         local x_siz = 3.5
         local y_siz = 0.5
         local x = x_min
         local y = y_min
+        teamid = teamid or 1
+        local t_box_loc = (x - 0.1) .. "," .. (y - 0.51)
+        local t_box_size = "7.5" .. "," .. "3.0"
+        local t_box = "box[" .. t_box_loc .. ";" .. t_box_size .. ";" .. "#1B1B1B" .. "]"
+        table.insert(formspec, t_box)
         table.insert(formspec, "style_type[label;font_size=20;font=bold]")
-        table.insert(formspec,
-            "label[" .. x_min .. "," .. y_min - 0.5 .. ";Players]" .. "label[" .. (x + 2) .. "," .. y_min - 0.5 .. ";" ..
-                #lobby.players .. "/" .. 8 .. "]")
+        table.insert(formspec, "label[5.5,0;Players]" .. "label[7,0;" .. #lobby.players .. "/" .. 8 .. "]")
+        table.insert(formspec, "label[" .. (x_min) .. "," .. (y_min - 0.5) .. ";Team " .. teamid .. "]")
+        table.insert(formspec, "label[" .. (x_min + 2) .. "," .. (y_min - 0.5) .. ";" .. team_player_count .. "]")
+        if mode == 2 or mode == "2" then
+            table.insert(formspec, "real_coordinates[true]")
+            table.insert(formspec, "style[team_join_" .. owner .. "_" .. teamid .. ";bgcolor=#00af00]")
+            local j_y = (y_min-0.05)
+            if teamid == 2 then
+                j_y = j_y + 0.535
+            end
+            table.insert(formspec, "button[" .. (x_min + 7.6) .. "," .. j_y .. ";2.0,0.45;team_join_" .. owner .. "_" .. teamid .. ";Join Team]")
+            table.insert(formspec, "real_coordinates[false]")
+        end
         table.insert(formspec, "style_type[label;font_size=17;font=bold]")
         for _, player in pairs(lobby.players) do
-            local p_box_loc = (x - 0.05) .. "," .. (y - 0.025)
-            local p_box_size = x_siz .. "," .. y_siz
-            local p_box = "box[" .. p_box_loc .. ";" .. p_box_size .. ";" .. "#313131" .. "]"
-            table.insert(formspec, p_box)
-            local p_label = "label[" .. (x + 0.05) .. "," .. y .. ";" .. player .. "]"
-            table.insert(formspec, p_label)
-            local ready = lobby.players_ready[player] or false
-            local p_ready = "checkbox[" .. x + 2.0 .. "," .. y - 0.2 .. ";ready_" .. player .. ";Ready;" ..
-                                tostring(ready) .. "]"
-            table.insert(formspec, p_ready)
-            x = x + x_siz + 0.3
-            if x >= 7 then
-                x = x_min
-                y = y + y_siz + 0.2
+            if lobby.teams[teamid][player] ~= nil then -- player is in team
+                local p_box_loc = (x - 0.05) .. "," .. (y - 0.025)
+                local p_box_size = x_siz .. "," .. y_siz
+                local p_box = "box[" .. p_box_loc .. ";" .. p_box_size .. ";" .. "#313131" .. "]"
+                table.insert(formspec, p_box)
+                local p_label = "label[" .. (x + 0.05) .. "," .. y .. ";" .. player .. "]"
+                table.insert(formspec, p_label)
+                local ready = lobby.players_ready[player] or false
+                local p_ready = "checkbox[" .. x + 2.0 .. "," .. y - 0.2 .. ";ready_" .. player .. ";Ready;" ..
+                                    tostring(ready) .. "]"
+                table.insert(formspec, p_ready)
+                x = x + x_siz + 0.3
+                if x >= 7 then
+                    x = x_min
+                    y = y + y_siz + 0.2
+                end
             end
         end
     end
@@ -98,12 +121,12 @@ local function get_lobby(owner)
             bgcolor = "#00ff00"
         end
         table.insert(formspec, "style[start;bgcolor=" .. bgcolor .. "]")
-        table.insert(formspec, "button[0.5,7.5;2,0.5;start;Start]")
+        table.insert(formspec, "button[0.0,7.5;2,0.5;start;Start]")
     end
     local function add_spectate(formspec)
         local bgcolor = "#00FFEA"
         table.insert(formspec, "style[spectate_start;bgcolor=" .. bgcolor .. "]")
-        table.insert(formspec, "button[2.75,7.5;2,0.5;spectate_start;Spectate]")
+        table.insert(formspec, "button[2.25,7.5;2,0.5;spectate_start;Spectate]")
     end
 
     if mode == 1 or mode == "1" then
@@ -114,7 +137,7 @@ local function get_lobby(owner)
             style_type[label;font_size=22;font=bold]
             label[0,0;]] .. lobby.name .. [[]
             style[leave;bgcolor=#ff0000]
-            button_exit[5.5,7.5;2,0.5;leave;Leave]
+            button_exit[6.5,7.5;1.5,0.5;leave;Leave]
             ]]}
         update_lobby_players(formspec)
         local game = va_game.get_game_from_lobby(lobby.name)
@@ -132,9 +155,10 @@ local function get_lobby(owner)
             style_type[label;font_size=22;font=bold]
             label[0,0;]] .. lobby.name .. [[]
             style[leave;bgcolor=#ff0000]
-            button_exit[5.5,7.5;2,0.5;leave;Leave]
+            button_exit[6.5,7.5;1.5,0.5;leave;Leave]
             ]]}
-        update_lobby_players(formspec)
+        update_lobby_players(formspec, 0.25, 1, 1)
+        update_lobby_players(formspec, 0.25, 4.25, 2)
         local game = va_game.get_game_from_lobby(lobby.name)
         if not game or (game and game:is_started()) then
             add_start(formspec)
@@ -174,7 +198,7 @@ local function get_lobbies()
             end
             mode = "Wave Def" .. "(" .. difficulty .. ")"
         elseif lobby.mode == 2 or lobby.mode == "2" then
-            mode = "Annihilation"
+            mode = "Assassination"
         end
         local lobby_display = ""
         if #lobby.name > 25 then
@@ -201,6 +225,10 @@ local function get_game_setup(owner, game)
     if lobby == nil then
         return pages.main_menu
     end
+    local init_msg = "Initializing in... " .. tostring(game.setup_index) .. " seconds"
+    if game.setup_index > 8 then
+        init_msg = "...Preparing Battlefield..."
+    end
     -- allow_close[false]
     local formspec = {"size[4,2]", [[
         no_prepend[]
@@ -209,7 +237,7 @@ local function get_game_setup(owner, game)
         style_type[label;font_size=22;font=bold]
         label[0,0;]] .. lobby.name .. [[]
         style_type[label;font_size=19;font=bold]
-        label[0.5,0.75;Initializing in... ]] .. tostring(game.setup_index) .. [[]
+        label[0.25,0.75;]] .. init_msg .. [[]
         button_exit[2.5,1.75;1.5,0.45;close;Close]
     ]]}
     local game_formspec = table.concat(formspec, "")
@@ -356,7 +384,7 @@ local update_lobby_setup = function(lobby, game)
             update_formspec(player)
         end
         if game.setup_index == 0 then
-            --core.close_formspec(pname, "")
+            -- core.close_formspec(pname, "")
         end
     end
     if game.setup_index == 0 then
@@ -475,14 +503,24 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         end
         local s_pos = split(fields.game_position or "0 0 0")
         local pos = vector.new(tonumber(s_pos[1] or "0"), tonumber(s_pos[2] or "0"), tonumber(s_pos[3] or "0"))
+
+        local teams = {
+            [1] = {
+                [pname] = true
+            }
+        }
+        if mode == 2 or mode == "2" then
+            teams[2] = {}
+        end
         va_lobby.lobbies[pname] = {
             name = lobby_name,
             password = password,
             mode = mode,
             wd_difficulty = wd_difficulty,
-            teams = {},
+            teams = teams,
             players = {pname},
             players_ready = {},
+            players_factions = {},
             spectators = {},
             bosses = {
                 [pname] = true
@@ -591,6 +629,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                 va_lobby.player_lobbies[pname] = lobby_owner
                 -- formspecs[pname] = get_lobby(lobby_owner)
                 -- update_formspec(player)
+                lobby.teams[1][pname] = true
                 update_lobby(lobby)
             elseif fields["ready_" .. pname] then
                 lobby.players_ready[pname] = fields["ready_" .. pname] == "true"
@@ -603,6 +642,29 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                         formspecs[pname] = get_game_start(lobby_owner, pname, game)
                         update_formspec(player)
                     end
+                end
+            else
+                local joined_team = false
+                for t_id, _ in pairs(lobby.teams) do
+                    if fields["team_join_" .. lobby_owner .. "_" .. t_id] then
+                        joined_team = true
+                    end
+                end
+                if joined_team then
+                    for t_id, t_players in pairs(lobby.teams) do
+                        for t_player, _ in pairs(t_players) do
+                            if t_player == pname then
+                                lobby.teams[t_id][pname] = nil
+                            end
+                        end
+                    end
+                    for t_id, _ in pairs(lobby.teams) do
+                        if fields["team_join_" .. lobby_owner .. "_" .. t_id] then
+                            lobby.teams[t_id][pname] = true
+                            break
+                        end
+                    end
+                    update_lobby(lobby)
                 end
             end
         end

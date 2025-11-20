@@ -18,7 +18,7 @@ function va_game.init_game_from_lobby(lobby)
         depth = 256
     }
     local mode = {
-        name = lobby.mode,
+        id = tonumber(lobby.mode),
         difficulty = lobby.wd_difficulty
     }
 
@@ -29,13 +29,16 @@ function va_game.init_game_from_lobby(lobby)
     game.dipose_lobby_game = lobby.dipose_game
 
     -- add teams to the game object
-    for _, team in ipairs(lobby.teams) do
-        game:add_team(team)
+    for id, team_players in ipairs(lobby.teams) do
+        game:add_team(id, team_players)
     end
     -- add players to the game object
     for _, pname in pairs(lobby.players) do
         local is_boss = lobby.bosses[pname] and lobby.bosses[pname] == true or false
-        game:add_player(pname, 1, "vox", is_boss)
+        local team = game:get_team_from_player(pname)
+        if team then
+            game:add_player(pname, team.uuid, "vox", is_boss)
+        end
     end
     -- add spectators to the game object
     for _, pname in pairs(lobby.spectators) do
