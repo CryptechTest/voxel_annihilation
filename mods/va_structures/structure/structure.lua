@@ -763,9 +763,10 @@ function Structure:activate(visible)
     local hash = core.hash_node_position(self.pos)
     local meta = core.get_meta(self.pos)
     meta:set_int("active", 1)
+    local actor = va_game.get_player_actor(self.owner)
     local obj = core.add_entity(e_pos, self.entity_name, core.write_json({
         owner = self.owner,
-        team_uuid = self.team_uuid
+        team_uuid = actor and actor.team or ""
     }))
     if obj then
         local yawRad, rotation = self:get_yaw()
@@ -778,10 +779,6 @@ function Structure:activate(visible)
         local ent = obj:get_luaentity()
         ent._owner_hash = tostring(hash)
         ent._owner_name = self.owner
-        local actor = va_game.get_player_actor(self.owner)
-        if actor then
-            ent._team_uuid = actor.team
-        end
         if not self.is_constructed then
             visible = false
         end
