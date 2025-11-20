@@ -32,7 +32,7 @@ local function generate_chunk(vm, minp, maxp, chunkseed)
                     node_data[node_index] = c_barrier
                 elseif y == (16 * 72) - 2 then
                     node_data[node_index] = c_barrier
-                elseif y == (16 * 7) then
+                elseif y == (16 * 8) then
                     node_data[node_index] = c_barrier
                 elseif y == -16 then
                     node_data[node_index] = c_bedrock
