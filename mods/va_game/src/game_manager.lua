@@ -12,18 +12,13 @@ function va_game.init_game_from_lobby(lobby)
         y = 0,
         z = 0
     }
-    local size = lobby.board_size or {
-        width = 256,
-        height = 128,
-        depth = 256
-    }
     local mode = {
         id = tonumber(lobby.mode),
         difficulty = lobby.wd_difficulty
     }
 
     -- create a new game instance
-    local game = GameObject.new(pos, size, mode, lobby.name, lobby.password)
+    local game = GameObject.new(pos, lobby.board_size, mode, lobby.name, lobby.password)
 
     game.update_lobby_ui = lobby.update_lobby
     game.dipose_lobby_game = lobby.dipose_game

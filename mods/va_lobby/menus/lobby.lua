@@ -495,7 +495,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         local password = fields.password
         local mode = fields.mode or 1
         local wd_difficulty = fields.wd_difficulty or "Easy"
-        local b_size = fields.game_board_size or 1
+        local b_size = tonumber(fields.game_board_size or "1")
         local size = nil
         if b_size == 1 then
             size = {
