@@ -931,6 +931,18 @@ function va_units.register_unit(name, def)
             self._command_queue = {}
             self.object:set_observers({})
         end,
+        on_death = function(self, killer) 
+            core.log("Unit died: " .. (def.nametag or name) .. " " .. self._id)
+            if self._is_commander then
+                core.log("is_commander")
+                local owner = self._owner_name
+                local game = va_game.get_game_from_player(owner)
+                if game then
+                    core.log("destroy alert!")
+                    game:commander_destroy_alert(self._team_uuid)
+                end
+            end
+        end,
         get_staticdata = function(self)
             return (self._owner_name or "") .. ";" .. (self._marked_for_removal and "1" or "0") .. ";" .. (self._team_uuid or "")
         end,
