@@ -226,6 +226,7 @@ function va_hud.update_hud(player)
     local player_name = player:get_player_name()
     local player_actor = va_game.get_player_actor(player_name)
     if not player_actor then
+        va_hud.remove_hud(player)
         return
     end
     local window_info = core.get_player_window_information(player_name)
@@ -320,6 +321,17 @@ function va_hud.update_hud(player)
         return
     else
         setup_hud(player)
+    end
+end
+
+function va_hud.remove_hud(player)
+    local player_name = player:get_player_name()
+    local ids = saved_huds[player_name]
+    if ids then
+        for _, id in pairs(ids) do
+            player:hud_remove(id)
+        end
+        saved_huds[player_name] = nil
     end
 end
 
