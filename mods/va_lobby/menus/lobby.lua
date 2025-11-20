@@ -56,6 +56,7 @@ local function get_lobby(owner)
     end
     local mode = lobby.mode
     local function update_lobby_players(formspec, x_min, y_min, teamid)
+        teamid = teamid or 1
         local team_player_count = 0
         for _, player in ipairs(lobby.players) do
             if lobby.teams[teamid][player] then
@@ -68,7 +69,6 @@ local function get_lobby(owner)
         local y_siz = 0.5
         local x = x_min
         local y = y_min
-        teamid = teamid or 1
         local t_box_loc = (x - 0.1) .. "," .. (y - 0.51)
         local t_box_size = "7.5" .. "," .. "3.0"
         local t_box = "box[" .. t_box_loc .. ";" .. t_box_size .. ";" .. "#1B1B1B" .. "]"
@@ -587,22 +587,29 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                     break
                 end
             end
+            for t_id, t_players in pairs(lobby.teams) do
+                for t_player, _ in pairs(t_players) do
+                    if t_player == pname then
+                        lobby.teams[t_id][pname] = nil
+                    end
+                end
+            end
             if #lobby.bosses == 0 and (#lobby.players > 0 or #lobby.spectators > 0) then
                 -- If no bosses left, disband lobby
             end
             if #lobby.players == 0 and #lobby.spectators == 0 then
                 va_lobby.lobbies[va_lobby.player_lobbies[pname]] = nil
             end
-        end
-        va_lobby.player_lobbies[pname] = nil
-        formspecs[pname] = pages.main_menu
-        update_lobby(lobby)
-        update_formspec(player)
-        if fields.quit_game then
-            local game = va_game.get_game_from_lobby(lobby.name)
-            if game then
-                game:remove_player(pname)
-                game:send_all_player_msg("Player " .. pname .. " has left the match.")
+            va_lobby.player_lobbies[pname] = nil
+            formspecs[pname] = pages.main_menu
+            update_lobby(lobby)
+            update_formspec(player)
+            if fields.quit_game then
+                local game = va_game.get_game_from_lobby(lobby.name)
+                if game then
+                    game:remove_player(pname)
+                    game:send_all_player_msg("Player " .. pname .. " has left the match.")
+                end
             end
         end
     elseif fields.vote_stop then
