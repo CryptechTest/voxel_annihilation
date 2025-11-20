@@ -326,6 +326,13 @@ core.register_node("va_game:command_marker", {
             core.chat_send_player(_name, "Commander start location invalid.")
             return itemstack -- Return the item stack without placing it
         end
+        local game = va_game.get_game_from_player(_name)
+        if game then
+            if not game:is_within_bounds(_pos) then
+                core.chat_send_player(_name, "Commander start location must be within battlefield.")
+                return itemstack
+            end
+        end
         return core.item_place(itemstack, placer, pointed_thing)
     end,
     after_place_node = function(pos, placer, itemstack, pointed_thing)
