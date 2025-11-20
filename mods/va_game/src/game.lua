@@ -243,7 +243,7 @@ function GameObject:tick(tick_index)
     end
     ---------------------------------
     if self.stopped or self.ended then
-        core.after(5, function ()
+        core.after(5, function()
             self:send_all_player_sound("va_game_amy_battle_ended")
             self:update_lobby_ui()
         end)
@@ -605,8 +605,8 @@ function GameObject:setup_bounding_box()
         meta:set_string("game_id", self.id)
     end
     -- TODO: setup for other map heights
-    local minY = math.max(-32, self.position.y - 32)
-    local maxY = math.min(128, self.position.y + 128)
+    local minY = -32 -- math.max(-32, self.position.y - 32)
+    local maxY = 128 -- math.min(128, self.position.y + 128)
     local minX = self.position.x - self.size.width / 2
     local maxX = self.position.x + self.size.width / 2
     local minZ = self.position.z - self.size.depth / 2
@@ -721,8 +721,8 @@ end
 
 function GameObject:dipose_bounding_box()
     -- TODO: setup for other map heights
-    local minY = math.max(-32, self.position.y - 32)
-    local maxY = math.min(128, self.position.y + 128)
+    local minY = -32 -- math.max(-32, self.position.y - 32)
+    local maxY = 128 -- math.min(128, self.position.y + 128)
     local minX = self.position.x - self.size.width / 2
     local maxX = self.position.x + self.size.width / 2
     local minZ = self.position.z - self.size.depth / 2
