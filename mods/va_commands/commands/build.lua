@@ -38,11 +38,13 @@ va_commands.register_command("build", {
                 core.chat_send_player(player_name, "Immediate build command.")
                 for _, unit_id in pairs(selected_unit_ids) do
                     local unit = va_units.get_unit_by_id(unit_id)
-                    if unit._command_queue_abort then
-                        unit:_command_queue_abort()
-                    end
-                    if unit._command_queue_add then
-                        unit:_command_queue_add(structure)
+                    if unit then
+                        if unit._command_queue_abort then
+                            unit:_command_queue_abort()
+                        end
+                        if unit._command_queue_add then
+                            unit:_command_queue_add(structure)
+                        end
                     end
                 end
             else
