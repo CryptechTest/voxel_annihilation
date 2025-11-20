@@ -984,7 +984,7 @@ function GameObject:commander_destroy_alert(team_uuid)
         for _, pname in pairs(team.players) do
             local player = core.get_player_by_name(pname)
             if player then
-                if team.id == team_uuid then
+                if team.uuid == team_uuid then
                     core.sound_play("va_game_amy_friendly_commander_died", {
                         gain = 1.0,
                         pitch = 1.0,

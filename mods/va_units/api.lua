@@ -892,6 +892,7 @@ function va_units.register_unit(name, def)
                 end
                 self.object:remove()
                 -- Optionally, play a death effect or sound here
+                return true
             end
         end,
         on_activate = function(self, staticdata, dtime_s)
