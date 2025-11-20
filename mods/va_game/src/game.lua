@@ -394,6 +394,16 @@ function GameObject:remove_team(team_id)
     end
 end
 
+function GameObject:remove_player_from_team(pname)
+    for _, team in pairs(self.teams) do
+        for i, p in ipairs(team.players) do
+            if pname == p then
+                table.remove(team.players, i)
+            end
+        end
+    end
+end
+
 function GameObject:get_team_from_player(pname)
     for _, team in pairs(self.teams) do
         for _, p in pairs(team.players) do
@@ -427,8 +437,9 @@ end
 function GameObject:remove_player(player_name)
     for i, player in ipairs(self.players) do
         if player.name == player_name then
-            table.remove(self.players, i)
+            self:remove_player_from_team(player.name)
             va_game.remove_player_actor(player.name)
+            table.remove(self.players, i)
             break
         end
     end
@@ -591,7 +602,11 @@ function GameObject:setup_bounding_box()
         if not pos then
             return
         end
+        core.load_area(pos)
         local node = core.get_node(pos)
+        if node.name == "va_game:board_barrier" then
+            return
+        end
         local hash = core.hash_node_position(pos)
         self.map_objects[hash] = {
             pos = pos,

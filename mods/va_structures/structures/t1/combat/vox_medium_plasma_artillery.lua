@@ -201,13 +201,13 @@ local function find_target(structure, dist)
             if obj:get_luaentity() then
                 local ent = obj:get_luaentity()
                 if ent._is_va_unit then
-                    if ent._owner_name ~= structure.owner and ent._team_uuid ~= structure._team_uuid then
+                    if ent._team_uuid ~= structure._team_uuid then
                         if can_see(pos, obj) then
                             table.insert(targets, obj)
                         end
                     end
                 elseif ent._is_va_structure then
-                    if ent._owner_name ~= structure.owner and ent._team_uuid ~= structure._team_uuid then
+                    if ent._team_uuid ~= structure._team_uuid then
                         if can_see(pos, obj) then
                             table.insert(targets, obj)
                         end

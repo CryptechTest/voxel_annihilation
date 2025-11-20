@@ -389,8 +389,9 @@ core.register_node("va_game:command_marker", {
             local owner = oldmetadata:get_string("owner")
             if digger:get_player_name() == owner then
                 local game = va_game.get_game_from_player(owner)
-                if game then
+                if game and game.start_index > 5 then
                     game:get_player(owner).placed = false
+                    game.ready_start = false
                 end
             end
         end

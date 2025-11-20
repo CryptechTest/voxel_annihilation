@@ -80,11 +80,12 @@ local function get_lobby(owner)
         if mode == 2 or mode == "2" then
             table.insert(formspec, "real_coordinates[true]")
             table.insert(formspec, "style[team_join_" .. owner .. "_" .. teamid .. ";bgcolor=#00af00]")
-            local j_y = (y_min-0.05)
+            local j_y = (y_min - 0.05)
             if teamid == 2 then
                 j_y = j_y + 0.535
             end
-            table.insert(formspec, "button[" .. (x_min + 7.6) .. "," .. j_y .. ";2.0,0.45;team_join_" .. owner .. "_" .. teamid .. ";Join Team]")
+            table.insert(formspec, "button[" .. (x_min + 7.6) .. "," .. j_y .. ";2.0,0.45;team_join_" .. owner .. "_" ..
+            teamid .. ";Join Team]")
             table.insert(formspec, "real_coordinates[false]")
         end
         table.insert(formspec, "style_type[label;font_size=17;font=bold]")
@@ -357,15 +358,34 @@ local function do_lobby_start(game)
     end
 end
 
-local update_lobby = function(lobby)
+local update_lobby = function(lobby, game)
     if not lobby then
         return
     end
-    for _, pname in pairs(lobby.players) do
-        formspecs[pname] = get_lobby(va_lobby.player_lobbies[pname])
-        local player = core.get_player_by_name(pname)
-        if player then
-            update_formspec(player)
+    if game then
+        for _, pname in pairs(lobby.players) do
+            if not game.players[pname] then
+                formspecs[pname] = get_lobby(va_lobby.player_lobbies[pname])
+                local player = core.get_player_by_name(pname)
+                if player then
+                    update_formspec(player)
+                end
+            else
+                local lobby_owner = va_lobby.player_lobbies[pname]
+                formspecs[pname] = get_game_active(lobby_owner, pname, game)
+                local player = core.get_player_by_name(pname)
+                if player then
+                    update_formspec(player)
+                end
+            end
+        end
+    else
+        for _, pname in pairs(lobby.players) do
+            formspecs[pname] = get_lobby(va_lobby.player_lobbies[pname])
+            local player = core.get_player_by_name(pname)
+            if player then
+                update_formspec(player)
+            end
         end
     end
 end
@@ -428,8 +448,9 @@ local function do_dipose_game(game)
         local lobby = va_lobby.lobbies[lobby_owner]
         if lobby then
             lobby.players_ready[pname] = false
+            lobby.running = false
         end
-        formspecs[pname] = get_lobby(pname)
+        formspecs[pname] = get_lobby(lobby_owner)
         local player = core.get_player_by_name(pname)
         if player then
             update_formspec(player)
@@ -474,7 +495,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         local password = fields.password
         local mode = fields.mode or 1
         local wd_difficulty = fields.wd_difficulty or "Easy"
-        local b_size = fields.board_size or 1
+        local b_size = fields.game_board_size or 1
         local size = nil
         if b_size == 1 then
             size = {
@@ -484,17 +505,35 @@ core.register_on_player_receive_fields(function(player, formname, fields)
             }
         elseif b_size == 2 then
             size = {
+                width = 384,
+                height = 128,
+                depth = 384
+            }
+        elseif b_size == 3 then
+            size = {
                 width = 512,
                 height = 128,
                 depth = 512
             }
-        elseif b_size == 3 then
+        elseif b_size == 4 then
+            size = {
+                width = 640,
+                height = 128,
+                depth = 640
+            }
+        elseif b_size == 5 then
             size = {
                 width = 768,
                 height = 128,
-                depth = 769
+                depth = 768
             }
-        elseif b_size == 4 then
+        elseif b_size == 6 then
+            size = {
+                width = 896,
+                height = 128,
+                depth = 896
+            }
+        elseif b_size == 7 then
             size = {
                 width = 1024,
                 height = 128,
@@ -546,10 +585,13 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 
         if not is_ready then
             core.chat_send_player(pname, "Not all players in lobby are ready!")
+        elseif lobby.running then
+            core.chat_send_player(pname, "The game for this lobby is already running!")
         else
             local game = va_game.init_game_from_lobby(lobby)
             if game then
                 if not game:is_started() then
+                    lobby.running = true
                     local function do_update_check()
                         update_lobby_setup(lobby, game)
                         if game.setup_index <= 0 then
@@ -602,10 +644,10 @@ core.register_on_player_receive_fields(function(player, formname, fields)
             end
             va_lobby.player_lobbies[pname] = nil
             formspecs[pname] = pages.main_menu
-            update_lobby(lobby)
+            local game = va_game.get_game_from_lobby(lobby.name)
+            update_lobby(lobby, game)
             update_formspec(player)
             if fields.quit_game then
-                local game = va_game.get_game_from_lobby(lobby.name)
                 if game then
                     game:remove_player(pname)
                     game:send_all_player_msg("Player " .. pname .. " has left the match.")
@@ -632,22 +674,34 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                 if lobby_password and lobby_password ~= "" then
                     -- For now, no password handling
                 end
-                table.insert(lobby.players, pname)
+                local found = false
+                for key, value in pairs(lobby.players) do
+                    if value == pname then
+                        found = true
+                    end
+                end
+                if not found then
+                    table.insert(lobby.players, pname)
+                end
                 va_lobby.player_lobbies[pname] = lobby_owner
                 -- formspecs[pname] = get_lobby(lobby_owner)
                 -- update_formspec(player)
                 lobby.teams[1][pname] = true
-                update_lobby(lobby)
+                local game = va_game.get_game_from_lobby(lobby.name)
+                update_lobby(lobby, game)
             elseif fields["ready_" .. pname] then
                 lobby.players_ready[pname] = fields["ready_" .. pname] == "true"
-                update_lobby(lobby)
+                local game = va_game.get_game_from_lobby(lobby.name)
+                update_lobby(lobby, game)
             elseif fields["ready_start_" .. pname] then
                 local game = va_game.get_game_from_lobby(lobby.name)
                 if game then
-                    if game.players[pname] and game.players[pname].placed == true then
-                        game.players[pname].ready = fields["ready_start_" .. pname] == "true"
-                        formspecs[pname] = get_game_start(lobby_owner, pname, game)
-                        update_formspec(player)
+                    if not game.started then
+                        if game.players[pname] and game.players[pname].placed == true then
+                            game.players[pname].ready = fields["ready_start_" .. pname] == "true"
+                            formspecs[pname] = get_game_start(lobby_owner, pname, game)
+                            update_formspec(player)
+                        end
                     end
                 end
             else
@@ -671,7 +725,8 @@ core.register_on_player_receive_fields(function(player, formname, fields)
                             break
                         end
                     end
-                    update_lobby(lobby)
+                    local game = va_game.get_game_from_lobby(lobby.name)
+                    update_lobby(lobby, game)
                 end
             end
         end
