@@ -359,9 +359,11 @@ end
 
 local function process_queue(unit)
     if not unit._command_queue or #unit._command_queue == 0 then
+        unit._state = 'idle'
         return
     end
     if not unit._is_constructed then
+        unit._state = 'idle'
         return
     end
     -- check if recently processed
@@ -376,6 +378,7 @@ local function process_queue(unit)
     end
 
     if q_command.command_type == "move_to_pos" and not q_command.process_complete then
+        unit._state = 'move'
         q_command.process_started = true
         q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
@@ -399,6 +402,7 @@ local function process_queue(unit)
         end
 
     elseif q_command.command_type == "structure_queued" and not q_command.process_complete then
+        unit._state = 'guard'
         q_command.process_started = true
         q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
@@ -433,6 +437,7 @@ local function process_queue(unit)
             q_command.process_complete = true
         end
     elseif q_command.command_type == "structure_construct" and not q_command.process_complete then
+        unit._state = 'guard'
         q_command.process_started = true
         q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
@@ -471,6 +476,7 @@ local function process_queue(unit)
             q_command.process_complete = true
         end
     elseif q_command.command_type == "node_reclaim" and not q_command.process_complete then
+        unit._state = 'reclaim'
         q_command.process_started = true
         q_command.process_timeout = (q_command.process_timeout or 0) + 1
         local unit_dist = vector.distance(unit.object:get_pos(), q_command.pos)
@@ -853,6 +859,7 @@ function va_units.register_unit(name, def)
         _last_action_time = 0,
         _current_mapblock = nil,
         _forceloaded_block = nil,
+        _state = 'idle', -- possible states: 'attack_move', 'attack', 'guard', 'idle', 'move', reclaim', 'repair'
         _movement_type = def.movement_type or "ground",
         on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
             local hp = self.object:get_hp()

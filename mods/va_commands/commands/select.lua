@@ -11,11 +11,25 @@ core.register_entity("va_commands:selected_unit", {
     },
     _marked_for_removal = false,
     _owner_name = nil,
-    on_activate = function(self, staticdata, dtime_s)            
+    _on_parent_destroyed = function (self, guid)
+        local current_selected = va_commands.get_player_selected_units(self._owner_name)
+        for index, unit in pairs(current_selected) do
+            if unit.object and unit.object:get_guid() == guid then
+                table.remove(current_selected, index)
+                break
+            end
+        end
+        self._marked_for_removal = true
+        va_commands.set_player_selected_units(self._owner_name, current_selected)
+    end,
+    on_activate = function(self, staticdata, dtime_s)
         if staticdata ~= nil and staticdata ~= "" then
             local data = staticdata:split(';')
             self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
         end
+    end,
+    on_deactivate = function(self)
+        -- Cleanup if needed when entity is removed
     end,
     get_staticdata = function(self)
         return self._owner_name or ""
@@ -42,6 +56,29 @@ core.register_entity("va_commands:selected_unit", {
         if not found then
             self.object:remove()
         end
+
+        if parent then
+            local state = parent:get_luaentity()._state or 'idle'
+            --update the texture based on state
+            if state == 'attack_move' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_attack_move.png" } })
+            elseif state == 'attack' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_attack.png" } })
+            elseif state == 'guard' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_guard.png" } })
+            elseif state == 'idle' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_idle.png" } })
+            elseif state == 'move' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_move.png" } })
+            elseif state == 'reclaim' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_reclaim.png" } })
+            elseif state == 'repair' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_repair.png" } })
+            else
+                self.object:set_properties({ textures = { "va_commands_selected_unit_idle.png" } })
+            end
+        end
+       
     end,
 })
 
@@ -61,7 +98,7 @@ core.register_entity("va_commands:selected_structure", {
     },
     _marked_for_removal = false,
     _owner_name = nil,
-    on_activate = function(self, staticdata, dtime_s)            
+    on_activate = function(self, staticdata, dtime_s)
         if staticdata ~= nil and staticdata ~= "" then
             local data = staticdata:split(';')
             self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
@@ -110,7 +147,7 @@ core.register_entity("va_commands:pos1", {
     _marked_for_removal = false,
     _owner_name = nil,
     _id = nil,
-    on_activate = function(self, staticdata, dtime_s)            
+    on_activate = function(self, staticdata, dtime_s)
         if staticdata ~= nil and staticdata ~= "" then
             local data = staticdata:split(';')
             self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
@@ -134,7 +171,7 @@ core.register_entity("va_commands:pos1", {
             else
                 self.object:remove()
             end
-        else 
+        else
             self.object:remove()
         end
     end,
@@ -155,7 +192,7 @@ core.register_entity("va_commands:pos2", {
     _marked_for_removal = false,
     _owner_name = nil,
     _id = nil,
-    on_activate = function(self, staticdata, dtime_s)            
+    on_activate = function(self, staticdata, dtime_s)
         if staticdata ~= nil and staticdata ~= "" then
             local data = staticdata:split(';')
             self._owner_name = (type(data[1]) == "string" and #data[1] > 0) and data[1] or nil
@@ -180,7 +217,7 @@ core.register_entity("va_commands:pos2", {
             else
                 self.object:remove()
             end
-        else 
+        else
             self.object:remove()
         end
     end,
@@ -194,7 +231,7 @@ local function remove_selection(entity)
             local luaentity = child:get_luaentity()
             if luaentity then
                 local entity_name = luaentity and luaentity.name
-                if entity_name == "va_commands:selected_unit"  or entity_name == "va_commands:selected_structure" then
+                if entity_name == "va_commands:selected_unit" or entity_name == "va_commands:selected_structure" then
                     core.chat_send_player(entity._owner_name, "Unit deselected.")
                     child:remove()
                     local currently_selected = va_commands.get_player_selected_units(entity._owner_name)
@@ -255,7 +292,8 @@ local function add_selection(entity)
         selection_entity = core.add_entity(pos, "va_commands:selected_structure", player_name)
         selection_entity:set_observers({ [player_name] = true })
         selection_entity:set_properties({ visual_size = { x = size + 0.1, y = ysize + 0.1 } })
-        selection_entity:set_attach(entity.object, "", { x = 0, y = ((ysize - 0.85) / 2) * 10, z = 0 }, { x = 0, y = 0, z = 0 })
+        selection_entity:set_attach(entity.object, "", { x = 0, y = ((ysize - 0.85) / 2) * 10, z = 0 },
+            { x = 0, y = 0, z = 0 })
     elseif entity._is_va_unit == true then
         selection_entity = core.add_entity(pos, "va_commands:selected_unit", player_name)
         selection_entity:set_observers({ [player_name] = true })
@@ -311,7 +349,7 @@ local function select_area(user, pos1, pos2)
     core.chat_send_player(player_name, "Selected " .. count .. " units in area.")
 end
 
-local function clear_selection(user)
+va_commands.clear_selection = function(user)
     local player_name = user:get_player_name()
     local current_selections = va_commands.get_selection_entities(player_name)
     if current_selections then
@@ -359,7 +397,7 @@ va_commands.register_command("select", {
             local extent = va_commands.get_player_selection_extent(player_name)
             if extent then
                 if extent.pos1 and extent.pos2 then
-                    clear_selection(user)
+                    va_commands.clear_selection(user)
                     core.chat_send_player(player_name, "Selection extent cleared. Please select first position.")
                 elseif extent.pos1 then
                     extent.pos2 = user:get_pos()
@@ -368,12 +406,12 @@ va_commands.register_command("select", {
                     local pos2_entity = core.add_entity(
                         extent.pos2, "va_commands:pos2", player_name)
                     extent.pos2_entity = pos2_entity
-                    clear_selection(user)
+                    va_commands.clear_selection(user)
                     select_area(user, extent.pos1, extent.pos2)
                 else
                     extent.pos1 = user:get_pos()
                     local pos1_entity = core.add_entity(
-                        extent.pos1, "va_commands:pos1", player_name)                 
+                        extent.pos1, "va_commands:pos1", player_name)
                     extent.pos1_entity = pos1_entity
                     va_commands.set_player_selection_extent(player_name, extent)
                     core.chat_send_player(player_name, "First position set.")
@@ -383,7 +421,7 @@ va_commands.register_command("select", {
             local extent = va_commands.get_player_selection_extent(player_name) or {}
             if extent then
                 if extent.pos1 and extent.pos2 then
-                    clear_selection(user)
+                    va_commands.clear_selection(user)
                     core.chat_send_player(player_name, "Selection extent cleared.")
                 elseif extent.pos1 then
                     extent.pos2 = pointed_thing.under
@@ -392,7 +430,7 @@ va_commands.register_command("select", {
                     local pos2_entity = core.add_entity(
                         extent.pos2, "va_commands:pos2", player_name)
                     extent.pos2_entity = pos2_entity
-                    clear_selection(user)
+                    va_commands.clear_selection(user)
                     select_area(user, extent.pos1, extent.pos2)
                 else
                     extent.pos1 = pointed_thing.under
@@ -439,7 +477,7 @@ va_commands.register_command("select", {
         if pointed_thing.type == "object" then
             local entity = pointed_thing.ref:get_luaentity()
             local player_name = user:get_player_name()
-            if entity._is_va_unit == true then                
+            if entity._is_va_unit == true then
                 if entity._owner_name == player_name then
                     if entity._driver == nil then
                         va_units.attach(user, entity)
@@ -482,5 +520,5 @@ va_commands.register_command("select", {
 
 
 core.register_on_leaveplayer(function(player)
-    clear_selection(player)
+    va_commands.clear_selection(player)
 end)

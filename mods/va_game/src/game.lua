@@ -251,6 +251,7 @@ function GameObject:tick(tick_index)
             local player = core.get_player_by_name(p.name)
             if player then
                 self:player_ctl_clear(p.name)
+                va_commands.clear_selection(player)
             end
         end
         -- dispose game

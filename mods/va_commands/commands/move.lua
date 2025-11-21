@@ -62,11 +62,13 @@ va_commands.register_command("move", {
                     if distance > 1024 then
                         core.chat_send_player(player_name, "Error: Target is too far away.")
                     else
-                        -- temp fix...
-                        local _unit = va_units.get_unit_by_id(unit._id)
-                        if _unit and _unit._command_queue_abort then
-                            -- FIXME: crashed here: "_unit:_command_queue_abort() was nil"
-                            _unit:_command_queue_abort()
+                        if unit and unit._command_queue_abort and unit._command_queue_add then
+                            local cmd = {
+                                command_type = "move_to_pos",
+                                pos = target
+                            }
+                            unit:_command_queue_abort()
+                            unit:_command_queue_add(cmd)
                         end
                         va_units.set_target(unit, target)
                         core.chat_send_player(player_name, "Targeting position: " .. core.pos_to_string(target))
