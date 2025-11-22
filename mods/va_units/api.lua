@@ -2,6 +2,11 @@
 va_units = {}
 va_units.registered_models = {}
 
+local modpath = core.get_modpath("va_units")
+local register_unit_gauge, attach_unit_gauge = dofile(modpath .. "/unit_entity_gauge.lua")
+
+register_unit_gauge()
+
 local units = {}
 local player_units = {}
 local active_units = {}
@@ -1314,6 +1319,7 @@ function va_units.spawn_unit(unit_name, owner_name, pos, team_uuid)
         return nil
     end
     local obj = core.add_entity(pos, unit_name, owner_name .. ";" .. "0" .. ";" .. team_uuid)
+    attach_unit_gauge(obj)
     return obj
 end
 
