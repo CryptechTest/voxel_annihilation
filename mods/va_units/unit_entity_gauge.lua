@@ -17,7 +17,7 @@ local function attach_unit_gauge(unit)
         local entity = core.add_entity(pos, "va_units:hp_bar")
         local colbox = unit:get_properties().collisionbox or { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 }
         local s_h = math.max(colbox[5], 0.25)
-        local height = 2 + (s_h * 10)
+        local height = 0 + (s_h * 10)
         entity:set_attach(unit, "", {
             x = 0,
             y = height,
