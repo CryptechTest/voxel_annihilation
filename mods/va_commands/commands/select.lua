@@ -11,7 +11,7 @@ core.register_entity("va_commands:selected_unit", {
     },
     _marked_for_removal = false,
     _owner_name = nil,
-    _on_parent_destroyed = function (self, guid)
+    _on_parent_destroyed = function(self, guid)
         local current_selected = va_commands.get_player_selected_units(self._owner_name)
         for index, unit in pairs(current_selected) do
             if unit.object and unit.object:get_guid() == guid then
@@ -82,7 +82,6 @@ core.register_entity("va_commands:selected_unit", {
                 self.object:set_properties({ textures = { "va_commands_selected_unit_idle.png" } })
             end
         end
-       
     end,
 })
 
@@ -138,19 +137,33 @@ core.register_entity("va_commands:selected_structure", {
             local state = parent:get_luaentity()._state or 'idle'
             --update the texture based on state
             if state == 'attack' then
-                self.object:set_properties({ textures = { "va_commands_selected_structure_attack.png" } })
+                self.object:set_properties({ textures = { "va_commands_selected_structure_attack.png", "va_commands_selected_structure_attack.png",
+                                                            "va_commands_selected_structure_attack.png", "va_commands_selected_structure_attack.png",
+                                                            "va_commands_selected_structure_attack.png", "va_commands_selected_structure_attack.png" } })
             elseif state == 'build' then
-                self.object:set_properties({ textures = { "va_commands_selected_structure_build.png" } })
+                self.object:set_properties({ textures = { "va_commands_selected_structure_build.png", "va_commands_selected_structure_build.png",
+                                                            "va_commands_selected_structure_build.png", "va_commands_selected_structure_build.png",
+                                                            "va_commands_selected_structure_build.png", "va_commands_selected_structure_build.png" } })
             elseif state == 'guard' then
-                self.object:set_properties({ textures = { "va_commands_selected_structure_guard.png" } })
+                self.object:set_properties({ textures = { "va_commands_selected_structure_guard.png", "va_commands_selected_structure_guard.png",
+                                                            "va_commands_selected_structure_guard.png", "va_commands_selected_structure_guard.png",
+                                                            "va_commands_selected_structure_guard.png", "va_commands_selected_structure_guard.png" } })
             elseif state == 'idle' then
-                self.object:set_properties({ textures = { "va_commands_selected_structure_idle.png" } })
+                self.object:set_properties({ textures = { "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png",
+                                                            "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png", 
+                                                            "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png" } })
             elseif state == 'reclaim' then
-                self.object:set_properties({ textures = { "va_commands_selected_structure_reclaim.png" } })
+                self.object:set_properties({ textures = { "va_commands_selected_structure_reclaim.png", "va_commands_selected_structure_reclaim.png",
+                                                            "va_commands_selected_structure_reclaim.png", "va_commands_selected_structure_reclaim.png",
+                                                            "va_commands_selected_structure_reclaim.png", "va_commands_selected_structure_reclaim.png" } })
             elseif state == 'repair' then
-                self.object:set_properties({ textures = { "va_commands_selected_structure_repair.png" } })
+                self.object:set_properties({ textures = { "va_commands_selected_structure_repair.png", "va_commands_selected_structure_repair.png",
+                                                            "va_commands_selected_structure_repair.png", "va_commands_selected_structure_repair.png",
+                                                            "va_commands_selected_structure_repair.png", "va_commands_selected_structure_repair.png" } })
             else
-                self.object:set_properties({ textures = { "va_commands_selected_structure_idle.png" } })
+                self.object:set_properties({ textures = { "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png",
+                                                            "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png",
+                                                            "va_commands_selected_structure_idle.png", "va_commands_selected_structure_idle.png" } })
             end
         end
     end,

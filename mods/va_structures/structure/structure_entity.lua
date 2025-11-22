@@ -61,7 +61,7 @@ local function register_structure_entity(def)
         -- _animation = def.entity_animations and def.entity_animations.idle or nil,
         _timer = 1,
         _valid = false,
-
+        _state = "idle", -- attack, build, guard, idle, reclaim, repair
         -- do animation for entity
         _do_animation = function(self, animation)
             local anim = self._animations[animation] or self._animation

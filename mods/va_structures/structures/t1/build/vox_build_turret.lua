@@ -38,8 +38,8 @@ local function get_formspec(structure)
 
     formspec = formspec .. "label[0.55,2.1;Focus Priority]"
     formspec = formspec ..
-                   "dropdown[0.5,2.5;2.5;build_focus;Build Units,Build Structures,Repair Units,Repair Structures,Reclaim;" ..
-                   (b_focus or 1) .. ";true]"
+        "dropdown[0.5,2.5;2.5;build_focus;Build Units,Build Structures,Repair Units,Repair Structures,Reclaim;" ..
+        (b_focus or 1) .. ";true]"
 
     if _do_reclaim then
         formspec = formspec .. "label[4.55,2.1;Reclaim Priority]"
@@ -52,7 +52,7 @@ local function get_formspec(structure)
     formspec = formspec .. "label[0.5,3.6;Usage Priority]"
     formspec = formspec .. "style[build_priority;bgcolor=" .. (b_priority == 0 and "#00ffaaff" or "#0066ffff") .. "]"
     formspec = formspec .. "button[0.5,4.0;2.25,1;build_priority;" ..
-                   (b_priority == 0 and "High Priority" or "Low Priority") .. "]"
+        (b_priority == 0 and "High Priority" or "Low Priority") .. "]"
 
     local reclaim_bar_mass = meta:get_int("reclaim_bar_mass")
     local reclaim_bar_energy = meta:get_int("reclaim_bar_energy")
@@ -62,7 +62,7 @@ local function get_formspec(structure)
     formspec = formspec .. "scrollbar[3.5,4.0;4.0,0.3;horizontal;reclaim_bar_mass;" .. tostring(reclaim_bar_mass) .. "]"
     formspec = formspec .. "label[3.5,4.6;Energy Reclaim Threshold]"
     formspec = formspec .. "scrollbar[3.5,5.0;4.0,0.3;horizontal;reclaim_bar_energy;" .. tostring(reclaim_bar_energy) ..
-                   "]"
+        "]"
 
     formspec = formspec .. "style[build_cancel;bgcolor=" .. "#ffee00ff" .. "]"
     formspec = formspec .. "button[2.0,7.3;1.5,1;build_cancel;Cancel]"
@@ -136,7 +136,6 @@ local function on_receive_fields(structure, player, formname, fields)
             meta:set_int("reclaim_bar_energy", tonumber(val))
         end
     end
-
 end
 
 --- Find build target for given structure
@@ -274,6 +273,18 @@ local function find_target(structure, net)
                 -- core.log("find_build_target")
                 -- find build target
                 find_build_target(structure)
+                if structure._build_target ~= nil then
+                    local s = structure._build_target.structure
+                    if s ~= nil then
+                        if not s.is_constructed then
+                            structure.entity_obj:get_luaentity()._state = "build"
+                        elseif s:is_damaged() then
+                            structure.entity_obj:get_luaentity()._state = "repair"
+                        else
+                            structure.entity_obj:get_luaentity()._state = "idle"
+                        end
+                    end
+                end
             end
         end
         if structure._build_target == nil and is_net_low_resources(structure.pos, net) and _do_reclaim then
@@ -281,6 +292,7 @@ local function find_target(structure, net)
             -- find reclaim target
             if va_resources.structure_find_reclaim(structure, net) then
                 structure._is_reclaiming = true
+                structure.entity_obj:get_luaentity()._state = "reclaim"
             end
         end
     elseif build_focus == 5 then
@@ -289,6 +301,7 @@ local function find_target(structure, net)
                 -- find reclaim target
                 if va_resources.structure_find_reclaim(structure, net) then
                     structure._is_reclaiming = true
+                    structure.entity_obj:get_luaentity()._state = "reclaim"
                 end
             end
         end
@@ -297,6 +310,18 @@ local function find_target(structure, net)
             structure._is_reclaiming = false
             -- find build target
             find_build_target(structure)
+            if structure._build_target ~= nil then
+                local s = structure._build_target.structure
+                if s ~= nil then
+                    if not s.is_constructed then
+                        structure.entity_obj:get_luaentity()._state = "build"
+                    elseif s:is_damaged() then
+                        structure.entity_obj:get_luaentity()._state = "repair"
+                    else
+                        structure.entity_obj:get_luaentity()._state = "idle"
+                    end
+                end
+            end
             -- end
         end
     end
@@ -474,9 +499,8 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
     if net == nil or s_obj == nil then
         return
     end
-    -- run 
+    -- run
     if run_stage == "main" then
-
         local meta = core.get_meta(pos)
         if meta:get_int("build_pause") == 1 then
             return
@@ -618,8 +642,8 @@ end
 -- Structure metadata definition setup
 local def = {
     mesh = "va_build_turret_1.gltf",
-    textures = {"va_vox_build_turret_1.png"},
-    collisionbox = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
+    textures = { "va_vox_build_turret_1.png" },
+    collisionbox = { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
     max_health = 56,
     energy_generate = 0,
     energy_storage = 0,
@@ -631,11 +655,11 @@ local def = {
     build_time = 530,
     build_power = 20,
     construction_distance = 18,
-    entity_emitters_pos = {{
+    entity_emitters_pos = { {
         x = 0,
         y = 0.3225,
         z = 0
-    }},
+    } },
     formspec = get_formspec,
     on_receive_fields = on_receive_fields,
     vas_run = vas_run
