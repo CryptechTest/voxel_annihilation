@@ -8,7 +8,8 @@ local active_units = {}
 local loaded_mapblocks = {}
 
 ---@diagnostic disable-next-line: deprecated
-local abs, atan2, cos, floor, max, min, sin, sqrt, pi = math.abs, math.atan2, math.cos, math.floor, math.max, math.min, math.sin, math.sqrt, math.pi
+local abs, atan2, cos, floor, max, min, sin, sqrt, pi = math.abs, math.atan2, math.cos, math.floor, math.max, math.min,
+    math.sin, math.sqrt, math.pi
 
 local function find_free_pos(pos)
     local check = {
@@ -118,7 +119,7 @@ local function find_attack_targets(unit, weapon)
         if not other_structure._disposed and other_structure.pos then
             if other_structure.team_uuid ~= unit._team_uuid then
                 if vector.distance(unit_pos, other_structure.pos) <= weapon_range then
-                    table.insert(targets, {object = other_structure.entity_obj})
+                    table.insert(targets, { object = other_structure.entity_obj })
                 end
             end
         end
@@ -235,11 +236,11 @@ local function find_free_ground(unit, target, search_radius)
         local check = {
             { x = 1,  y = 0, z = 1 },
             { x = 1,  y = 0, z = 0 },
-            { x = 1, y = 0, z = -1 },
+            { x = 1,  y = 0, z = -1 },
             { x = 0,  y = 0, z = -1 },
             { x = -1, y = 0, z = -1 },
-            { x = -1,  y = 0, z = 0 },
-            { x = -1,  y = 0, z = 1 },
+            { x = -1, y = 0, z = 0 },
+            { x = -1, y = 0, z = 1 },
             { x = 0,  y = 0, z = 1 },
         }
         local free_pos = {}
@@ -265,11 +266,11 @@ local function find_free_ground(unit, target, search_radius)
         local check = {
             { x = 1,  y = 0, z = 1 },
             { x = 1,  y = 0, z = 0 },
-            { x = 1, y = 0, z = -1 },
+            { x = 1,  y = 0, z = -1 },
             { x = 0,  y = 0, z = -1 },
             { x = -1, y = 0, z = -1 },
-            { x = -1,  y = 0, z = 0 },
-            { x = -1,  y = 0, z = 1 },
+            { x = -1, y = 0, z = 0 },
+            { x = -1, y = 0, z = 1 },
             { x = 0,  y = 0, z = 1 },
         }
         for _, c in pairs(check) do
@@ -302,13 +303,13 @@ local function find_free_ground(unit, target, search_radius)
         if not pos then
             return nil
         end
-        for i = -1, search_radius+1, 1 do
-            local p = vector.subtract(pos, {x=0,y=i,z=0})
+        for i = -1, search_radius + 1, 1 do
+            local p = vector.subtract(pos, { x = 0, y = i, z = 0 })
             local node = core.get_node_or_nil(p)
             if node then
                 local nodedef = core.registered_nodes[node.name]
                 if nodedef.walkable then
-                    local pos_above = vector.add(p, {x=0,y=1,z=0})
+                    local pos_above = vector.add(p, { x = 0, y = 1, z = 0 })
                     --core.log("found ground")
                     return pos_above
                 end
@@ -318,10 +319,10 @@ local function find_free_ground(unit, target, search_radius)
     end
 
     local function find_random_ground(pos, r)
-        local x = math.random(-r,r)
-        local z = math.random(-r,r)
+        local x = math.random(-r, r)
+        local z = math.random(-r, r)
         local y = 0
-        local r_pos = vector.add(pos, vector.new(x,y,z))
+        local r_pos = vector.add(pos, vector.new(x, y, z))
         if is_free_pos(r_pos) then
             return r_pos
         end
@@ -400,7 +401,6 @@ local function process_queue(unit)
         if q_command.process_timeout > 5 then
             q_command.process_complete = true
         end
-
     elseif q_command.command_type == "structure_queued" and not q_command.process_complete then
         unit._state = 'build'
         q_command.process_started = true
@@ -409,7 +409,7 @@ local function process_queue(unit)
         -- TODO: unit build range distance
         if unit_dist > 8 then
             if unit._target_pos == nil and q_command.pos then
-                local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
+                local t_pos = vector.add(q_command.pos, { x = 0, y = 1, z = 0 })
                 unit._target_pos = t_pos
             end
             if unit._target_pos ~= nil then
@@ -444,7 +444,7 @@ local function process_queue(unit)
         -- TODO: unit build range distance
         if unit_dist > 8 then
             if q_command.pos then
-                local t_pos = vector.add(q_command.pos, {x = 0, y = 1, z = 0})
+                local t_pos = vector.add(q_command.pos, { x = 0, y = 1, z = 0 })
                 unit._target_pos = t_pos
             end
             if unit._target_pos ~= nil then
@@ -459,7 +459,7 @@ local function process_queue(unit)
                     local constructor = {
                         pos = unit.object:get_pos(),
                         -- TODO: setup offset positions for particle emitters
-                        entity_emitters_pos = {{x=0,y=1.25,z=0}}
+                        entity_emitters_pos = { { x = 0, y = 1.25, z = 0 } }
                     }
                     local unit_def = units[unit.name]
                     local build_power = unit_def and unit_def.build_power or 0
@@ -520,7 +520,8 @@ local function process_queue(unit)
                     if claimed < _reclaim_value.time then
                         va_structures.show_reclaim_beam_effect(t_reclaim.pos, b_pos, b_power * 0.5, net.team_color)
                         if not va_resources.do_reclaim_with_power(t_reclaim, b_power, net) then
-                            va_structures.reclaim_effect_particles(t_reclaim.pos, b_power, vector.direction(t_reclaim.pos, pos), net.team_color)
+                            va_structures.reclaim_effect_particles(t_reclaim.pos, b_power,
+                                vector.direction(t_reclaim.pos, pos), net.team_color)
                             if not va_resources.get_check_reclaim_val(t_reclaim.pos) then
                                 q_command.process_complete = true
                             end
@@ -939,7 +940,7 @@ function va_units.register_unit(name, def)
             self._command_queue = {}
             self.object:set_observers({})
         end,
-        on_death = function(self, killer) 
+        on_death = function(self, killer)
             core.log("Unit died: " .. (def.nametag or name) .. " " .. self._id)
             if self._is_commander then
                 core.log("is_commander")
@@ -952,10 +953,10 @@ function va_units.register_unit(name, def)
             end
         end,
         get_staticdata = function(self)
-            return (self._owner_name or "") .. ";" .. (self._marked_for_removal and "1" or "0") .. ";" .. (self._team_uuid or "")
+            return (self._owner_name or "") ..
+            ";" .. (self._marked_for_removal and "1" or "0") .. ";" .. (self._team_uuid or "")
         end,
         on_step = function(self, dtime, moveresult)
-
             if not self.object then
                 return
             end
@@ -968,10 +969,10 @@ function va_units.register_unit(name, def)
             for _, weapon in pairs(self._weapons) do
                 local targets = find_attack_targets(self, weapon)
                 if targets then
-                    self._attack_targets =  targets
-                else 
+                    self._attack_targets = targets
+                else
                     self._attack_targets = {}
-                end 
+                end
                 if #self._attack_targets > 0 and (not self._cooldowns or not self._cooldowns[weapon.name] or self._cooldowns[weapon.name] <= 0) then
                     local shooter = self
                     local shooter_pos = shooter.object:get_pos()
@@ -986,7 +987,7 @@ function va_units.register_unit(name, def)
                     local dir = vector.direction(shooter_pos, target_pos)
                     dir.y = dir.y + 0.33 -- aim slightly upwards
                     local dist = vector.distance(shooter_pos, target_pos)
-                    local launch_vector = {velocity = vector.multiply(dir, math.min(range, dist)) }
+                    local launch_vector = { velocity = vector.multiply(dir, math.min(range, dist)) }
                     w.fire(shooter, shooter_pos, target_pos, range, damage, launch_vector)
                     self._cooldowns = self._cooldowns or {}
                     self._cooldowns[weapon.name] = weapon.cooldown or 1
@@ -1001,240 +1002,36 @@ function va_units.register_unit(name, def)
                 end
             end
 
-            self.object:set_properties({infotext = def.nametag .. "\n" .. "HP: " .. tostring(self.object:get_hp()) .. "/" .. tostring(def.hp_max) .. ""})
+            self.object:set_properties({ infotext = def.nametag ..
+            "\n" .. "HP: " .. tostring(self.object:get_hp()) .. "/" .. tostring(def.hp_max) .. "" })
             update_physics(self)
             keep_loaded(self)
 
-            if not self._target_pos and (not self._command_queue or #self._command_queue == 0) then
-                drive(self, {
-                    movement_speed = def.movement_speed * 2.5,
-                    turn_speed = def.turn_speed or 1,
-                    backward_speed = def.backward_speed or 0,
-                }, dtime)
-            else
-                if self._driver ~= nil then
-                    process_look(self._driver, self, self.object:get_yaw())
-                end
-                -- Handle movement towards target
-                local stepheight = self.object:get_properties().stepheight or 0.6
+            -- Handle movement towards target
+            local stepheight = self.object:get_properties().stepheight or 0.6
 
-                if (self._path == nil or #self._path < 2) and self._target_pos ~= nil then
-                    self._path = find_path(self,
-                        self._target_pos,
-                        128, stepheight + 0.7, stepheight + 0.7)
-                end
-                if self._path and #self._path > 1 then
-                    -- Stuck detection: track last position and timer
-                    self._last_pos = self._last_pos or self.object:get_pos()
-                    self._stuck_timer = self._stuck_timer or 0
+            if (self._path == nil or #self._path < 2) and self._target_pos ~= nil then
+                self._path = find_path(self,
+                    self._target_pos,
+                    128, stepheight + 0.7, stepheight + 0.7)
+            end
+            if self._path and #self._path > 1 then
+                -- Stuck detection: track last position and timer
+                self._last_pos = self._last_pos or self.object:get_pos()
+                self._stuck_timer = self._stuck_timer or 0
 
-                    local pos = self.object:get_pos()
+                local pos = self.object:get_pos()
 
 
-                    local moved_dist = sqrt((pos.x - self._last_pos.x) ^ 2 + (pos.y - self._last_pos.y) ^ 2 +
-                        (pos.z - self._last_pos.z) ^ 2)
-                    if moved_dist < 0.05 then
-                        self._stuck_timer = self._stuck_timer + dtime
-                    else
-                        self._stuck_timer = 0
-                        self._last_pos = { x = pos.x, y = pos.y, z = pos.z }
-                    end
-                    if self._stuck_timer > 1 then
-                        self._target_pos = nil
-                        self._path = nil
-                        local vel = self.object:get_velocity()
-                        self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
-                        if self._animation ~= self._animations.stand then
-                            self._animation = self._animations.stand
-                            self.object:set_animation(self._animation, self._animation_speed or 30)
-                        end
-                        self._stuck_timer = 0
-                        return
-                    end
-                    -- Stop if very close to target
-                    local target_pos = self._target_pos
-                    if target_pos then
-                        local tpos = self.object:get_pos()
-                        local dist = sqrt((target_pos.x - tpos.x) ^ 2 + (target_pos.y - tpos.y) ^ 2 +
-                            (target_pos.z - tpos.z) ^ 2)
-                        if dist < 1 then
-                            self._target_pos = nil
-                            self._path = nil
-                            local vel = self.object:get_velocity()
-                            self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
-                            if self._animation ~= self._animations.stand then
-                                self._animation = self._animations.stand
-                                self.object:set_animation(self._animation, self._animation_speed or 30)
-                            end
-                            return
-                        end
-                    end
-
-                    local next_pos = table.remove(self._path, 2)
-                    if not next_pos then
-                        self._target_pos = nil
-                        self._path = nil
-                        local vel = self.object:get_velocity()
-                        self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
-                        if self._animation ~= self._animations.stand then
-                            self._animation = self._animations.stand
-                            self.object:set_animation(self._animation, self._animation_speed or 30)
-                        end
-                        return
-                    end
-
-                    --check for objects that might be block the way
-                    local objects = core.get_objects_inside_radius(next_pos, 1)
-                    -- remove self and non-physical objects from the list
-                    for i = #objects, 1, -1 do
-                        if objects[i] == self.object then
-                            table.remove(objects, i)
-                        else
-                            local obj = objects[i]:get_luaentity()
-                            if obj and not obj._is_va_unit and not objects[i]:is_player() then
-                                table.remove(objects, i)
-                            end
-                        end
-                    end
-                    -- If there are blocking objects, try to move sideways to go around
-                    if #objects > 0 then
-                        core.chat_send_player(self._owner_name, "Blocked by objects, trying to sidestep.")
-                        local p = self.object:get_pos()
-                        local dir_vector = vector.subtract(next_pos, p)
-                        local right_vector = vector.new(-dir_vector.z, 0, dir_vector.x)
-                        local sidestep_found = false
-                        local attempt = 1
-                        local sidestep_offsets = {}
-                        for _, dist in ipairs({1, 1.5, 2}) do
-                            for _, sign in ipairs({1, -1}) do
-                                -- direct right/left
-                                table.insert(sidestep_offsets, vector.multiply(right_vector, dist * sign))
-                                -- diagonal right/left + forward
-                                local diag = vector.add(vector.multiply(right_vector, dist * sign), vector.multiply(dir_vector, 0.5))
-                                table.insert(sidestep_offsets, diag)
-                            end
-                        end
-                        for _, offset in ipairs(sidestep_offsets) do
-                            for _, y_offset in ipairs({0, 1, -1}) do
-                                local sidestep_pos = vector.add(p, offset)
-                                sidestep_pos.y = sidestep_pos.y + y_offset
-                                -- Round to node center
-                                local node_pos = {
-                                    x = math.floor(sidestep_pos.x + 0.5),
-                                    y = math.floor(sidestep_pos.y + 0.5),
-                                    z = math.floor(sidestep_pos.z + 0.5)
-                                }
-                                local node = core.get_node_or_nil(node_pos)
-                                local node_above = core.get_node_or_nil({x=node_pos.x, y=node_pos.y+1, z=node_pos.z})
-                                local node_free = false
-                                if node and node.name then
-                                    local d = core.registered_nodes[node.name]
-                                    node_free = d and not d.walkable and d.liquidtype == "none"
-                                end
-                                local node_above_free = false
-                                if node_above and node_above.name then
-                                    local d_above = core.registered_nodes[node_above.name]
-                                    node_above_free = d_above and not d_above.walkable and d_above.liquidtype == "none"
-                                end
-                                local objects_at_side = core.get_objects_inside_radius(sidestep_pos, 0.75)
-                                local object_free = true
-                                for _, obj in ipairs(objects_at_side) do
-                                    if obj ~= self.object then
-                                        object_free = false
-                                        break
-                                    end
-                                end
-                                core.chat_send_player(self._owner_name,
-                                    string.format("Sidestep attempt %d (offset=%.2f,%.2f,%.2f y_offset=%d): node_free=%s, node_above_free=%s, object_free=%s", attempt, offset.x, offset.y, offset.z, y_offset, tostring(node_free), tostring(node_above_free), tostring(object_free)))
-                                if node_free and node_above_free and object_free then
-                                    next_pos = {
-                                        x = node_pos.x + 0.5,
-                                        y = node_pos.y,
-                                        z = node_pos.z + 0.5
-                                    }
-                                    sidestep_found = true
-                                    core.chat_send_player(self._owner_name, "Sidestepping to " .. next_pos.x .. ", " .. next_pos.y .. ", " .. next_pos.z)
-                                    break
-                                end
-                                attempt = attempt + 1
-                            end
-                            if sidestep_found then break end
-                        end
-                        if not sidestep_found then
-                            -- Cannot sidestep, stop movement
-                            self._target_pos = nil
-                            self._path = nil
-                            local vel = self.object:get_velocity()
-                            self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
-                            if self._animation ~= self._animations.stand then
-                                self._animation = self._animations.stand
-                                self.object:set_animation(self._animation, self._animation_speed or 30)
-                            end
-                            core.chat_send_player(self._owner_name, "No sidestep possible, stopping.")
-                            return
-                        end
-                    end
-
-                    local dir_vector = vector.subtract(next_pos, pos)
-                    local yaw = atan2(dir_vector.z, dir_vector.x) - (pi / 2)
-                    self.object:set_yaw(yaw)
-                    local vel = self.object:get_velocity()
-                    local animation = self._animation
-
-                    -- Snap to next node if close horizontally
-                    local horiz_dist = sqrt((next_pos.x - pos.x) ^ 2 + (next_pos.z - pos.z) ^ 2)
-                    if horiz_dist < 0.25 then
-                        self.object:set_pos({ x = next_pos.x + 0.5, y = pos.y, z = next_pos.z + 0.5 })
-                    end
-
-                    -- Step-up logic for walkable or liquid nodes
-                    local front_pos = {
-                        x = pos.x + cos(yaw + pi / 2),
-                        y = pos.y,
-                        z = pos.z + sin(yaw + pi / 2),
-                    }
-                    local step_pos = { x = front_pos.x, y = front_pos.y + 1, z = front_pos.z }
-                    local node_in_front = core.get_node_or_nil(front_pos)
-                    local node_above = core.get_node_or_nil(step_pos)
-                    local step_up_needed = false
-                    if node_in_front and node_in_front.name ~= "air" then
-                        local node_in_front_def = core.registered_nodes[node_in_front.name]
-                        if node_in_front_def and (node_in_front_def.walkable or node_in_front_def.liquidtype ~= "none") then
-                            if node_above and node_above.name == "air" then
-                                local height_diff = (step_pos.y + stepheight) - pos.y
-                                if height_diff <= stepheight then
-                                    step_up_needed = true
-                                end
-                            end
-                        end
-                    end
-
-                    -- If vertical movement is blocked, nudge upward
-                    if not step_up_needed and abs(next_pos.y - pos.y) > stepheight and horiz_dist < 0.5 then
-                        self.object:set_pos({ x = pos.x, y = next_pos.y, z = pos.z })
-                    end
-
-                    -- Apply velocity for smooth stepping
-                    if step_up_needed then
-                        local new_y_velocity = min(vel.y + stepheight, stepheight * 2)
-                        self.object:set_velocity({
-                            x = (def.movement_speed * 2.5) * cos(yaw + pi / 2),
-                            y = new_y_velocity,
-                            z = (def.movement_speed * 2.5) * sin(yaw + pi / 2),
-                        })
-                    else
-                        self.object:set_velocity({
-                            x = (def.movement_speed * 2.5) * cos(yaw + pi / 2),
-                            y = vel.y,
-                            z = (def.movement_speed * 2.5) * sin(yaw + pi / 2),
-                        })
-                    end
-                    if animation ~= self._animations.walk then
-                        self._animation = self._animations.walk
-                        self.object:set_animation(self._animation, self._animation_speed or 30)
-                    end
+                local moved_dist = sqrt((pos.x - self._last_pos.x) ^ 2 + (pos.y - self._last_pos.y) ^ 2 +
+                    (pos.z - self._last_pos.z) ^ 2)
+                if moved_dist < 0.05 then
+                    self._stuck_timer = self._stuck_timer + dtime
                 else
-                    -- Reached target or no path found
+                    self._stuck_timer = 0
+                    self._last_pos = { x = pos.x, y = pos.y, z = pos.z }
+                end
+                if self._stuck_timer > 1 then
                     self._target_pos = nil
                     self._path = nil
                     local vel = self.object:get_velocity()
@@ -1243,6 +1040,205 @@ function va_units.register_unit(name, def)
                         self._animation = self._animations.stand
                         self.object:set_animation(self._animation, self._animation_speed or 30)
                     end
+                    self._stuck_timer = 0
+                    return
+                end
+                -- Stop if very close to target
+                local target_pos = self._target_pos
+                if target_pos then
+                    local tpos = self.object:get_pos()
+                    local dist = sqrt((target_pos.x - tpos.x) ^ 2 + (target_pos.y - tpos.y) ^ 2 +
+                        (target_pos.z - tpos.z) ^ 2)
+                    if dist < 1 then
+                        self._target_pos = nil
+                        self._path = nil
+                        local vel = self.object:get_velocity()
+                        self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                        if self._animation ~= self._animations.stand then
+                            self._animation = self._animations.stand
+                            self.object:set_animation(self._animation, self._animation_speed or 30)
+                        end
+                        return
+                    end
+                end
+
+                local next_pos = table.remove(self._path, 2)
+                if not next_pos then
+                    self._target_pos = nil
+                    self._path = nil
+                    local vel = self.object:get_velocity()
+                    self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                    if self._animation ~= self._animations.stand then
+                        self._animation = self._animations.stand
+                        self.object:set_animation(self._animation, self._animation_speed or 30)
+                    end
+                    return
+                end
+
+                --check for objects that might be block the way
+                local objects = core.get_objects_inside_radius(next_pos, 1)
+                -- remove self and non-physical objects from the list
+                for i = #objects, 1, -1 do
+                    if objects[i] == self.object then
+                        table.remove(objects, i)
+                    else
+                        local obj = objects[i]:get_luaentity()
+                        if obj and not obj._is_va_unit and not objects[i]:is_player() then
+                            table.remove(objects, i)
+                        end
+                    end
+                end
+                -- If there are blocking objects, try to move sideways to go around
+                if #objects > 0 then
+                    core.chat_send_player(self._owner_name, "Blocked by objects, trying to sidestep.")
+                    local p = self.object:get_pos()
+                    local dir_vector = vector.subtract(next_pos, p)
+                    local right_vector = vector.new(-dir_vector.z, 0, dir_vector.x)
+                    local sidestep_found = false
+                    local attempt = 1
+                    local sidestep_offsets = {}
+                    for _, dist in ipairs({ 1, 1.5, 2 }) do
+                        for _, sign in ipairs({ 1, -1 }) do
+                            -- direct right/left
+                            table.insert(sidestep_offsets, vector.multiply(right_vector, dist * sign))
+                            -- diagonal right/left + forward
+                            local diag = vector.add(vector.multiply(right_vector, dist * sign),
+                                vector.multiply(dir_vector, 0.5))
+                            table.insert(sidestep_offsets, diag)
+                        end
+                    end
+                    for _, offset in ipairs(sidestep_offsets) do
+                        for _, y_offset in ipairs({ 0, 1, -1 }) do
+                            local sidestep_pos = vector.add(p, offset)
+                            sidestep_pos.y = sidestep_pos.y + y_offset
+                            -- Round to node center
+                            local node_pos = {
+                                x = math.floor(sidestep_pos.x + 0.5),
+                                y = math.floor(sidestep_pos.y + 0.5),
+                                z = math.floor(sidestep_pos.z + 0.5)
+                            }
+                            local node = core.get_node_or_nil(node_pos)
+                            local node_above = core.get_node_or_nil({ x = node_pos.x, y = node_pos.y + 1, z = node_pos.z })
+                            local node_free = false
+                            if node and node.name then
+                                local d = core.registered_nodes[node.name]
+                                node_free = d and not d.walkable and d.liquidtype == "none"
+                            end
+                            local node_above_free = false
+                            if node_above and node_above.name then
+                                local d_above = core.registered_nodes[node_above.name]
+                                node_above_free = d_above and not d_above.walkable and d_above.liquidtype == "none"
+                            end
+                            local objects_at_side = core.get_objects_inside_radius(sidestep_pos, 0.75)
+                            local object_free = true
+                            for _, obj in ipairs(objects_at_side) do
+                                if obj ~= self.object then
+                                    object_free = false
+                                    break
+                                end
+                            end
+                            core.chat_send_player(self._owner_name,
+                                string.format(
+                                "Sidestep attempt %d (offset=%.2f,%.2f,%.2f y_offset=%d): node_free=%s, node_above_free=%s, object_free=%s",
+                                    attempt, offset.x, offset.y, offset.z, y_offset, tostring(node_free),
+                                    tostring(node_above_free), tostring(object_free)))
+                            if node_free and node_above_free and object_free then
+                                next_pos = {
+                                    x = node_pos.x + 0.5,
+                                    y = node_pos.y,
+                                    z = node_pos.z + 0.5
+                                }
+                                sidestep_found = true
+                                core.chat_send_player(self._owner_name,
+                                    "Sidestepping to " .. next_pos.x .. ", " .. next_pos.y .. ", " .. next_pos.z)
+                                break
+                            end
+                            attempt = attempt + 1
+                        end
+                        if sidestep_found then break end
+                    end
+                    if not sidestep_found then
+                        -- Cannot sidestep, stop movement
+                        self._target_pos = nil
+                        self._path = nil
+                        local vel = self.object:get_velocity()
+                        self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                        if self._animation ~= self._animations.stand then
+                            self._animation = self._animations.stand
+                            self.object:set_animation(self._animation, self._animation_speed or 30)
+                        end
+                        core.chat_send_player(self._owner_name, "No sidestep possible, stopping.")
+                        return
+                    end
+                end
+
+                local dir_vector = vector.subtract(next_pos, pos)
+                local yaw = atan2(dir_vector.z, dir_vector.x) - (pi / 2)
+                self.object:set_yaw(yaw)
+                local vel = self.object:get_velocity()
+                local animation = self._animation
+
+                -- Snap to next node if close horizontally
+                local horiz_dist = sqrt((next_pos.x - pos.x) ^ 2 + (next_pos.z - pos.z) ^ 2)
+                if horiz_dist < 0.25 then
+                    self.object:set_pos({ x = next_pos.x + 0.5, y = pos.y, z = next_pos.z + 0.5 })
+                end
+
+                -- Step-up logic for walkable or liquid nodes
+                local front_pos = {
+                    x = pos.x + cos(yaw + pi / 2),
+                    y = pos.y,
+                    z = pos.z + sin(yaw + pi / 2),
+                }
+                local step_pos = { x = front_pos.x, y = front_pos.y + 1, z = front_pos.z }
+                local node_in_front = core.get_node_or_nil(front_pos)
+                local node_above = core.get_node_or_nil(step_pos)
+                local step_up_needed = false
+                if node_in_front and node_in_front.name ~= "air" then
+                    local node_in_front_def = core.registered_nodes[node_in_front.name]
+                    if node_in_front_def and (node_in_front_def.walkable or node_in_front_def.liquidtype ~= "none") then
+                        if node_above and node_above.name == "air" then
+                            local height_diff = (step_pos.y + stepheight) - pos.y
+                            if height_diff <= stepheight then
+                                step_up_needed = true
+                            end
+                        end
+                    end
+                end
+
+                -- If vertical movement is blocked, nudge upward
+                if not step_up_needed and abs(next_pos.y - pos.y) > stepheight and horiz_dist < 0.5 then
+                    self.object:set_pos({ x = pos.x, y = next_pos.y, z = pos.z })
+                end
+
+                -- Apply velocity for smooth stepping
+                if step_up_needed then
+                    local new_y_velocity = min(vel.y + stepheight, stepheight * 2)
+                    self.object:set_velocity({
+                        x = (def.movement_speed * 2.5) * cos(yaw + pi / 2),
+                        y = new_y_velocity,
+                        z = (def.movement_speed * 2.5) * sin(yaw + pi / 2),
+                    })
+                else
+                    self.object:set_velocity({
+                        x = (def.movement_speed * 2.5) * cos(yaw + pi / 2),
+                        y = vel.y,
+                        z = (def.movement_speed * 2.5) * sin(yaw + pi / 2),
+                    })
+                end
+                if animation ~= self._animations.walk then
+                    self._animation = self._animations.walk
+                    self.object:set_animation(self._animation, self._animation_speed or 30)
+                end
+            else
+                -- Reached target or no path found
+                self._target_pos = nil
+                self._path = nil
+                local vel = self.object:get_velocity()
+                self.object:set_velocity({ x = 0, y = vel.y, z = 0 })
+                if self._animation ~= self._animations.stand then
+                    self._animation = self._animations.stand
+                    self.object:set_animation(self._animation, self._animation_speed or 30)
                 end
             end
             process_queue(self)

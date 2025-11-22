@@ -516,11 +516,7 @@ va_commands.register_command("select", {
             local player_name = user:get_player_name()
             if entity._is_va_unit == true then
                 if entity._owner_name == player_name then
-                    if entity._driver == nil then
-                        va_units.attach(user, entity)
-                    else
-                        va_units.detach(user)
-                    end
+                    core.chat_send_player(player_name, "Open Unit Menu.")
                     return
                 end
             elseif entity._is_va_structure == true then
