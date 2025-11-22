@@ -70,35 +70,62 @@ local function check_for_removal(unit)
 end
 
 local function keep_loaded(unit)
-    if not unit.object then
-        return
-    end
+   if not unit.object then return end
     local pos = unit.object:get_pos()
-    local mapblock_pos = {
-        x = floor(pos.x / 16),
-        y = floor(pos.y / 16),
-        z = floor(pos.z / 16),
+    local base = {
+        x = math.floor(pos.x / 16),
+        y = math.floor(pos.y / 16),
+        z = math.floor(pos.z / 16),
     }
-    local mapblock_key = mapblock_pos.x .. "," .. mapblock_pos.y .. "," .. mapblock_pos.z
-    local current_mapblock = unit._current_mapblock
-    local current_key = current_mapblock and
-        (current_mapblock.x .. "," .. current_mapblock.y .. "," .. current_mapblock.z) or nil
 
-    if current_key and (current_key ~= mapblock_key) then
-        if unit._forceloaded_block then
-            core.forceload_free_block(unit._forceloaded_block, true)
-            loaded_mapblocks[current_key] = nil
-            unit._forceloaded_block = nil
+    -- Only update if mapblock changed
+    if unit._current_mapblock and
+       (unit._current_mapblock.x == base.x and
+        unit._current_mapblock.y == base.y and
+        unit._current_mapblock.z == base.z) then
+        return -- Still in same mapblock, nothing to do
+    end
+
+    -- Free old blocks
+    if unit._forceloaded_blocks then
+        for _, block in ipairs(unit._forceloaded_blocks) do
+            local block_x = math.floor(block.x / 16)
+            local block_y = math.floor(block.y / 16)
+            local block_z = math.floor(block.z / 16)
+            local key = block_x .. "," .. block_y .. "," .. block_z
+            if loaded_mapblocks[key] then
+                loaded_mapblocks[key] = loaded_mapblocks[key] - 1
+                if loaded_mapblocks[key] == 0 then
+                    core.forceload_free_block(block, true)
+                    loaded_mapblocks[key] = nil
+                end
+            end
         end
     end
 
-    if not loaded_mapblocks[mapblock_key] then
-        core.forceload_block(pos, true)
-        loaded_mapblocks[mapblock_key] = true
-        unit._forceloaded_block = pos
+    -- Forceload new 3x3x3 cube
+    unit._forceloaded_blocks = {}
+    for dx = -1, 1 do
+        for dy = -1, 1 do
+            for dz = -1, 1 do
+                local block_x = base.x + dx
+                local block_y = base.y + dy
+                local block_z = base.z + dz
+                local key = block_x .. "," .. block_y .. "," .. block_z
+                local mb = { x = block_x * 16, y = block_y * 16, z = block_z * 16 }
+                if not loaded_mapblocks[key] then
+                    loaded_mapblocks[key] = 1
+                    core.forceload_block(mb, true)
+                    table.insert(unit._forceloaded_blocks, mb)
+                else
+                    loaded_mapblocks[key] = loaded_mapblocks[key] + 1
+                end             
+                
+            end
+        end
     end
 
-    unit._current_mapblock = mapblock_pos
+    unit._current_mapblock = base
 end
 
 local function find_attack_targets(unit, weapon)
@@ -134,6 +161,7 @@ end
 
 local function update_visibility(unit)
     local unit_owner = unit._owner_name
+    local sight_range = unit._sight_range or 16
     for _, other_unit in pairs(active_units) do
         if other_unit._owner_name ~= unit_owner then
             if other_unit._current_mapblock and unit._current_mapblock
@@ -150,7 +178,7 @@ local function update_visibility(unit)
                         z = other_unit._current_mapblock.z
                     }
                 )
-                if distance <= 4 then
+                if distance <= sight_range then
                     local observers = unit.object:get_observers() or { [unit_owner] = true }
                     local other_observers = other_unit.object:get_observers() or { [other_unit._owner_name] = true }
                     observers[other_unit._owner_name] = true
@@ -1079,6 +1107,8 @@ function va_units.register_unit(name, def)
                     end
                     return
                 end
+
+                
 
                 --check for objects that might be block the way
                 local objects = core.get_objects_inside_radius(next_pos, 1)
