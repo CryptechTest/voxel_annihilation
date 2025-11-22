@@ -1328,7 +1328,7 @@ function GameObject:player_ctl_unit_combat(player_name)
         name = "va_commands:attack_move",
         count = 1
     })
-    inv:set_list(inv_name, {select, select_all, stop, move, guard, attack_move, attack})
+    inv:set_list(inv_name, {select, select_all, stop, move, attack_move, guard, attack})
     player:hud_set_hotbar_itemcount(7)
     player:hud_set_hotbar_image("va_hud_hotbar_7.png")
     player:hud_set_flags({
