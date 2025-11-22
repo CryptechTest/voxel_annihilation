@@ -311,8 +311,8 @@ core.register_node("va_game:command_marker", {
         type = "fixed",
         fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
     },
-    inventory_image = "va_commands_select_commander.png",
-    wield_image = "va_commands_select_commander.png",
+    inventory_image = "va_commands_commander_marker.png",
+    wield_image = "va_commands_commander_marker.png",
 
     range = 32,
 
