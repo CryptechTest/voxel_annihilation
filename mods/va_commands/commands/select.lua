@@ -133,6 +133,26 @@ core.register_entity("va_commands:selected_structure", {
         if not found then
             self.object:remove()
         end
+
+        if parent then
+            local state = parent:get_luaentity()._state or 'idle'
+            --update the texture based on state
+            if state == 'attack' then
+                self.object:set_properties({ textures = { "va_commands_selected_structure_attack.png" } })
+            elseif state == 'build' then
+                self.object:set_properties({ textures = { "va_commands_selected_structure_build.png" } })
+            elseif state == 'guard' then
+                self.object:set_properties({ textures = { "va_commands_selected_structure_guard.png" } })
+            elseif state == 'idle' then
+                self.object:set_properties({ textures = { "va_commands_selected_structure_idle.png" } })
+            elseif state == 'reclaim' then
+                self.object:set_properties({ textures = { "va_commands_selected_structure_reclaim.png" } })
+            elseif state == 'repair' then
+                self.object:set_properties({ textures = { "va_commands_selected_structure_repair.png" } })
+            else
+                self.object:set_properties({ textures = { "va_commands_selected_structure_idle.png" } })
+            end
+        end
     end,
 })
 
