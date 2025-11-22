@@ -64,6 +64,10 @@ core.register_entity("va_commands:selected_unit", {
                 self.object:set_properties({ textures = { "va_commands_selected_unit_attack_move.png" } })
             elseif state == 'attack' then
                 self.object:set_properties({ textures = { "va_commands_selected_unit_attack.png" } })
+            elseif state == 'build' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_build.png" } })
+            elseif state == 'capture' then
+                self.object:set_properties({ textures = { "va_commands_selected_unit_capture.png" } })
             elseif state == 'guard' then
                 self.object:set_properties({ textures = { "va_commands_selected_unit_guard.png" } })
             elseif state == 'idle' then
