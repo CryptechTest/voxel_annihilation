@@ -88,7 +88,8 @@ local function do_turret_rotation(structure, target_obj)
     local yawRad = turret.rotation and turret.rotation.vec.y or 0
     local pitchRad = turret.rotation and turret.rotation.vec.x or 0
     local yawDeg = yaw_deg -- yawDeg = ((yawDeg + (yaw_deg * 1)) / 2) % 360
-    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 10) and num_is_close(pitch_deg, math.deg(pitchRad), 5) then
+    if structure._last_dir ~= nil and num_is_close(yawDeg, math.deg(yawRad), 10) and
+        num_is_close(pitch_deg, math.deg(pitchRad), 5) then
         -- if rotation complete mark as locked
         structure._target_locked = true
     end
@@ -113,54 +114,6 @@ local function do_turret_rotation(structure, target_obj)
             }
         })
     end
-end
-
-local function can_see(origin, obj)
-    local target_pos = vector.add(obj:get_pos(), vector.new(0, 0.51, 0))
-    local ray = core.raycast(origin, target_pos, false, true, nil)
-    for pointed_thing in ray do
-        if pointed_thing.type == "object" and pointed_thing.ref ~= obj then
-            if pointed_thing.ref:get_pos() ~= origin then
-                return false
-            end
-        elseif pointed_thing.type == "node" and pointed_thing.under ~= target_pos then
-            if pointed_thing.under ~= origin then
-                return false
-            end
-        end
-    end
-    return true
-end
-
-local function find_target(structure, dist)
-    local pos = vector.add(structure.pos, vector.new(0, 1.35, 0))
-    local objs = core.get_objects_inside_radius(pos, dist + 0.55)
-    local targets = {}
-    for _, obj in pairs(objs) do
-        local o_pos = obj:get_pos()
-        if vector.distance(pos, o_pos) < dist + 1 then
-            if obj:get_luaentity() then
-                local ent = obj:get_luaentity()
-                if ent._is_va_unit then
-                    if ent._team_uuid ~= structure.team_uuid then
-                        if can_see(pos, obj) then
-                            table.insert(targets, obj)
-                        end
-                    end
-                elseif ent._is_va_structure then
-                    if ent._team_uuid ~= structure.team_uuid then
-                        if can_see(pos, obj) then
-                            table.insert(targets, obj)
-                        end
-                    end
-                end
-            end
-        end
-    end
-    if #targets > 0 then
-        return targets[1]
-    end
-    return nil
 end
 
 local function rotate_y(vector, angle_yaw, angle_pitch)
@@ -192,10 +145,11 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             return
         end
         local range = 16
-        local target = s_obj._last_target or find_target(s_obj, range)
+        local _target = s_obj._last_target or s_obj:find_target({range = range})
+        local target = _target and _target.obj or nil
         if target and not s_obj._target_locked then
             s_obj._last_target = target
-           do_turret_rotation(s_obj, target)
+            do_turret_rotation(s_obj, target)
         end
     elseif run_stage == "main" then
         -- main run
@@ -207,14 +161,18 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local shooter = s_obj.entity_obj
         local damage = 4
         local range = 16
-        local target = s_obj._last_target or find_target(s_obj, range)
+        local _target = s_obj._last_target or s_obj:find_target({range = range})
+        local target = _target and _target.obj or nil
 
-        if target and target.get_pos then
+        if not target or not target:get_luaentity() then
+            s_obj._last_target = nil
+            target = nil
+        elseif target then
             if target:get_pos() == nil then
                 s_obj._last_target = nil
                 return
             end
-            s_obj._last_target = target
+            s_obj._last_target = _target
             local yaw, yaw_deg = va_structures.util.calculateYaw(pos, target:get_pos())
             local pitch, pitch_deg = va_structures.util.calculatePitch(target:get_pos(), pos)
             local turret_end = {
@@ -226,6 +184,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
             local turret_end_pos = rotate_y(turret_end, yaw, pitch)
             local o_pos = vector.add(s_obj.pos, turret_end_pos)
             local t_pos = vector.add(target:get_pos(), vector.new(0, 0.25, 0))
+            local get_target_spread_from_colbox = va_structures.util.get_target_spread_from_colbox
 
             local cost = s_obj:get_data():get_energy_consume()
             local energy = net.energy
@@ -236,12 +195,18 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                     local weapon = va_weapons.get_weapon("light_laser")
                     for i = 0, 3, 1 do
                         core.after(0.25 * i, function()
-                            if target and target:get_pos() then
-                                local x = va_structures.util.randFloat(-0.1, 0.1)
-                                local y = va_structures.util.randFloat(-0.1, 0.1)
-                                local z = va_structures.util.randFloat(-0.1, 0.1)
-                                t_pos = vector.add(target:get_pos(), vector.new(0, 0.25, 0))
-                                local tr_pos = vector.add(t_pos, vector.new(x, y, z))
+                            if target and target:get_luaentity() then
+                                local target_ent = target:get_luaentity()
+                                local target_pos = target:get_pos()
+                                local target_colbox = target:get_properties().collisionbox
+                                if target_ent._is_va_unit then
+                                    target_pos = target_ent:_get_pos_next()
+                                    t_pos = vector.add(target_pos, vector.new(0, 0.05, 0))
+                                elseif target_ent._is_va_structure then
+                                    t_pos = vector.add(target_pos, vector.new(0, 0.20, 0))
+                                end
+                                local t_spread = get_target_spread_from_colbox(target_colbox)
+                                local tr_pos = vector.add(t_pos, t_spread)
                                 weapon.fire(shooter, o_pos, tr_pos, range, damage)
                             end
                         end)

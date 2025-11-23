@@ -834,6 +834,23 @@ local function drive(unit, movement_def, dtime)
     end
 end
 
+local function get_pos_next(self)
+    if not self.object then
+        return nil
+    elseif self._marked_for_removal then
+        return nil
+    end
+    if self._pos_last then
+        local pos = self.object:get_pos()
+        local vec = vector.direction(pos, self._pos_last)
+        local dist = vector.distance(pos, self._pos_last)
+        local m_vec = vector.multiply(vec, dist^2)
+        local pos_next = vector.add(pos, m_vec)
+        return pos_next
+    end
+    return self.object:get_pos()
+end
+
 function va_units.register_unit(name, def)
     units["va_units:" .. name] = def
     core.register_entity("va_units:" .. name, {
@@ -872,6 +889,8 @@ function va_units.register_unit(name, def)
         _driver_attach_at = def.driver_attach_at or { x = 0, y = 0, z = 0 },
         _driver_eye_offset = def.driver_eye_offset or { x = 0, y = 0, z = 0 },
         _driver = nil,
+        _get_pos_next = get_pos_next,
+        _pos_last = nil,
         _target_pos = nil,
         _attack_targets = {},
         _weapons = def.weapons or {},
@@ -922,13 +941,13 @@ function va_units.register_unit(name, def)
 
             -- Remove unit if HP is zero or less
             if self.object:get_hp() <= 0 then
-                core.log("Unit removing...")
+                --core.log("Unit removing...")
                 if self._is_commander then
-                    core.log("is_commander")
+                    --core.log("is_commander")
                     local owner = self._owner_name
                     local game = va_game.get_game_from_player(owner)
                     if game then
-                        core.log("destroy alert!")
+                        --core.log("destroy alert!")
                         game:commander_destroy_alert(self._team_uuid)
                     end
                 end
@@ -975,13 +994,13 @@ function va_units.register_unit(name, def)
             self.object:set_observers({})
         end,
         on_death = function(self, killer)
-            core.log("Unit died: " .. (def.nametag or name) .. " " .. self._id)
+            --core.log("Unit died: " .. (def.nametag or name) .. " " .. self._id)
             if self._is_commander then
-                core.log("is_commander")
+                --core.log("is_commander")
                 local owner = self._owner_name
                 local game = va_game.get_game_from_player(owner)
                 if game then
-                    core.log("destroy alert!")
+                    --core.log("destroy alert!")
                     game:commander_destroy_alert(self._team_uuid)
                 end
             end
@@ -999,6 +1018,7 @@ function va_units.register_unit(name, def)
             if check_for_removal(self) then
                 return
             end
+            self._pos_last = self.object:get_pos()
             -- get attack targets
             for _, weapon in pairs(self._weapons) do
                 local targets = find_attack_targets(self, weapon)

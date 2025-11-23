@@ -1516,6 +1516,78 @@ function Structure:explode()
 end
 
 -----------------------------------------------------------------
+-----------------------------------------------------------------
+--- targetting
+
+local function raycast_target(origin, obj, thres)
+    local node_count = 0
+    local objs_count = 0
+    local target_pos = vector.add(obj:get_pos(), vector.new(0, 0.25, 0))
+    local ray = core.raycast(origin, target_pos, false, true, nil)
+    for pointed_thing in ray do
+        if pointed_thing.type == "object" and pointed_thing.ref ~= obj then
+            if pointed_thing.ref:get_pos() ~= origin then
+                objs_count = objs_count + 0.5
+            end
+        elseif pointed_thing.type == "node" and pointed_thing.under ~= target_pos then
+            if pointed_thing.under ~= origin then
+                node_count = node_count + 1
+            end
+        end
+    end
+    return node_count < thres and objs_count < thres
+end
+
+function Structure:find_target(def)
+    local dist = def.range or 10
+    local thres = def.thres_blocked or 1
+    local can_see = def.can_see or raycast_target
+    local pos = vector.add(self.pos, vector.new(0, 1.45, 0))
+    local objs = core.get_objects_inside_radius(pos, dist + 0.55)
+    local targets = {}
+    for _, obj in pairs(objs) do
+        local o_pos = obj:get_pos()
+        if vector.distance(pos, o_pos) < dist + 1 then
+            if obj:get_luaentity() then
+                local ent = obj:get_luaentity()
+                local target = {
+                    obj = obj,
+                    dist = vector.distance(pos, o_pos),
+                    typ = ""
+                }
+                if ent._is_va_unit then
+                    if ent._team_uuid ~= self.team_uuid then
+                        if can_see(pos, obj, thres) then
+                            target.typ = "unit"
+                            table.insert(targets, target)
+                        end
+                    end
+                elseif ent._is_va_structure then
+                    if ent._team_uuid ~= self.team_uuid then
+                        if can_see(pos, obj, thres) then
+                            target.typ = "structure"
+                            table.insert(targets, target)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    if #targets > 0 then
+        table.sort(targets, function(a, b)
+            return a.dist < b.dist
+        end)
+        local target = targets[1]
+        return {
+            pos = target.obj:get_pos(),
+            obj = target.obj,
+            typ = target.typ
+        }
+    end
+    return nil
+end
+
+-----------------------------------------------------------------
 -- tick checks
 
 function Structure:get_yaw()

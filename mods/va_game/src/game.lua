@@ -849,8 +849,10 @@ function GameObject:is_within_bounds(pos)
     local x = pos.x
     local y = pos.y
     local z = pos.z
-    local minY = self.position.y - 32
-    local maxY = self.position.y + self.size.height
+    --local minY = self.position.y - 32
+    --local maxY = self.position.y + self.size.height
+    local minY = -32
+    local maxY = 128
     local minX = self.position.x - self.size.width / 2
     local maxX = self.position.x + self.size.width / 2
     local minZ = self.position.z - self.size.depth / 2

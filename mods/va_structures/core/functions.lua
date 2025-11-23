@@ -49,6 +49,25 @@ local function calculateYaw(vector1, vector2)
 end
 va_structures.util.calculateYaw = calculateYaw
 
+--- Get random target pos within a collision box
+---@param collbox table
+local function get_target_spread_from_colbox(collbox)
+    if not collbox or #collbox ~= 6 then
+        return vector.new(0, 0, 0)
+    end
+    local minX = collbox[1] * 0.76
+    local minY = collbox[2] * 0.76
+    local minZ = collbox[3] * 0.76
+    local maxX = collbox[4] * 0.76
+    local maxY = collbox[5] * 0.76
+    local maxZ = collbox[6] * 0.76
+    local x = randFloat(minX, maxX)
+    local y = randFloat(minY, maxY)
+    local z = randFloat(minZ, maxZ)
+    return vector.new(x, y, z)
+end
+va_structures.util.get_target_spread_from_colbox = get_target_spread_from_colbox
+
 -----------------------------------------------------------------
 
 local function deepcopy(orig)
