@@ -853,6 +853,7 @@ function va_units.register_unit(name, def)
             static_save = true,
             hp_max = def.hp_max or 1,
             nametag = "",
+            glow = 6,
         },
         _is_va_unit = true,
         _can_build = def.can_build or false,
