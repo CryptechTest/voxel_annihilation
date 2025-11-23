@@ -383,7 +383,7 @@ function GameObject:add_team(id, _players)
         players = players,
         uuid = uuid
     })
-    core.log("added new team: " .. uuid)
+    core.log("Added new team: [" .. id .. "] " .. uuid)
 end
 
 function GameObject:remove_team(team_id)
@@ -977,7 +977,7 @@ function GameObject:check_modes()
             end
             self:set_ended(true)
         end
-    elseif self.mode.id == 2 then
+    elseif self.mode.id == 2 or self.mode.id == 3 then
         local team_count = 0
         for uuid, v in pairs(teams) do
             if v then

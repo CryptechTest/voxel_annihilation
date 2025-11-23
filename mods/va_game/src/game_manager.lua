@@ -23,9 +23,18 @@ function va_game.init_game_from_lobby(lobby)
     game.update_lobby_ui = lobby.update_lobby
     game.dipose_lobby_game = lobby.dipose_game
 
-    -- add teams to the game object
-    for id, team_players in ipairs(lobby.teams) do
-        game:add_team(id, team_players)
+    if mode.id == 3 then
+        -- add teams to the game object for ffa
+        for i, pname in ipairs(lobby.players) do
+            game:add_team(i, {
+                [pname] = true
+            })
+        end
+    else
+        -- add teams to the game object
+        for id, team_players in ipairs(lobby.teams) do
+            game:add_team(id, team_players)
+        end
     end
     -- add players to the game object
     for _, pname in pairs(lobby.players) do

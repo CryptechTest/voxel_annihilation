@@ -31,7 +31,7 @@ local function get_lobby_setup(owner)
     pwdfield[0.75,2.4;7,1;password;Password (optional)]
     style_type[label;font_size=16;font=bold]
     label[0.5,2.9;Mode]
-    dropdown[0.465,3.3;3.5;mode;Wave Defense,Assassination;1;true]
+    dropdown[0.465,3.3;3.5;mode;Wave Defense,Assassination Teams, Assassination FFA;1;true]
     label[4,2.9;Difficulty]
     dropdown[4,3.3;3.5;wd_difficulty;Easy,Medium,Hard,Extreme;1;true]
     field[0.75,4.6;3.5,1;game_position;Lobby Position;]] .. math.floor(pos.x) .. [[ ]] .. math.floor(pos.y) .. [[ ]] ..
@@ -71,6 +71,9 @@ local function get_lobby(owner)
         local y = y_min
         local t_box_loc = (x - 0.1) .. "," .. (y - 0.51)
         local t_box_size = "7.5" .. "," .. "3.0"
+        if mode == "1" or mode == "3" then
+            t_box_size = "7.5" .. "," .. "6.0"
+        end
         local t_box = "box[" .. t_box_loc .. ";" .. t_box_size .. ";" .. "#1B1B1B" .. "]"
         table.insert(formspec, t_box)
         table.insert(formspec, "style_type[label;font_size=20;font=bold]")
@@ -167,6 +170,24 @@ local function get_lobby(owner)
         add_spectate(formspec)
         local lobby_formspec = table.concat(formspec, "")
         return lobby_formspec
+    elseif mode == 3 or mode == "3" then
+        local formspec = {"size[8,8]", [[
+            no_prepend[]
+            formspec_version[10]
+            bgcolor[#101010;]
+            style_type[label;font_size=22;font=bold]
+            label[0,0;]] .. lobby.name .. [[]
+            style[leave;bgcolor=#ff0000]
+            button_exit[6.5,7.5;1.5,0.5;leave;Leave]
+            ]]}
+        update_lobby_players(formspec)
+        local game = va_game.get_game_from_lobby(lobby.name)
+        if not game or (game and game:is_started()) then
+            add_start(formspec)
+        end
+        add_spectate(formspec)
+        local lobby_formspec = table.concat(formspec, "")
+        return lobby_formspec
     else
         core.log("mode not found?")
     end
@@ -199,7 +220,9 @@ local function get_lobbies()
             end
             mode = "Wave Def" .. "(" .. difficulty .. ")"
         elseif lobby.mode == 2 or lobby.mode == "2" then
-            mode = "Assassination"
+            mode = "Assassination Teams"
+        elseif lobby.mode == 3 or lobby.mode == "3" then
+            mode = "Assassination FFA"
         end
         local lobby_display = ""
         if #lobby.name > 25 then
@@ -209,7 +232,9 @@ local function get_lobbies()
         end
         table.insert(lobbies, "style_type[label;font_size=16;font=mono]")
         table.insert(lobbies, "label[1," .. 0.75 + (count * 0.75) .. ";" .. lobby_display .. "]")
+        table.insert(lobbies, "style_type[label;font_size=14;font=mono]")
         table.insert(lobbies, "label[5," .. 0.75 + (count * 0.75) .. ";" .. mode .. "]")
+        table.insert(lobbies, "style_type[label;font_size=16;font=mono]")
         table.insert(lobbies,
             "label[7.25," .. 0.75 + (count * 0.75) .. ";" .. (lobby.players and #lobby.players or 0) .. "/8 ]")
         table.insert(lobbies, "style[join_" .. pname .. ";bgcolor=#00ff00]")
