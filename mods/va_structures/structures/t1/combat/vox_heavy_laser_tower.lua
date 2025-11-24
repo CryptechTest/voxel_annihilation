@@ -313,7 +313,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
                 z = 0
             })
             -- target pos
-            local t_pos = vector.add(target:get_pos(), vector.new(0, 0.175, 0))
+            local t_pos = vector.add(target:get_pos(), vector.new(0, 0.025, 0))
 
             local cost = s_obj:get_data():get_energy_consume()
             local energy = net.energy

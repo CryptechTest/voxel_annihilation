@@ -55,16 +55,16 @@ local function get_target_spread_from_colbox(collbox)
     if not collbox or #collbox ~= 6 then
         return vector.new(0, 0, 0)
     end
-    local minX = collbox[1] * 0.76
-    local minY = collbox[2] * 0.76
-    local minZ = collbox[3] * 0.76
-    local maxX = collbox[4] * 0.76
-    local maxY = collbox[5] * 0.76
-    local maxZ = collbox[6] * 0.76
+    local minX = collbox[1] * 0.67
+    local minY = collbox[2] * 0.88
+    local minZ = collbox[3] * 0.67
+    local maxX = collbox[4] * 0.67
+    local maxY = collbox[5] * 0.51
+    local maxZ = collbox[6] * 0.67
     local x = randFloat(minX, maxX)
     local y = randFloat(minY, maxY)
     local z = randFloat(minZ, maxZ)
-    return vector.new(x, y, z)
+    return vector.new(x, (((collbox[5] - collbox[2]) / 2) + y) - 0.275, z)
 end
 va_structures.util.get_target_spread_from_colbox = get_target_spread_from_colbox
 

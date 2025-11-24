@@ -183,7 +183,7 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
 
             local turret_end_pos = rotate_y(turret_end, yaw, pitch)
             local o_pos = vector.add(s_obj.pos, turret_end_pos)
-            local t_pos = vector.add(target:get_pos(), vector.new(0, 0.25, 0))
+            local t_pos = vector.add(target:get_pos(), vector.new(0, 0.025, 0))
             local get_target_spread_from_colbox = va_structures.util.get_target_spread_from_colbox
 
             local cost = s_obj:get_data():get_energy_consume()
