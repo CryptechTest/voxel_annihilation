@@ -530,7 +530,7 @@ va_structures.cleanup_assets = function(game)
             end
         end
         for _, s in pairs(_active_instances) do
-            if players[s._owner_name] then
+            if players[s.owner] then
                 s:dispose()
             end
         end
