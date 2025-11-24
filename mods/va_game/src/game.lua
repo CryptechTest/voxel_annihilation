@@ -176,8 +176,8 @@ function GameObject:dispose()
     for _, pplayer in pairs(self.players) do
         va_game.remove_player_actor(pplayer.name)
     end
-    va_units.cleanup_assets()
-    va_structures.cleanup_assets()
+    va_units.cleanup_assets(self)
+    va_structures.cleanup_assets(self)
     for index, value in ipairs(va_game.games) do
         if value:get_id() == self:get_id() then
             table.remove(va_game.games, index)

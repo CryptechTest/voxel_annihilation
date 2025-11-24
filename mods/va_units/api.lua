@@ -1495,7 +1495,21 @@ end)
 
 ---------------------------------
 
-function va_units.cleanup_assets()
+function va_units.cleanup_assets(game)
+    if game then
+        local players = {}
+        for _, team in pairs(game.teams) do
+            for _, pname in pairs(team.players) do
+                players[pname] = true
+            end
+        end
+        for _, u in pairs(active_units) do
+            if players[u._owner_name] then
+                u._marked_for_removal = true
+            end
+        end
+        return
+    end
     for _, unit in pairs(active_units) do
         --mark for removal
         unit._marked_for_removal = true

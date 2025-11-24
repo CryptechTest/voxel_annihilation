@@ -521,7 +521,21 @@ end
 -----------------------------------------------------------------
 -- cleanup_assets
 
-va_structures.cleanup_assets = function()
+va_structures.cleanup_assets = function(game)
+    if game then
+        local players = {}
+        for _, team in pairs(game.teams) do
+            for _, pname in pairs(team.players) do
+                players[pname] = true
+            end
+        end
+        for _, s in pairs(_active_instances) do
+            if players[s._owner_name] then
+                s:dispose()
+            end
+        end
+        return
+    end
     for _, s in pairs(_active_instances) do
         s:dispose()
     end
