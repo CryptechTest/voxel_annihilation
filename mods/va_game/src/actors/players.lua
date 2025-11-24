@@ -133,6 +133,12 @@ end
 
 function va_game.calculate_player_actors()
     for player_name, actor in pairs(player_actors) do
+        local game = va_game.get_game_from_player(player_name)
+        if game then
+            if game:is_ending() then
+                return
+            end
+        end
         local sound = nil
         if actor.energy < 50 then
             sound = "va_game_amy_low_power"

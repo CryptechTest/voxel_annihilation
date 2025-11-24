@@ -851,6 +851,23 @@ local function get_pos_next(self)
     return self.object:get_pos()
 end
 
+local function destroy_unit(self, remove)
+    if not self.object then
+        return
+    end
+    local pos = self.object:get_pos()
+    local r = 1
+    if self._is_commander then
+        r = 8
+    end
+    va_structures.destroy_effect_particle(pos, r)
+    va_structures.explode_effect_sound(pos, r)
+    self._marked_for_removal = true
+    if remove then
+        self.object:remove()
+    end
+end
+
 function va_units.register_unit(name, def)
     units["va_units:" .. name] = def
     core.register_entity("va_units:" .. name, {
@@ -878,6 +895,7 @@ function va_units.register_unit(name, def)
         _can_repair = def.can_repair or false,
         _can_attack = def.can_attack or false,
         _is_commander = def.is_commander or false,
+        _destroy = destroy_unit,
         _command_queue = {},
         _command_queue_abort = def.command_abort_queue or abort_queue,
         _command_queue_abort_at = def.command_abort_queue_at or abort_queue_at,
@@ -1004,6 +1022,7 @@ function va_units.register_unit(name, def)
                     game:commander_destroy_alert(self._team_uuid)
                 end
             end
+            self:_destroy(false)
         end,
         get_staticdata = function(self)
             return (self._owner_name or "") ..
@@ -1128,8 +1147,6 @@ function va_units.register_unit(name, def)
                     end
                     return
                 end
-
-                
 
                 --check for objects that might be block the way
                 local objects = core.get_objects_inside_radius(next_pos, 1)

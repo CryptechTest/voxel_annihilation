@@ -38,12 +38,13 @@ function GameObject.new(pos, size, mode, name, pass)
     -- tick counter
     self.run_tick = 0
     self.run_tick_max = 4
+    self.end_tick = 4 * 3
     -- setup
     self.setup_index = 10 -- index of the setup step for the game
     self.start_index = 61 -- index of the start step for the game
     -- cleanup
     self.dispose_tick = 0
-    self.dispose_tick_max = 30
+    self.dispose_tick_max = 21
     self._disposing = false
     self._disposed = false
     -- flags
@@ -54,6 +55,8 @@ function GameObject.new(pos, size, mode, name, pass)
     self.started = false -- game has started
     self.stopped = false -- game has stoppped (no victor)
     self.paused = false -- game is paused
+    self.ending = false -- game is ending
+    self.cleared = false -- game board  is cleared
     self.ended = false -- game has ended (has victor)
     return self
 end
@@ -182,6 +185,31 @@ function GameObject:dispose()
     end
 end
 
+function GameObject:clean_board()
+    self.cleaned = true
+    local teams = self:get_teams()
+    for _, team in pairs(teams) do
+        for _, pname in pairs(team.players) do
+            if not self.victors[pname] then
+                local structures = va_structures.get_player_structures(pname)
+                if structures then
+                    for _, structure in pairs(structures) do
+                        structure:destroy()
+                    end
+                end
+                local units = va_units.get_player_units(pname)
+                if units then
+                    for _, unit in pairs(units) do
+                        if unit.object then
+                            unit.object:get_luaentity():_destroy(true)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 --- tick
@@ -242,11 +270,21 @@ function GameObject:tick(tick_index)
         return
     end
     ---------------------------------
+    if self.ending and not self.ended then
+        self.end_tick = self.end_tick - 1
+        if self.end_tick <= 0 then
+            self.ended = true
+        end
+        if not self.cleaned then
+            self.cleaned = true
+            core.after(0, function()
+                self:clean_board()
+            end)
+        end
+    end
     if self.stopped or self.ended then
-        core.after(5, function()
-            self:send_all_player_sound("va_game_amy_battle_ended")
-            self:update_lobby_ui()
-        end)
+        self:send_all_player_sound("va_game_amy_battle_ended")
+        self:update_lobby_ui()
         for _, p in pairs(self.players) do
             local player = core.get_player_by_name(p.name)
             if player then
@@ -262,10 +300,14 @@ function GameObject:tick(tick_index)
         -- game is paused...
         return
     end
+    if tick_index == 0 then
+        self.run_time = self.run_time + 1
+    end
     ---------------------------------
     -- tick game...
     self:tick_ctl()
     if tick_index == 0 then
+        self:update_lobby_ui()
         self:check_modes()
     end
 end
@@ -347,6 +389,14 @@ end
 
 function GameObject:set_ended(value)
     self.ended = value
+end
+
+function GameObject:is_ending()
+    return self.ending
+end
+
+function GameObject:set_ending(value)
+    self.ending = value
 end
 
 -- Getter and Setter for victors
@@ -500,11 +550,12 @@ local function emerge_callback(pos, action, num_calls_remaining, context)
     -- Increment number of blocks loaded
     context.loaded_blocks = context.loaded_blocks + 1
 
-    if context.loaded_blocks == 1 then
+    if context.loaded_blocks == 1 and not context.started then
         local msg = core.colorize("#ffdd5fff", ">> ")
         msg = msg .. core.colorize("#00f13cff", "Mapblock emerge area has started!")
         msg = msg .. "  " .. core.colorize("#979797ff", "Battlefield is warming up; Please wait...")
         context.game:send_all_player_msg(msg)
+        context.started = true
     end
 
     local now = core.get_us_time()
@@ -849,8 +900,8 @@ function GameObject:is_within_bounds(pos)
     local x = pos.x
     local y = pos.y
     local z = pos.z
-    --local minY = self.position.y - 32
-    --local maxY = self.position.y + self.size.height
+    -- local minY = self.position.y - 32
+    -- local maxY = self.position.y + self.size.height
     local minY = -32
     local maxY = 128
     local minX = self.position.x - self.size.width / 2
@@ -930,6 +981,9 @@ function GameObject:tick_ctl()
 end
 
 function GameObject:check_modes()
+    if self:is_ending() then
+        return
+    end
     if core.get_us_time() - self.start_time < 3 * 1000 * 1000 then
         return
     end
@@ -949,18 +1003,27 @@ function GameObject:check_modes()
     local player_count = 0
     local remaining = 0
     local commanders = {}
+    local constructors = {}
     local teams = {}
     for _, v in pairs(self.players) do
         player_count = player_count + 1
         local has_commander = false
         local units = va_units.get_player_units(v.name)
-        -- local units = va_units.get_all_units()
         for _, unit in pairs(units) do
-            if unit._owner_name == v.name then
-                if unit.object:get_luaentity()._is_commander == true then
-                    has_commander = true
-                    commanders[unit._owner_name] = true
-                    teams[unit._team_uuid] = true
+            local u_ent = unit.object:get_luaentity()
+            local owner_name = u_ent and u_ent._owner_name or nil
+            if owner_name and owner_name == v.name then
+                local team_uuid = u_ent._team_uuid
+                if not teams[team_uuid] then
+                    if u_ent._is_commander == true then
+                        has_commander = true
+                        constructors[owner_name] = true
+                        commanders[owner_name] = true
+                        teams[team_uuid] = true
+                    elseif (self.mode == 4 or self.mode == 5) and u_ent._can_build == true then
+                        constructors[owner_name] = true
+                        teams[team_uuid] = true
+                    end
                 end
             end
         end
@@ -972,10 +1035,10 @@ function GameObject:check_modes()
         if remaining <= 1 and player_count > 1 then
             for key, value in pairs(commanders) do
                 if value then
-                    table.insert(self.victors, key)
+                    self.victors[key] = true
                 end
             end
-            self:set_ended(true)
+            self:set_ending(true)
         end
     elseif self.mode.id == 2 or self.mode.id == 3 then
         local team_count = 0
@@ -989,10 +1052,32 @@ function GameObject:check_modes()
         elseif team_count <= 1 then
             for key, value in pairs(commanders) do
                 if value then
-                    table.insert(self.victors, key)
+                    self.victors[key] = true
                 end
             end
+            self:set_ending(true)
+        end
+    elseif self.mode.id == 4 or self.mode.id == 5 then
+        local team_count = 0
+        for uuid, v in pairs(teams) do
+            if v then
+                team_count = team_count + 1
+            end
+        end
+        if player_count == 0 then
             self:set_ended(true)
+        elseif team_count <= 1 then
+            for key, value in pairs(constructors) do
+                if value then
+                    self.victors[key] = true
+                end
+            end
+            self:set_ending(true)
+        end
+    end
+    if self:is_ending() then
+        for k, v in pairs(self.victors) do
+            core.chat_send_player(k, core.colorize("#1AFF39","You have won the match!"))
         end
     end
 end

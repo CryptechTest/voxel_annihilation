@@ -23,7 +23,7 @@ function va_game.init_game_from_lobby(lobby)
     game.update_lobby_ui = lobby.update_lobby
     game.dipose_lobby_game = lobby.dipose_game
 
-    if mode.id == 3 then
+    if mode.id == 3 or mode.id == 5 then
         -- add teams to the game object for ffa
         for i, pname in ipairs(lobby.players) do
             game:add_team(i, {
