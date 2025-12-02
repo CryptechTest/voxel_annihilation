@@ -481,7 +481,8 @@ function GameObject:add_player(player_name, team_uuid, faction, is_boss)
         selected_menu = "none",
         placed = false,
         ready = false,
-        spawn_pos = self:get_pos()
+        spawn_pos = self:get_pos(),
+        sound_last_played = {}
     }
 end
 
@@ -1082,23 +1083,54 @@ function GameObject:check_modes()
     end
 end
 
+
+function GameObject:play_sound_effect(player, sound)
+    local player_name = player:get_player_name()
+    local g_player = self:get_player(player_name)
+    if not g_player then
+        return
+    end
+    local last_played = g_player.sound_last_played[sound] or 0
+    local now = core.get_us_time()
+    if now - last_played < 5 * 1000 * 1000 then
+        return
+    end
+    g_player.sound_last_played[sound] = now
+    core.sound_play("va_game_" .. sound, {
+        gain = 1.0,
+        pitch = 1.0,
+        to_player = player_name
+    })
+end
+
+function GameObject:play_voiceline(player, sound)
+    local player_name = player:get_player_name()
+    local g_player = self:get_player(player_name)
+    if not g_player then
+        return
+    end
+    local last_played = g_player.sound_last_played[sound] or 0
+    local now = core.get_us_time()
+    if now - last_played < 15 * 1000 * 1000 then
+        return
+    end
+    g_player.sound_last_played[sound] = now
+    core.sound_play("va_game_amy_" .. sound, {
+        gain = 1.0,
+        pitch = 1.0,
+        to_player = player_name
+    })
+end
+
 function GameObject:commander_destroy_alert(team_uuid)
     for _, team in pairs(self.teams) do
         for _, pname in pairs(team.players) do
             local player = core.get_player_by_name(pname)
             if player then
                 if team.uuid == team_uuid then
-                    core.sound_play("va_game_amy_friendly_commander_died", {
-                        gain = 1.0,
-                        pitch = 1.0,
-                        to_player = pname
-                    })
+                    self:play_voiceline(player, "friendly_commander_died")
                 else
-                    core.sound_play("va_game_amy_enemy_commander_died", {
-                        gain = 1.0,
-                        pitch = 1.0,
-                        to_player = pname
-                    })
+                    self:play_voiceline(player, "enemy_commander_died")
                 end
             end
         end

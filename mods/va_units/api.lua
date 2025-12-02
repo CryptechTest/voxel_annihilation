@@ -961,16 +961,28 @@ function va_units.register_unit(name, def)
 
             local new_hp = hp - punch_damage
             self.object:set_hp(new_hp)
-
-            -- Optionally, play a hit sound or effect here
+            local owner = core.get_player_by_name(self._owner_name)
+            local game = va_game.get_game_from_player(self._owner_name)
+            if game and owner then
+                game:play_sound_effect(owner, "alarm")
+                if self._is_commander then
+                    local commander_health = self.object:get_hp() / (def.hp_max or 1)
+                    if commander_health <= 0.5 then
+                        game:play_voiceline(owner, "commmander_heavy_damage")
+                    else
+                        game:play_voiceline(owner, "commander_under_attack")
+                    end
+                else
+                    game:play_voiceline(owner, "unit_under_attack")
+                end
+            end
 
             -- Remove unit if HP is zero or less
             if self.object:get_hp() <= 0 then
                 --core.log("Unit removing...")
                 if self._is_commander then
                     --core.log("is_commander")
-                    local owner = self._owner_name
-                    local game = va_game.get_game_from_player(owner)
+                    
                     if game then
                         --core.log("destroy alert!")
                         game:commander_destroy_alert(self._team_uuid)
