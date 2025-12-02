@@ -246,9 +246,9 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         local range = 48
         local _target = s_obj._last_target or s_obj:find_target({range = range, thres_blocked = 8})
         local target = _target and _target.obj or nil
-        if target and not s_obj._target_locked then
+        if target and target.get_pos and not s_obj._target_locked then
             s_obj._last_target = target
-           do_turret_rotation(s_obj, target)
+           do_turret_rotation(s_obj, target:get_pos())
         end
     elseif run_stage == "main" then
         -- main run

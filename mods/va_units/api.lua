@@ -352,6 +352,9 @@ local function find_free_ground(unit, target, search_radius)
     end
 
     local function find_random_ground(pos, r)
+        if not pos then
+            return nil
+        end
         local x = math.random(-r, r)
         local z = math.random(-r, r)
         local y = 0
@@ -359,6 +362,7 @@ local function find_free_ground(unit, target, search_radius)
         if is_free_pos(r_pos) then
             return r_pos
         end
+        return nil
     end
 
     if unit._target_pos == nil and target then
@@ -372,6 +376,9 @@ local function find_free_ground(unit, target, search_radius)
     end
 
     local last_pos = get_free_pos(find_ground(target))
+    if last_pos == nil then
+        return found_pos
+    end
     while found_pos == nil and attempts < attempt_max do
         attempts = attempts + 1
         local pos = find_random_ground(last_pos, attempts)
@@ -1163,7 +1170,7 @@ function va_units.register_unit(name, def)
                 end
                 -- If there are blocking objects, try to move sideways to go around
                 if #objects > 0 then
-                    core.chat_send_player(self._owner_name, "Blocked by objects, trying to sidestep.")
+                    --core.chat_send_player(self._owner_name, "Blocked by objects, trying to sidestep.")
                     local p = self.object:get_pos()
                     local dir_vector = vector.subtract(next_pos, p)
                     local right_vector = vector.new(-dir_vector.z, 0, dir_vector.x)
@@ -1210,11 +1217,11 @@ function va_units.register_unit(name, def)
                                     break
                                 end
                             end
-                            core.chat_send_player(self._owner_name,
+                            --[[core.chat_send_player(self._owner_name,
                                 string.format(
                                 "Sidestep attempt %d (offset=%.2f,%.2f,%.2f y_offset=%d): node_free=%s, node_above_free=%s, object_free=%s",
                                     attempt, offset.x, offset.y, offset.z, y_offset, tostring(node_free),
-                                    tostring(node_above_free), tostring(object_free)))
+                                    tostring(node_above_free), tostring(object_free)))]]
                             if node_free and node_above_free and object_free then
                                 next_pos = {
                                     x = node_pos.x + 0.5,
@@ -1222,8 +1229,8 @@ function va_units.register_unit(name, def)
                                     z = node_pos.z + 0.5
                                 }
                                 sidestep_found = true
-                                core.chat_send_player(self._owner_name,
-                                    "Sidestepping to " .. next_pos.x .. ", " .. next_pos.y .. ", " .. next_pos.z)
+                                --core.chat_send_player(self._owner_name,
+                                --    "Sidestepping to " .. next_pos.x .. ", " .. next_pos.y .. ", " .. next_pos.z)
                                 break
                             end
                             attempt = attempt + 1

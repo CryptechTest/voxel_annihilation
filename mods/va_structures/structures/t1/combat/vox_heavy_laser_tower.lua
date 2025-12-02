@@ -232,8 +232,10 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         })
         local target = _target and _target.obj or nil
         if target and not s_obj._target_locked then
-            s_obj._last_target = target
-            do_turret_rotation(s_obj, target)
+            if target.obj and target.obj.get_pos then
+                s_obj._last_target = target
+                do_turret_rotation(s_obj, target.obj:get_pos())
+            end
         end
     elseif run_stage == "main" then
         local meta = core.get_meta(pos)

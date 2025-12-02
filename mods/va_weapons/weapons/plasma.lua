@@ -403,7 +403,7 @@ va_weapons.register_weapon("plasma", {
                     --plasma_entity:set_rotation({x = launch_vector.pitch, y = launch_vector.yaw, z = 0})
                 end
                 local size = math.max(0.05, math.min(0.667, 0.05 + (base_damage / 100) * (0.667 - 0.05)))
-                core.chat_send_all("base_damage: " .. tostring(base_damage) .. " size:" .. tostring(size))
+                --core.chat_send_all("base_damage: " .. tostring(base_damage) .. " size:" .. tostring(size))
                 plasma_entity:set_properties({ visual_size = { x = size, y = size }, collisionbox = { -size/3, -size/3, -size/3, size/3, size/3, size/3 } })
                 local attached = plasma_entity:get_luaentity().object or plasma_entity
                 -- DEBUG: spawn particles at shooter's position to verify spawner works

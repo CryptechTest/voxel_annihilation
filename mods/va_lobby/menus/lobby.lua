@@ -31,7 +31,8 @@ local function get_lobby_setup(owner, mode)
     pwdfield[0.75,2.4;7,1;password;Password (optional)]
     style_type[label;font_size=16;font=bold]
     label[0.5,2.9;Mode]
-    dropdown[0.465,3.3;3.5;mode;Wave Defense,Assassination Teams,Assassination FFA,Annihilation Teams,Annihilation FFA;]] .. mode .. [[;true]
+    dropdown[0.465,3.3;3.5;mode;Wave Defense,Assassination Teams,Assassination FFA,Annihilation Teams,Annihilation FFA;]] ..
+        mode .. [[;true]
     field[0.75,4.6;3.5,1;game_position;Lobby Position;]] .. math.floor(pos.x) .. [[ ]] .. math.floor(pos.y) .. [[ ]] ..
         math.floor(pos.z) .. [[]
     label[4,3.99;Map Size]
@@ -195,6 +196,8 @@ local function get_lobby(owner)
         local bgcolor = "#00FFEA"
         table.insert(formspec, "style[spectate_start;bgcolor=" .. bgcolor .. "]")
         table.insert(formspec, "button[2.25,7.5;2,0.5;spectate_start;Spectate]")
+        table.insert(formspec, "style_type[label;font_size=16;font=bold]")
+        table.insert(formspec, "label[5.75,6.75;Spectators: " .. #lobby.spectators .. "]")
     end
 
     local g_mode = "Unknown"

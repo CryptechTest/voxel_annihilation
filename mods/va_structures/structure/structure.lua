@@ -357,6 +357,9 @@ function Structure:dequeue_materialize_ghost()
     local pos = self.pos
     local owner = self.owner
     local ent_ghost = self.entity_obj:get_luaentity()
+    if not ent_ghost then
+        return
+    end
     local param2 = ent_ghost._param2
     -- get command queue for constructor from entity ghost
     local queue = va_structures.get_unit_command_queue(ent_ghost._constructor_id)
