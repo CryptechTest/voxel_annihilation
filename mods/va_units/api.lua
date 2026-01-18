@@ -1386,7 +1386,7 @@ function va_units.register_unit(name, def)
                 pos.y = pos.y + 1
 
                 local team_uuid = nil
-                local actor = va_game.get_player_actor(place:get_player_name())
+                local actor = va_game.get_player_actor(placer:get_player_name())
                 if actor then
                     team_uuid = actor.team
                 end

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/LLS-Addons/main/schemas/addon_config.schema.json",
+  "words": [
+    "[lL]uanti",
+    "[mM]inetest",
+    "[fF]ormspec",
+    "ABM",
+    "[aA]bm",
+    "LBM",
+    "[lL]bm"
+  ],
+  "workspace": {
+    "library": ["/home/squid/DEV/luanti_lsp_definitions/library/"],
+    "workspaceRoots": ["/home/squid/.minetest/games/voxel_annihilation/"],
+    "globalVars": ["minetest"]
+  },
+
+  "diagnostics": {}
+}

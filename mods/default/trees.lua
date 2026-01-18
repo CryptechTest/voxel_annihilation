@@ -205,7 +205,7 @@ function default.grow_pine_tree(pos)
 	local c_ignore = core.get_content_id("ignore")
 	local c_pine_tree = core.get_content_id("default:pine_tree")
 	local c_pine_needles  = core.get_content_id("default:pine_needles")
-
+	local c_snow = core.get_content_id("default:snow")
 
 	local vm = core.get_voxel_manip()
 	local minp, maxp = vm:read_from_map(
@@ -223,8 +223,7 @@ function default.grow_pine_tree(pos)
 			local via = a:index(x - dev, yy + 1, zz)
 			for xx = x - dev, x + dev do
 				if random() < 0.95 - dev * 0.05 then
-					add_pine_needles(data, vi, c_air, c_ignore, c_snow,
-						c_pine_needles)
+					add_pine_needles(data, vi, c_air, c_ignore, c_pine_needles)
 					
 				end
 				vi  = vi + 1

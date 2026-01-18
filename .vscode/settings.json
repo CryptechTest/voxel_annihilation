@@ -5,6 +5,7 @@
         "dump",
         "ItemStack",
         "VoxelArea",
-        "VoxelManip"
+        "VoxelManip",
+        "minetest"
     ]
 }
