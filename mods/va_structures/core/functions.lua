@@ -317,7 +317,7 @@ va_structures.particle_build_effects = particle_build_effects
 -----------------------------------------------------------------
 
 local function spawn_build_beam_particles(pos, texture, _dir, dist, count)
-    local grav = 1;
+    local grav = 1.0;
     if (pos.y > 4000) then
         grav = 0.4;
     end
@@ -415,7 +415,7 @@ local function spawn_build_beam_particles(pos, texture, _dir, dist, count)
 end
 
 local function spawn_reclaim_beam_particles(pos, texture, _dir, dist, count)
-    local grav = 1;
+    local grav = 1.0;
     if (pos.y > 4000) then
         grav = 0.4;
     end
@@ -761,7 +761,7 @@ end
 
 
 local function reclaim_effect_particle(pos, texture, _dir, dist, size, count, r)
-    local grav = 1;
+    local grav = 1.0;
     if (pos.y > 4000) then
         grav = 0.4;
     end

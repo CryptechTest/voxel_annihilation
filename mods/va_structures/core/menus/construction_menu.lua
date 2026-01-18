@@ -188,7 +188,7 @@ local function get_formspec(list_name, player_name, unit_id)
             local menu_item = get_item(items, i)
             if menu_item then
                 local s_def = core.registered_nodes[menu_item.name]
-                if s_def then
+                if s_def ~= nil then
                     local entry = {
                         index = menu_item.item.index,
                         desc = s_def.description,

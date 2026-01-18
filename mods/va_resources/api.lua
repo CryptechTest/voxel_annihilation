@@ -207,6 +207,7 @@ local function get_reclaim_value(node)
                 mass = value.mass * rock_mass,
                 energy = value.energy * rock_energy
             }
+---@diagnostic disable-next-line: unnecessary-if
         elseif key == "va_gems" and core.get_item_group(node.name, key) > 0 then
             local gem_lvl = core.get_item_group(node.name, key)
             return {

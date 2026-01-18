@@ -13,7 +13,7 @@ local ent_name = "va_resources:resource_geo_indicator"
 local function add_resource_indicator(pos)
     local objs = core.get_objects_inside_radius(pos, 0.05)
     for _, obj in pairs(objs) do
-        if obj:get_luaentity() then
+        if obj.get_luaentity and obj:get_luaentity() then
             local ent = obj:get_luaentity()
             if ent.name == ent_name then
                 obj:remove()

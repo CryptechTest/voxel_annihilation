@@ -167,7 +167,7 @@ local function build_active_structure_cache()
     for k, v in pairs(_active_instances) do
         local hash = core.hash_node_position(v.pos)
         local id = v:get_id()
-        if id and hash then
+        if id ~= nil and hash then
             _active_instances_index[id] = hash
         end
     end
@@ -416,7 +416,7 @@ function va_structures.add_construction_menu(menu_name, def)
         if (fields.close_me or fields.quit) then
             return
         end
-        if unit_id then
+        if unit_id ~= nil then
             local refresh_form = false
             if def.on_receive_fields then
                 refresh_form = def.on_receive_fields(unit_id, player, formname, fields)
@@ -450,9 +450,9 @@ function va_structures.check_collision(pos)
     local colliding_with = nil
     for _, obj in ipairs(objects) do
         if obj ~= nil and not obj:is_player() then
-            local ent = obj:get_luaentity()
+            local ent = obj.get_luaentity and obj:get_luaentity() or nil
             -- check if structure
-            if ent._is_va_structure then
+            if ent and ent._is_va_structure then
                 local structure = va_structures.get_active_structure(obj:get_pos())
                 -- check collision
                 if structure and structure:collides(pos) then
