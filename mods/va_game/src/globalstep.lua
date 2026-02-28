@@ -30,3 +30,27 @@ core.register_globalstep(function(dtime)
     end
 
 end)
+
+core.register_lbm({
+    label = "Cleanup Board Barriers",
+    name = "va_game:game_board_cleanup",
+    nodenames = {"va_game:board_barrier", "barrier:barrier", "bedrock2:bedrock"},
+    run_at_every_load = true,
+    action = function(pos, node, dtime_s) 
+
+        local meta = core.get_meta(pos)
+
+        local game_id = meta:get_int("game_id")
+        if game_id == nil then return end
+
+        local prior_def = core.deserialize(meta:get_string("prior_def"))
+        if prior_def == nil then return end
+
+        local game = va_game.get_game(game_id)
+
+        if game == nil then
+            core.set_node(pos, prior_def)
+        end
+    
+    end,
+})

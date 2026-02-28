@@ -656,6 +656,7 @@ function GameObject:setup_bounding_box()
             return
         end
         core.load_area(pos)
+        local game_id = self:get_id()
         local node = core.get_node(pos)
         if node.name == "va_game:board_barrier" then
             return
@@ -666,11 +667,33 @@ function GameObject:setup_bounding_box()
             name = node.name,
             param2 = node.param2
         }
+        local prior_def = {
+            name = node.name,
+            param1 = node.param1,
+            param2 = node.param2
+            -- TODO: metadata?
+        }
         core.set_node(pos, {
             name = "bedrock2:bedrock"
         })
-        local meta = core:get_meta(pos)
-        meta:set_string("game_id", self.id)
+        local meta = core.get_meta(pos)
+        meta:set_int("game_id", game_id)
+        meta:set_string("prior_def", core.serialize(prior_def))
+    end
+    local function add_map_barrier(pos, name)
+        local game_id = self:get_id()
+        local node = core.get_node(pos)
+        local prior_def = {
+            name = node.name,
+            param2 = node.param2
+            -- TODO: metadata?
+        }
+        core.set_node(pos, {
+            name = name
+        })
+        local meta = core.get_meta(pos)
+        meta:set_int("game_id", game_id)
+        meta:set_string("prior_def", core.serialize(prior_def))
     end
     -- TODO: setup for other map heights
     local minY = -32 -- math.max(-32, self.position.y - 32)
@@ -710,31 +733,23 @@ function GameObject:setup_bounding_box()
                 }
                 if y % 10 == 0 or x == minX or x == maxX then
                     if core.get_node(pos1).name == "air" then
-                        core.set_node(pos1, {
-                            name = "va_game:board_barrier"
-                        })
+                        add_map_barrier(pos1, "va_game:board_barrier")
                     else
                         add_map_object(pos1)
                     end
                     if core.get_node(pos2).name == "air" then
-                        core.set_node(pos2, {
-                            name = "va_game:board_barrier"
-                        })
+                        add_map_barrier(pos2, "va_game:board_barrier")
                     else
                         add_map_object(pos2)
                     end
                 else
                     if core.get_node(pos1).name == "air" then
-                        core.set_node(pos1, {
-                            name = "barrier:barrier"
-                        })
+                        add_map_barrier(pos1, "barrier:barrier")
                     else
                         add_map_object(pos1)
                     end
                     if core.get_node(pos2).name == "air" then
-                        core.set_node(pos2, {
-                            name = "barrier:barrier"
-                        })
+                        add_map_barrier(pos2, "barrier:barrier")
                     else
                         add_map_object(pos2)
                     end
@@ -753,31 +768,23 @@ function GameObject:setup_bounding_box()
                 }
                 if y % 10 == 0 or z == minZ or z == maxZ then
                     if core.get_node(pos3).name == "air" then
-                        core.set_node(pos3, {
-                            name = "va_game:board_barrier"
-                        })
+                        add_map_barrier(pos3, "va_game:board_barrier")
                     else
                         add_map_object(pos3)
                     end
                     if core.get_node(pos4).name == "air" then
-                        core.set_node(pos4, {
-                            name = "va_game:board_barrier"
-                        })
+                        add_map_barrier(pos4, "va_game:board_barrier")
                     else
                         add_map_object(pos4)
                     end
                 else
                     if core.get_node(pos3).name == "air" then
-                        core.set_node(pos3, {
-                            name = "barrier:barrier"
-                        })
+                        add_map_barrier(pos3, "barrier:barrier")
                     else
                         add_map_object(pos3)
                     end
                     if core.get_node(pos4).name == "air" then
-                        core.set_node(pos4, {
-                            name = "barrier:barrier"
-                        })
+                        add_map_barrier(pos4, "barrier:barrier")
                     else
                         add_map_object(pos4)
                     end
