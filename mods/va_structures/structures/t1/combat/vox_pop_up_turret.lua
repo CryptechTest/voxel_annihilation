@@ -247,7 +247,7 @@ local function find_target(structure, dist, net)
     for _, obj in pairs(objs) do
         local o_pos = obj:get_pos()
         if vector.distance(pos, o_pos) < dist + 1 then
-            if obj:get_luaentity() then
+            if obj.get_luaentity and obj:get_luaentity() then
                 local ent = obj:get_luaentity()
                 if ent._is_va_unit then
                     if ent._team_uuid ~= structure.team_uuid then
@@ -360,6 +360,10 @@ local vas_run = function(pos, node, s_obj, run_stage, net)
         end
 
         if target and target.get_pos and s_obj._out_index > 3 and s_obj._fire_index == 0 then
+            if target:get_pos() == nil then
+                s_obj._last_target = nil
+                return
+            end
             s_obj._last_target = target
             s_obj._out_index = 5
             s_obj._fire_index = 2

@@ -24,6 +24,9 @@ end
 va_structures.util.randFloat = randFloat
 
 local function calculatePitch(vector1, vector2)
+    if not vector1 or not vector2 then
+        return 0, 0
+    end
     -- Calculate the difference vector
     local dx = vector2.x - vector1.x
     local dy = vector2.y - vector1.y
@@ -39,6 +42,9 @@ end
 va_structures.util.calculatePitch = calculatePitch
 
 local function calculateYaw(vector1, vector2)
+    if not vector1 or not vector2 then
+        return 0, 0
+    end
     -- Calculate yaw for each vector
     ---@diagnostic disable-next-line: deprecated
     local yaw = math.atan2(vector1.x - vector2.x, vector1.z - vector2.z)
