@@ -185,8 +185,8 @@ end
 
 -- Structure metadata definition setup
 local def = {
-    mesh = "va_vox_geothermal_plant_1.gltf",
-    textures = {"va_vox_geo_plant_1.png"},
+    mesh = "va_vox_geothermal_plant_2.gltf",
+    textures = {"va_vox_geo_plant_2.png"},
     collisionbox = {-0.8, -0.5, -0.8, 0.8, 1.1, 0.8},
     max_health = 194,
     mass_cost = 56,
